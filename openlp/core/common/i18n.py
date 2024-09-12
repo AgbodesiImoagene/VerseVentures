@@ -311,8 +311,9 @@ class LanguageManager(object):
         qm_files = LanguageManager.find_qm_files()
         for counter, qmf in enumerate(qm_files):
             reg_ex = QtCore.QRegularExpression("^.*i18n/(.*).qm")
-            if reg_ex.exactMatch(qmf):
-                name = '{regex}'.format(regex=reg_ex.cap(1))
+            match = reg_ex.match(qmf)
+            if match.hasMatch():
+                name = '{regex}'.format(regex=match.captured(1))
                 LanguageManager.__qm_list__[
                     '{count:>2d} {name}'.format(count=counter + 1, name=LanguageManager.language_name(qmf))] = name
 
