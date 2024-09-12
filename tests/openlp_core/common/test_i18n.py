@@ -172,7 +172,7 @@ def test_check_same_instance():
     assert first_instance is second_instance, 'Two UiStrings objects should be the same instance'
 
 
-@patch('PyQt5.QtCore.QLocale')
+@patch('PySide6.QtCore.QLocale')
 def test_get_language_from_settings(MockQLocale: MagicMock, settings: Settings):
     """
     Test that getting the language from settings returns the system locale
