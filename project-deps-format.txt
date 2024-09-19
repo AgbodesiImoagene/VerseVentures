@@ -1,0 +1,580 @@
+
+This file describes the format for the "project-deps.json" file.
+
+The "project-deps.json" file is used to set what modules are
+required for your project that are not included in the
+Python standard library.
+
+Note on repositories:
+    Some repositories may require extra repositories
+    to be enabled before finding the module.
+
+    In order to install these modules, you must enable
+    the extra repositor[y|ies] in order to find those
+    modules.
+
+    Example:
+        RedHat Fedora
+        vlc and python3-vlc are part of rpmfusion-free repository.
+
+Note on the JSON file format:
+    This file will use a variation of the condensed version
+    of the JSON format for brevity.
+
+    When editing the JSON file, ensure that it meets
+    JSON file format expected by your language JSON import
+    module, otherwise the file will be rejected and a note
+    in the log file will be entered.
+
+    See the example at the end for a properly-formatted JSON
+    file that the Python language expects.
+
+EDITING JSON FILE NOTES:
+
+    The format for the JSON file is strict. When editing,
+    ensure that you use the correct format!
+
+    To edit a field that requires a string, use "string" (double-quotes).
+        "name": "string"
+
+    - Each entry is on a separate line
+    - If there are more fields in a section, ensure there is a "," (comma).
+    - If there are no more field in a section, ensure there is NO comma.
+    - When a multi-line section is added, no text on the same line as
+      the brackets/braces.
+    - Braces indicate a dictionary item. Dictionaries require a
+      "key": "value" entry separated by a ":" (colon)
+    - Brackets indicate a list item. Lists are single values
+      separated by a "," (comma).
+
+        "modules": {                  <-- Open brace - Begin a dictionary item "modules"
+            "PyQt5": {                <-- Open brace - Begin a dictionary item "PyQt5"
+                "status": "string",   <-- Comma indicates more entries
+                "check": "string",
+                "version": [          <-- Open bracket - Begin a list item "version"
+                    "3.6",            <-- Comma indicates more entries
+                    "3.8"             <-- No comma indicates no more entries
+                    ]                 <-- Closing bracket - end of list item "version"
+            },                        <-- Closing brace - end of dictionary item "PyQt5"
+            "sqlalchemy": {
+                "status": "string",
+                "check": "string"
+                "version": [
+                    "3.8"
+                    ],                <-- Comma indicates another entry
+                "base": "path/"       <-- No comma, last entry for "sqlalchemy"
+            }                         <-- Closing bracket - End of dictionary item "sqlalchemy"
+        }                             <-- Closing bracket - End of dictionary item "modules"
+
+The basic format is as follows:
+
+    {
+        "version"         : integer,
+        "name"            : string,
+        "proper"          : string | null,
+        "project_version" : string | null,
+        "git_version"     : string | null,
+        "language"        : dictionary,
+        "groups"          : dictionary,
+        "modules"         : dictionary,
+    }
+
+"version"          : Version of the json file format.
+                     Should only be set by developer of the check script.
+
+"name"             : Your project name. This key is the directory name
+                     where your project source files are located.
+                     ex: "name": "openlp"
+                        Indicates your project directory is <base_directory>/openlp
+
+"proper"           : Proper name of your project as used in documentation.
+                     ex: "proper": "OpenLP"
+                     May be 'null'
+
+"project_version"  : Project version. Will be filled from the
+                     "name"/.version file.
+                     ex. "1.0"
+                     May be 'null'
+
+"git_version"      : If the directory is a Git repo, will be filled
+                     from the git command.
+                     May be 'null'
+
+"language"         : Your executable environment.
+                     See "Language Format" below for details.
+
+"groups"           : Optional field for specifying multiple modules
+                     that can satisfy a group selection.
+                     See "Groups Format" below for details.
+
+"modules"          : Dictionary of dependencies for your project.
+                     See "Modules Format" below for details.
+
+
+---------------
+Language Format
+---------------
+
+At this time, only "python" language field is supported.
+
+Format for the "language" field are as follows:
+
+        "language" : { <language>: options,
+                       ...
+                      }
+
+For each <language> entry the format is:
+
+            <language>: { "version": list,
+                          "base"   : string   # Optional - developer(s) use only
+                        }
+
+language:  Environment language.
+           ex. "python"
+
+"version"   : A list indicating ["<min>", "<max>"] language version
+              that the project requires.
+              "<max>", if specified, indicates the last version
+              of the language that the project can use>
+              ex:
+                "python": {"version": ["3.6"]}
+
+                     Indicates that your project uses the "python" language
+                     and will run with Python version 3.6 or later.
+
+                "python": {"version": ["3.6", "3.9"]}
+
+                     Indicates that your project uses the "python" language
+                     and will only run with Python, but restricted to
+                     Python version from 3.6 through version 3.9.
+
+"base"      : Set at script execution time, indicates the base directory
+              of the language environment. Used by project developers.
+
+-------------
+Groups Format
+-------------
+
+The "groups" section allows developer(s) to specify a group of
+modules, any one of which will satisfy this dependency.
+
+              Example:
+                  "groups": { "db": {"name": <display name for gruop>,
+                                     "status": "required",
+                                     "group": "select"}
+                            },
+                  "modules": {
+                                "pymysql": {"group": "db",
+                                            "notes": "MySQL/MariaDB DB Interface",
+                                            "redhat": "python3-pymysql",
+                                            "pypi": "PyMySQL"
+                                            },
+                                "sqlite3": {"group": "db",
+                                            "notes": "SQLite3 DB Interface"
+                                            },
+                             }
+
+                In this example, the group "db" is reuqired, but either
+                "pymysql" or "sqlite3" will satisfy the dependency.
+
+--------------
+Modules Format
+--------------
+
+The modules field is used to verify project required modules
+against the installed modules.
+
+The "modules": <module> key must match the module name exactly.
+Example: "pyqt5" module name does not match "PyQt5" module name
+that is expected by the language scheme.
+
+In the case that 'project-deps.json' is not found:
+
+    The check script will create a 'project-deps.json' file
+    listing all of the found dependencies in the project.
+
+    It is up to the developer(s) to edit the created file
+    to indicate what the check script requires to validate
+    the project dependencies.
+
+    The "status" field will be created with '###-UNKNOWN-###'
+    as an indicator for the developer(s) and will include a
+    'check' field to indicate either:
+        '###-3RD-PARTY-###' - Module is installed.
+                              Normally found in the 'site-packages'
+                              directory of the language.
+        '###-UNKNOWN-###'   - Module is not installed.
+                              Usually indicates that the module may be
+                              o/s-dependent and the check script was
+                              run on a different o/s.
+
+    If the developer(s) decide that the listed module does not affect the
+    operation of the project or is part of another package, the <module> entry
+    may be deleted from the "modules" field.
+
+    Normally, a repository package consists of one module.
+
+    Example 1 would be:
+        Repo package = "python3-package1" contains module "module1".
+
+    Example 2 would be:
+        Repo package = "python3-packge2" contains modules "module2" and "module3"
+
+    Example 3 would be:
+        Module "module4" is part of a package that provides it's own python modules.
+
+    In example 1, "module1" would be satisfied by installing "python3-package1",
+
+    In example 2, "module2" and "module3" would be satisfied by installing "python3-package2",
+    so if "module2" and "module3" are both required and the developer(s) know that
+    both "module2" and "module3" will be part of the installed package, the developer(s)
+    can add "module2" and remove "module3" from the JSON spec.
+
+    In example3, some interfaces are not part of python or available via PyPI due
+    to the python interface being provided by some other o/s package.
+    Current examples inclued LibreOffice and OpenOffice and the "com.sun.star" module.
+
+Although built-in and standard library modules are normally excluded from
+the module list, if one of the standard library modules can be used in a
+group entry, it is recommended to include the standard library module in
+the module list as well.
+
+For example:
+    "SQLite3" is a standard library module.
+    "PyMySQL" is a 3rd party module.
+
+If you have a "DB" (database) group that "PyMySQL" is part of, and
+"SQLite3" may be substituted for PyMySQL, then add the standard library
+"SQLite3" entry in the "modules" section.
+
+See "Groups Format" section above for an example.
+
+The format for the modules field are as follows:
+
+    "modules" : { <module>: options,
+                  <module>: options,
+                  ...
+                }
+
+For each <module> entry the format is:
+
+        <module>:  {"status"   : string,
+                    "group"    : string,     # Optional
+                    "os"       : string,     # Optional
+                    "version"  : list,       # Optional
+                    "vmod"     : string,     # Optional
+                    "vfunc"    : string,     # Optional - "vstr" takes precedence.
+                    "vstr"     : string,     # Optional
+                    "notes"    : string,     # Optional
+                    "repo"     : dictionary, # Optional
+                    "subs"     : dictionary  # Optional
+                    }
+
+"status"    : The status of the module.
+              "status" will be set to "required" if missing.
+
+              Valid options for "status" are:
+                "required" - Module must be installed.
+                             Project will not run if this module is not
+                             installed.
+
+                "optional" - Module is not required.
+                             If module is installed, extra
+                             functionality may be enabled.
+
+                "testing"  - Module is only used for unit testing.
+                             If specified, then it must be installed
+                             in order to run unit tests.
+
+                "ignore"   - Ignore module from checks. There should
+                             be an included "notes" field for clarification
+                             on why module is ignored.
+
+"group"     : See "Groups Format" for description.
+              If both "group" and "status" entries are listed, the "status"
+              entry is ignored.
+
+"os"        : If added, specifies that this module is only supported if
+              running the project on the specific o/s.
+
+              Example:
+
+                    "vlc": {"status": "required"},
+                    "distro": {"status": "required",
+                               "os": "linux"
+                               },
+                    "AppKit": {"status": "required",
+                               "os": "darwin"
+                               },
+                    "pywintypes": {"status": "required",
+                                   "os": "win"
+                                   }
+
+                "vlc" is required regardless of o/s
+                "distro" is required, but only if running on Linux
+                "AppKit" is required, but only if running on Apple MAC (darwin)
+                "pywintypes" is required, but only if running on Windows
+
+"version"   : If added, has the same meaning as "language": {"version"}.
+              By default, will look for "<mod>.__version__" to verify version string.
+              information. If <mod>.__version__ is not availalbe or is not in
+              the standard format, add "vfunc" or "vstr" field to validate
+              version information.
+
+"vmod"      : If given, the module where vstr or vfunc can be found.
+              Only needed if vfunc or vstr is not in the dependent module.
+              (ex: module="PyQt5", vmod="PyQt5.QtCore", vfunc="qVersion")
+
+"vfunc"     : If given, name of function to call to retrieve version information.
+              Function shall return a string in std format (ex: "3.9" or "3.9.1").
+
+"vstr"      : If given, name of variable that contains a standard version
+              string (ex: "3.9" or "3.9.1")
+
+"notes"     : Developer(s) notes about this module
+
+"repo"      : If added, the key is the repository where the module may be found,
+              and the text is the package module name for that repository.
+              Informational field only at this time.
+
+              Example:
+
+                    "vlc": {"repo": {"redhat": "python3-vlc",
+                                     "pypi": "python-vlc"
+                                     },
+                            }
+
+            Python:
+                "pypi" if added, the package may be found at Python Package Index repository.
+
+            Linux:
+                "debian" if added, the package may be found in a Debian-style repository.
+                "redhat" if added, the package may be found on a RedHat-style repository.
+
+            Mac:
+                "brew" if added, the package may be found in the Home Brew repository.
+                "macports" if added, the package may be found in the MacPorts repository.
+
+            Note:
+                O/S-specific repositories are normally recommended over PyPI if available.
+
+"subs"      : Sub-module dependencies may be listed under here.
+              Example:
+
+                    "PyQt5": {"version": ["5.12"],
+                              "status": "required",
+                              "subs": {"Qt": {"status": "required"
+                                              "version": ["5.9"],},
+                                       "QtGui": {"status": "required"}
+                                       }
+                              }
+
+                "PyQt5" module is required and the minimum version that will work
+                        is version 5.12 or later.
+
+                In addition, submodules:
+                    "Qt" indicates that PyQt5.Qt submodule must be available AND
+                         must be at version 5.9 or later.
+
+                    "QtGui" indicates that PyQt5.QtGui submodule must be available,
+                            all known versions of QtGui supplied with PyQt5 should work.
+
+-----------------
+Example JSON File
+-----------------
+
+{
+    "version": 0,
+    "name": "openlp",
+    "proper": "OpenLP",
+    "project_version": null,
+    "git_version": null,
+    "language": {
+        "python": {
+            "version": [
+                "3.6"
+            ],
+            "base": "/usr/lib64/python3.9"
+        }
+    },
+    "groups": {
+        "db": {
+            "name": "DB",
+            "status": "required",
+            "group": "select"
+        }
+    },
+    "modules": {
+        "alembic": {
+            "status": "required"
+        },
+        "AppKit": {
+            "status": "required",
+            "os": "darwin"
+        },
+        "bs4": {
+            "status": "required"
+        },
+        "dbus": {
+            "status": "required",
+            "os": "linux"
+        },
+        "distro": {
+            "status": "required",
+            "os": "linux"
+        },
+        "enchant": {
+            "status": "optional",
+            "version": [
+                "1.6"
+            ],
+            "vstr": "__version__",
+            "notes": "Spell Checker"
+        },
+        "fitz": {
+            "status": "optional",
+            "notes": "PyMuPDF - PDF Support"
+        },
+        "flake8": {
+            "status": "testing",
+            "repo": {
+                "redhat": "python3-flake8",
+                "pypi": "flake8"
+            },
+        },
+        "PIL": {
+            "status": "required",
+            "repo": {
+                "redhat": "python3-pillow",
+                "pypi": "Pillow",
+            },
+            "subs": {
+                "ImageQt": {
+                    "status": "required"
+                }
+            }
+        },
+        "PyQt5": {
+            "version": [
+                "5.12"
+            ],
+            "vfunc": "QtCore.qVersion",
+            "status": "required",
+            "subs": {
+                "Qt": {
+                    "version": [
+                        "5.9"
+                    ],
+                    "vfunc" : "qVersion",
+                    "status": "required"
+                },
+                "QtGui": {
+                    "status": "required"
+                },
+                "QtWebEngineWidgets": {
+                    "status": "required",
+                    "pypi": "PyQtWebEngine",
+                    "redhat": "pyqtwebengine"
+                },
+                "QtMultimedia": {
+                    "status": "required"
+                }
+            }
+        },
+        "Pyro4": {
+            "status": "required",
+            "os": "darwin"
+        },
+        "pysqord": {
+            "status": "optional",
+            "notes": "SWORD Bible Import Support"
+        },
+        "psycopg2": {
+            "group": "db",
+            "notes": "PostGreSQL DB Interface",
+            "repo": {
+                "redhat": "python3-psycopg2",
+                "pypi": "psycopg2"
+            },
+        },
+        "pymysql": {
+            "group": "db",
+            "notes": "MySQL/MariaDB DB Interface",
+            "repo": {
+                "redhat": "python3-pymysql",
+                "pypi": "PyMySQL"
+            },
+        },
+        "pyodbc": {
+            "group": "db",
+            "notes": "ODBC DB Interface",
+            "repo": {
+                "redhat": "python3-pyodbc",
+                "pypi": "pyodbc"
+            },
+        },
+        "pytest": {
+            "status": "testing",
+            "notes": "Testing Framework"
+        },
+        "pytestqt": {
+            "status": "testing",
+            "notes": "Testing Framework for PyQt5",
+            "repo": {
+                "pypi": "pytest-qt"
+            },
+        },
+        "pywintypes": {
+            "status": "required",
+            "os": "win"
+        },
+        "qdarkstyle": {
+            "status": "optional",
+            "repo": {
+                "redhat": "python3-qdarkstyle",
+                "pypi": "QDarkStyle"
+            },
+        },
+        "qtawesome": {
+            "status": "required",
+            "repo": {
+                "pypi": "QtAwesome",
+                "redhat": "python3-QtAwesome"
+            },
+        },
+        "sqlalchemy": {
+            "status": "required",
+            "version": [
+                "0.5"
+            ],
+            "notes": "Database Abstraction Library",
+            "repo": {
+                "redhat": "python3-sqlalchemy",
+                "pypi": "SQLAlchemy"
+            },
+        },
+        "sqlite3": {
+            "group": "db",
+            "notes": "SQLite3 DB Interface"
+        },
+        "uno": {
+            "status": "optional",
+            "notes": "LibreOffice/OpenOffice Support"
+        },
+        "win32com": {
+            "status": "required",
+            "os": "win"
+        },
+        "win32ui": {
+            "status": "required",
+            "os": "win"
+        },
+        "zeroconf": {
+            "status": "required",
+            "repo": {
+                "redhat": "python3-zeroconf",
+                "pypi": "zeroconf3"
+            },
+        },
+    },
+}
