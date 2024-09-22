@@ -1,0 +1,547 @@
+openapi: 3.1.0
+info:
+  title: OpenLP Remote Sync Api - OpenAPI 3.1
+  description: |-
+    This is the description for the OpenLP remote sync API.
+
+    Some useful links:
+    - [The OpenLP remotesync MR](https://gitlab.com/openlp/openlp/-/merge_requests/9)
+  contact:
+    email: dev@openlp.io
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 0.9.1
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+  - url: http://localhost:8888/api/v1
+tags:
+  - name: song
+    description: Operations about songs
+  - name: custom
+    description: Operations about custom slides
+paths:
+  /song-list:
+    get:
+      tags:
+        - song
+      summary: Get list of songs
+      description: ''
+      operationId: getSongList
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemList'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ItemList'
+        '400':
+          description: Invalid uuid supplied
+        '404':
+          description: Song not found
+      security:
+        - openlp_auth:
+            - write:song
+            - read:song
+  /song-list/changes/{sinceDateTime}:
+    get:
+      tags:
+        - song
+      summary: Get list of songs changed since given timestamp
+      description: ''
+      operationId: getSongListChangesSince
+      parameters:
+        - name: sinceDateTime
+          in: path
+          description: The timestamp to look for changes after
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemList'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ItemList'
+        '400':
+          description: Invalid uuid supplied
+        '404':
+          description: Song not found
+      security:
+        - openlp_auth:
+            - write:song
+            - read:song
+  /song/{uuid}:
+    get:
+      tags:
+        - song
+      summary: Get song by uuid
+      description: Get song by uuid
+      operationId: getSong
+      parameters:
+        - name: uuid
+          in: path
+          description: The uuid of the song that needs to be fetched.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextItem'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/TextItem'
+        '400':
+          description: Invalid uuid supplied
+        '404':
+          description: Song not found
+      security:
+        - openlp_auth:
+            - write:song
+            - read:song
+    put:
+      tags:
+        - song
+      summary: Update or create song
+      description: This can only be done by the logged in user.
+      operationId: updateSong
+      parameters:
+        - name: uuid
+          in: path
+          description: uuid of song that need to be deleted
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Update an existent song in the db
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TextItem'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/TextItem'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TextItem'
+      responses:
+        '200':
+          description: successful operation
+        '409':
+          description: A conflict occured. The version requested to be saved is not the newest.
+      security:
+        - openlp_auth:
+            - write:song
+            - read:song
+    delete:
+      tags:
+        - song
+      summary: Delete song
+      description: This can only be done by the logged in user.
+      operationId: deleteSong
+      parameters:
+        - name: uuid
+          in: path
+          description: The uuid of the song to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        '400':
+          description: Invalid uuid supplied
+        '404':
+          description: Song not found
+      security:
+        - openlp_auth:
+            - write:song
+            - read:song
+  /song/{uuid}/{version}:
+    get:
+      tags:
+        - song
+      summary: Get song by uuid and version
+      description: Get song by uuid and version
+      operationId: getSongVersion
+      parameters:
+        - name: uuid
+          in: path
+          description: The uuid of the song that needs to be fetched.
+          required: true
+          schema:
+            type: string
+        - name: version
+          in: path
+          description: The version of the song that needs to be fetched.
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextItem'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/TextItem'
+        '400':
+          description: Invalid uuid supplied
+        '404':
+          description: Song not found
+      security:
+        - openlp_auth:
+            - write:song
+            - read:song
+  /song-history/{uuid}:
+    get:
+      tags:
+        - song
+      summary: Get history of song by uuid
+      description: fwef
+      operationId: getSongHistory
+      parameters:
+        - name: uuid
+          in: path
+          description: The uuid of the song that needs to be fetched.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextItem'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/TextItem'
+        '400':
+          description: Invalid uuid supplied
+        '404':
+          description: Song not found
+      security:
+        - openlp_auth:
+            - write:song
+            - read:song
+  /custom-list:
+    get:
+      tags:
+        - custom
+      summary: Get list of custom slides
+      description: ''
+      operationId: getCustomslideList
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemList'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ItemList'
+        '400':
+          description: Invalid uuid supplied
+        '404':
+          description: Custom slide not found
+      security:
+        - openlp_auth:
+            - write:custom
+            - read:custom
+  /custom-list/changes/{sinceDateTime}:
+    get:
+      tags:
+        - song
+      summary: Get list of custom slides changed since given timestamp
+      description: ''
+      operationId: getCustomSlideListChangesSince
+      parameters:
+        - name: sinceDateTime
+          in: path
+          description: The timestamp to look for changes after
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemList'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/ItemList'
+        '400':
+          description: Invalid uuid supplied
+        '404':
+          description: Song not found
+      security:
+        - openlp_auth:
+            - write:song
+            - read:song
+  /custom/{uuid}:
+    get:
+      tags:
+        - custom
+      summary: Get custom slide by uuid
+      description: fwef
+      operationId: getCustomslide
+      parameters:
+        - name: uuid
+          in: path
+          description: The uuid of the custom slide that needs to be fetched.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextItem'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/TextItem'
+        '400':
+          description: Invalid uuid supplied
+        '404':
+          description: Custom slide not found
+      security:
+        - openlp_auth:
+            - write:custom
+            - read:custom
+    put:
+      tags:
+        - custom
+      summary: Update or create custom slide
+      description: This can only be done by the logged in user.
+      operationId: updateCustomslide
+      parameters:
+        - name: uuid
+          in: path
+          description: uuid of custom slide that need to be deleted
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Update an existent custom slide in the db
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TextItem'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/TextItem'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TextItem'
+      responses:
+        '200':
+          description: successful operation
+        '409':
+          description: A conflict occured. The version requested to be saved is not the newest.
+      security:
+        - openlp_auth:
+            - write:custom
+            - read:custom
+    delete:
+      tags:
+        - custom
+      summary: Delete custom slide
+      description: This can only be done by the logged in user.
+      operationId: deleteCustomslide
+      parameters:
+        - name: uuid
+          in: path
+          description: The uuid of the custom slide to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        '400':
+          description: Invalid uuid supplied
+        '404':
+          description: Custom slide not found
+      security:
+        - openlp_auth:
+            - write:custom
+            - read:custom
+  /custom/{uuid}/{version}:
+    get:
+      tags:
+        - custom
+      summary: Get custom slide by uuid and version
+      description: fwef
+      operationId: getCustomslideVersion
+      parameters:
+        - name: uuid
+          in: path
+          description: The uuid of the custom slide that needs to be fetched.
+          required: true
+          schema:
+            type: string
+        - name: version
+          in: path
+          description: The version of the custom slide that needs to be fetched.
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextItem'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/TextItem'
+        '400':
+          description: Invalid uuid supplied
+        '404':
+          description: Custom slide not found
+      security:
+        - openlp_auth:
+            - write:custom
+            - read:custom
+  /custom-history/{uuid}:
+    get:
+      tags:
+        - custom
+      summary: Get history of custom slide by uuid
+      description: Get history of custom slide by uuid
+      operationId: getCustomslideHistory
+      parameters:
+        - name: uuid
+          in: path
+          description: The uuid of the custom slide that needs to be fetched.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TextItem'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/TextItem'
+        '400':
+          description: Invalid uuid supplied
+        '404':
+          description: Custom slide not found
+      security:
+        - openlp_auth:
+            - write:custom
+            - read:custom
+components:
+  schemas:
+    TextItem:
+      type: object
+      properties:
+        uuid:
+          type: string
+          examples: ['43f74822-c620-40c7-8723-0136878bab23']
+        version:
+          type: integer
+          format: int32
+          examples: [2]
+        user:
+          type: string
+          examples: ['user1', '354364']
+        timestamp:
+          type: string
+          format: date-time
+        title:
+          type: string
+          examples: ['Text item title']
+        itemxml:
+          type: string
+          description: Text item xml
+          examples: ['<xml>dsf</xml>']
+      xml:
+        name: textitem
+    ItemList:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemInfo'
+    ItemInfo:
+      type: object
+      properties:
+        uuid:
+          type: string
+          examples: ['43f74822-c620-40c7-8723-0136878bab23']
+        version:
+          type: integer
+          format: int32
+          examples: [2]
+        user:
+          type: string
+          examples: ['user1', '354364']
+        timestamp:
+          type: string
+          format: date-time
+        title:
+          type: string
+          examples: ['Text item title']
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        type:
+          type: string
+        message:
+          type: string
+      xml:
+        name: '##default'
+  requestBodies:
+    Song:
+      description: Song object that needs to be added to the db
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TextItem'
+        application/xml:
+          schema:
+            $ref: '#/components/schemas/TextItem'
+  securitySchemes:
+    openlp_auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: http://localhost:8888/oauth/authorize
+          scopes:
+            write:songs: modify songs in your account
+            read:songs: read your songs
+            write:customs: modify custom slides in your account
+            read:customs: read your custom slides
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header

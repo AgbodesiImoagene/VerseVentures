@@ -33,7 +33,7 @@ from PySide6 import QtCore, QtGui
 
 from openlp.core.common import SlideLimits, ThemeLevel
 from openlp.core.common.enum import AlertLocation, BibleSearch, CustomSearch, HiDPIMode, ImageThemeMode, LayoutStyle, \
-    DisplayStyle, LanguageSelection, SongFirstSlideMode, SongSearch, PluginStatus
+    DisplayStyle, LanguageSelection, SongFirstSlideMode, SongSearch, PluginStatus, SyncType, FtpType
 from openlp.core.common.json import OpenLPJSONDecoder, OpenLPJSONEncoder, is_serializable
 from openlp.core.common.path import files_to_paths, str_to_path
 from openlp.core.common.platform import is_linux, is_win
@@ -411,7 +411,21 @@ class Settings(QtCore.QSettings):
         'projector/poll time': 20,  # PJLink  timeout is 30 seconds
         'projector/socket timeout': 5,  # 5 second socket timeout
         'projector/source dialog type': 0,  # Source select dialog box type
-        'projector/udp broadcast listen': False  # Enable/disable listening for PJLink 2 UDP broadcast packets
+        'projector/udp broadcast listen': False,  # Enable/disable listening for PJLink 2 UDP broadcast packets
+        'remotesync/status': PluginStatus.Active,
+        'remotesync/db type': 'sqlite',
+        'remotesync/db username': '',
+        'remotesync/db password': '',
+        'remotesync/db hostname': '',
+        'remotesync/db database': '',
+        'remotesync/type': SyncType.Disabled,
+        'remotesync/folder path': '',
+        'remotesync/folder pc id': None,
+        'remotesync/ftp server': '',
+        'remotesync/ftp type': FtpType.Ftp,
+        'remotesync/ftp username': '',
+        'remotesync/ftp password': '',
+        'remotesync/ftp data folder': '',
     }
     __file_path__ = ''
     # Settings upgrades prior to 3.0

@@ -149,6 +149,25 @@ class SongSearch(IntEnum):
 
 
 @unique
+class SyncType(IntEnum):
+    """
+    The synchronization types available
+    """
+    Disabled = 0
+    Folder = 1
+    Ftp = 2
+    WebService = 3
+
+
+@unique
+class FtpType(IntEnum):
+    """
+    The supported FTP types
+    """
+    Ftp = 1
+    FtpTls = 2
+
+
 class SongFirstSlideMode(IntEnum):
     """
     An enumeration for song first slide types.
