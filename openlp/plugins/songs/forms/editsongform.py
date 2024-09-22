@@ -38,7 +38,6 @@ from openlp.core.lib import create_separated_list
 from openlp.core.lib.formattingtags import FormattingTags
 from openlp.core.lib.plugin import PluginStatus
 from openlp.core.lib.ui import critical_error_message_box, find_and_set_in_combo_box, set_case_insensitive_completer
-from openlp.core.ui.media import MediaType
 from openlp.core.state import State
 from openlp.core.widgets.dialogs import FileDialog
 from openlp.plugins.songs.forms.editsongdialog import Ui_EditSongDialog
@@ -440,7 +439,7 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
         for plugin in State().list_plugins():
             if plugin.name == 'media' and plugin.status == PluginStatus.Active:
                 self.from_media_button.setVisible(True)
-                self.media_form.populate_files(plugin.media_item.get_list(MediaType.Audio))
+                self.media_form.populate_files(plugin.media_item.get_list())
                 break
 
     def new_song(self):

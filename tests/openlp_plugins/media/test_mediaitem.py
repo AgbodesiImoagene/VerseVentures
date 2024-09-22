@@ -123,17 +123,6 @@ def test_get_list_video(MockItem, mocked_or, media_item):
     assert media_list == [Path('test1.mp4'), Path('test2.ogv')]
 
 
-def test_add_optical_clip(media_item):
-    """Test that the ``MediaMediaItem.add_optical_clip()`` method calls validate_and_load()"""
-    # GIVEN: A MediaMediaItem object, with a mocked out `validate_and_load` method
-    with patch.object(media_item, 'validate_and_load') as mocked_validate_and_load:
-        # WHEN: add_optical_clip is called
-        media_item.add_optical_clip('optical:/dev/sr0')
-
-        # THEN: The mocked method should have been called
-        mocked_validate_and_load.assert_called_once_with(['optical:/dev/sr0'])
-
-
 def test_add_device_stream(media_item):
     """Test that the ``MediaMediaItem.add_device_stream()`` method calls validate_and_load()"""
     # GIVEN: A MediaMediaItem object, with a mocked out `validate_and_load` method

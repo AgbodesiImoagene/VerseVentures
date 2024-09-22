@@ -24,6 +24,7 @@ import os
 from pathlib import Path
 
 from PySide6 import QtCore, QtWidgets
+from sqlalchemy.sql.expression import or_
 
 from openlp.core.common import delete_file
 from openlp.core.common.applocation import AppLocation
@@ -289,6 +290,24 @@ class MediaMediaItem(FolderLibraryItem):
             return [item.file_path, name]
         else:
             return super().format_search_result(item)
+
+    def get_list(self, media_type=MediaType.Audio):
+        """
+        Get the list of media, optional select media type.
+
+        :param media_type: Type to get, defaults to audio.
+        :return: The media list
+        """
+        if media_type == MediaType.Audio:
+            extensions, _ = get_supported_media_suffix()
+        else:
+            _, extensions = get_supported_media_suffix()
+        clauses = []
+        for extension in extensions:
+            # Drop the initial * and add to the list of clauses
+            clauses.append(Item.file_path.endswith(extension[1:]))
+        items = self.manager.get_all_objects(Item, or_(*clauses))
+        return [Path(item.file_path) for item in items]
 
     def on_open_device_stream(self):
         """
