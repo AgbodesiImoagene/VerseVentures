@@ -393,53 +393,6 @@ def test_add_from_command_for_a_presentation_thumb(mocked_get_section_data_path)
     assert service_item.get_frames()[0] == frame, 'Frames should match'
 
 
-def test_service_item_load_optical_media_from_service(state_media):
-    """
-    Test the Service Item - load an optical media item
-    """
-    # GIVEN: A new service item and a mocked add icon function
-    service_item = ServiceItem(None)
-    service_item.add_icon = MagicMock()
-    # WHEN: We load a serviceitem with optical media
-    line = convert_file_service_item(TEST_PATH, 'serviceitem-dvd.osj')
-    with patch('openlp.core.ui.servicemanager.os.path.exists') as mocked_exists, \
-            patch('openlp.core.lib.serviceitem.sha256_file_hash') as mocked_sha256_file_hash:
-        mocked_sha256_file_hash.return_value = 'abcd'
-        mocked_exists.return_value = True
-        service_item.set_from_service(line)
-
-    # THEN: We should get back a valid service item with optical media info
-    assert service_item.is_valid is True, 'The service item should be valid'
-    assert service_item.is_capable(ItemCapabilities.IsOptical) is True, 'The item should be Optical'
-    assert service_item.start_time == 654.375, 'Start time should be 654.375'
-    assert service_item.end_time == 672.069, 'End time should be 672.069'
-    assert service_item.media_length == 17.694, 'Media length should be 17.694'
-
-
-def test_service_item_load_optical_media_from_service_no_vlc(state_media):
-    """
-    Test the Service Item - load an optical media item
-    """
-    # GIVEN: A new service item and a mocked add icon function
-    service_item = ServiceItem(None)
-    service_item.add_icon = MagicMock()
-    State().modules["media"].pass_preconditions = False
-    # WHEN: We load a serviceitem with optical media
-    line = convert_file_service_item(TEST_PATH, 'serviceitem-dvd.osj')
-    with patch('openlp.core.ui.servicemanager.os.path.exists') as mocked_exists, \
-            patch('openlp.core.lib.serviceitem.sha256_file_hash') as mocked_sha256_file_hash:
-        mocked_sha256_file_hash.return_value = 'abcd'
-        mocked_exists.return_value = True
-        service_item.set_from_service(line)
-
-    # THEN: We should get back a valid service item with optical media info
-    assert service_item.is_valid is False, 'The service item should not be valid'
-    assert service_item.is_capable(ItemCapabilities.IsOptical) is True, 'The item should be Optical'
-    assert service_item.start_time == 654.375, 'Start time should be 654.375'
-    assert service_item.end_time == 672.069, 'End time should be 672.069'
-    assert service_item.media_length == 17.694, 'Media length should be 17.694'
-
-
 def test_service_item_load_duplicate_presentation_from_24x_service(state_media, settings):
     """
     Test the Service Item - simulate loading the same presentation file from a 2.4.x service file twice

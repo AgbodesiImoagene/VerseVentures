@@ -442,7 +442,6 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
                 self.media_form.populate_files(plugin.media_item.get_list())
                 break
 
-
     def new_song(self):
         """
         Blank the edit form out in preparation for a new song.
