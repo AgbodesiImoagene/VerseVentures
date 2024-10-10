@@ -18,9 +18,12 @@
 # You should have received a copy of the GNU General Public License      #
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
+import datetime
 import gc
 import logging
 from pathlib import Path
+
+from sqlalchemy import and_
 
 from openlp.core.common import delete_file
 from openlp.core.common.enum import LanguageSelection
@@ -28,8 +31,9 @@ from openlp.core.common.applocation import AppLocation
 from openlp.core.common.i18n import UiStrings, translate
 from openlp.core.common.mixins import LogMixin, RegistryProperties
 from openlp.core.common.registry import Registry
-from openlp.plugins.bibles.lib import parse_reference
-from openlp.plugins.bibles.lib.db import BibleDB
+from openlp.core.db.manager import DBManager
+from openlp.plugins.bibles.lib import ModelInfo, ModelType, parse_reference
+from openlp.plugins.bibles.lib.db import BibleDB, Model, init_schema
 
 from .importers.csvbible import CSVBible
 from .importers.http import HTTPBible
@@ -119,8 +123,12 @@ class BibleManager(LogMixin, RegistryProperties):
         self.web = 'Web'
         self.db_cache = None
         self.path = AppLocation.get_section_data_path('bibles')
+        self.model_path = AppLocation.get_section_data_path('models')
+        self.encoder_model = None
+        self.transcriber_model = None
         self.suffix = '.sqlite'
         self.import_wizard = None
+        self.model_manager = DBManager('models', init_schema)
         self.reload_bibles()
         self.media = None
 
@@ -179,6 +187,11 @@ class BibleManager(LogMixin, RegistryProperties):
         name = importer.register(self.import_wizard)
         self.db_cache[name] = importer
         return importer
+
+    def import_model(self, model, **kwargs):
+        model.register(self.import_wizard)
+        model.download()
+        self.save_model(model)
 
     def delete_bible(self, name):
         """
@@ -385,6 +398,55 @@ class BibleManager(LogMixin, RegistryProperties):
         """
         log.debug('BibleManager.update_book("{bible}", "{name}")'.format(bible=bible, name=book.name))
         self.db_cache[bible].update_book(book)
+
+    def save_model(self, model):
+        """
+        Save the model to the database.
+
+        :param model: The model to save.
+        """
+        log.debug('Committing %s model to database', model.name)
+        model_info = ModelInfo.get_model_info(model.name)
+        db_model = self.model_manager.get_object_filtered(Model, Model.name == model.name)
+        db_model = Model() if db_model is None else db_model
+        db_model.name = model.name
+        db_model.type = model_info.get('type')
+        db_model.library = model_info.get('library')
+        db_model.description = model_info.get('description')
+        db_model.path = str(model.path)
+        if model.is_downloaded() and db_model.download_date is None:
+            db_model.download_date = datetime.datetime.now()
+        db_model.download_source = model.url
+        db_model.meta = model.model_info
+        self.model_manager.save_object(db_model)
+
+    def get_models(self, type: ModelType | None = None, downloaded: bool = True):
+        """
+        Get all the models from the database.
+
+        :param type: The type of model to get.
+        :param downloaded: Whether to get only downloaded models.
+        :return: A list of available model names.
+        """
+        clauses = []
+        if downloaded:
+            clauses.append(Model.download_date.isnot_(None))
+        if type is not None:
+            clauses.append(Model.type == type)
+        models = self.model_manager.get_all_objects(Model, filter_clause=and_(*clauses))
+        return [model.name for model in models]
+
+    def load_model(self, model_name):
+        """
+        Load a requested model.
+
+        :param model_name: The name of the model to load.
+        :return: The model object.
+        """
+        db_model = self.model_manager.get_object_filtered(Model, Model.name == model_name)
+        if db_model is None:
+            return None
+        
 
     def exists(self, name):
         """
