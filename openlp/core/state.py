@@ -89,7 +89,7 @@ class State(LogMixin, metaclass=Singleton):
             state.required_by = []
             self.modules[name] = state
             if requires and requires in self.modules:
-                if requires not in self.modules[requires].required_by:
+                if name not in self.modules[requires].required_by:
                     self.modules[requires].required_by.append(name)
 
     def missing_text(self, name: str, text: str, type_: MessageType = MessageType.Error):

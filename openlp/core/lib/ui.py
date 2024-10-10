@@ -259,7 +259,7 @@ def create_action(parent, name, **kwargs):
         Capability stating if this action can have shortcuts. If ``True`` the action is added to shortcut dialog
 
         otherwise it it not. Define your shortcut in the :class:`~openlp.core.lib.Settings` class. *Note*: When *not*
-        ``True`` you *must not* set a shortcuts at all.
+        ``True`` you *must not* set shortcuts at all.
 
     ``context``
         A context for the shortcut execution.

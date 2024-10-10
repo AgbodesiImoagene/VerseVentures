@@ -294,7 +294,7 @@ class PathEdit(QtWidgets.QWidget):
 
     def update_button_tool_tips(self):
         """
-        Called to update the tooltips on the buttons. This is changing path types, and when the widget is initalised
+        Called to update the tooltips on the buttons. This is changing path types, and when the widget is initialised
 
         :rtype: None
         """

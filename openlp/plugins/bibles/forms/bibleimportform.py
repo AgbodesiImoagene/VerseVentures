@@ -191,9 +191,8 @@ class BibleImportForm(OpenLPWizard):
         )
         self.csv_verses_path_edit.filters = \
             '{name} (*.csv)'.format(name=translate('BiblesPlugin.ImportWizardForm', 'CSV File'))
-        self.csv_layout.addRow(self.csv_books_label, self.csv_books_path_edit)
         self.csv_layout.addRow(self.csv_verses_label, self.csv_verses_path_edit)
-        self.csv_layout.setItem(3, QtWidgets.QFormLayout.ItemRole.LabelRole, self.spacer)
+        self.csv_layout.setItem(2, QtWidgets.QFormLayout.ItemRole.LabelRole, self.spacer)
         self.select_stack.addWidget(self.csv_widget)
         self.open_song_widget = QtWidgets.QWidget(self.select_page)
         self.open_song_widget.setObjectName('OpenSongWidget')
@@ -658,7 +657,7 @@ class BibleImportForm(OpenLPWizard):
         self.select_page.registerField('csv_booksfile', self.csv_books_path_edit, 'path',
                                        self.csv_books_path_edit.pathChanged)
         self.select_page.registerField('csv_versefile', self.csv_verses_path_edit, 'path',
-                                       self.csv_books_path_edit.pathChanged)
+                                       self.csv_verses_path_edit.pathChanged)
         self.select_page.registerField('opensong_file', self.open_song_path_edit, 'path',
                                        self.open_song_path_edit.pathChanged)
         self.select_page.registerField('zefania_file', self.zefania_path_edit, 'path',

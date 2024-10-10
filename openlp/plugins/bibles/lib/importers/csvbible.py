@@ -144,7 +144,6 @@ class CSVBible(BibleImport):
                 csv_reader = reader(csv_file, delimiter=',', quotechar='"')
                 # Determine if the CSV has a header and skip if necessary
                 if _has_header(sample, file_type):
-                    print("has_header")
                     next(csv_reader)
                 return [results_tuple(*line) for line in csv_reader]
         except (OSError, CSVError, TypeError, UnicodeDecodeError, ValueError):

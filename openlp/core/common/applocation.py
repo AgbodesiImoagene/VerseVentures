@@ -164,6 +164,4 @@ def _get_os_dir_path(dir_type):
             return Path(dirs.user_data_dir)
         elif dir_type == AppLocation.CacheDir:
             return Path(dirs.user_cache_dir)
-        if dir_type == AppLocation.DataDir:
-            return Path(os.getenv('HOME'), '.openlp', 'data')
         return Path(os.getenv('HOME'), '.openlp')

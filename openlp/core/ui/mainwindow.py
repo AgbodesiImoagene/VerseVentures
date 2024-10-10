@@ -203,7 +203,6 @@ class Ui_MainWindow(object):
         # Projector items
         self.import_projector_item = create_action(main_window, 'importProjectorItem', category=UiStrings().Import,
                                                    can_shortcuts=False)
-        action_list.add_category(UiStrings().Import, CategoryOrder.standard_menu)
         self.view_projector_manager_item = create_action(main_window, 'viewProjectorManagerItem',
                                                          icon=UiIcons().projector,
                                                          checked=self.projector_manager_dock.isVisible(),
