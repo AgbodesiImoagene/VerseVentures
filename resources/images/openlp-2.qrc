@@ -27,6 +27,7 @@
     <file>openlp-osx-wizard.png</file>
     <file>wizard_song.bmp</file>
     <file>wizard_importbible.bmp</file>
+    <file>wizard_downloadmodel.bmp</file>
     <file>wizard_firsttime.bmp</file>
     <file>wizard_createtheme.bmp</file>
     <file>wizard_duplicateremoval.bmp</file>
