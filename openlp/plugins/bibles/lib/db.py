@@ -27,7 +27,7 @@ from typing import Any, List, Optional, Tuple
 
 import chardet
 from PySide6 import QtCore
-from sqlalchemy import Column, ForeignKey, func, or_
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, JSON, LargeBinary, func, or_
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session, declarative_base, relationship
 from sqlalchemy.types import Unicode, UnicodeText, Integer
@@ -39,7 +39,7 @@ from openlp.core.common.i18n import translate
 from openlp.core.db.helpers import init_db
 from openlp.core.db.manager import DBManager
 from openlp.core.lib.ui import critical_error_message_box
-from openlp.plugins.bibles.lib import BibleStrings, upgrade
+from openlp.plugins.bibles.lib import BibleStrings, ModelLibrary, ModelType, upgrade
 
 
 log = logging.getLogger(__name__)
@@ -49,9 +49,9 @@ RESERVED_CHARACTERS = '\\.^$*+?{}[]()'
 
 class BibleDB(DBManager):
     """
-    This class represents a database-bound Bible. It is used as a base class for all the custom importers, so that
-    the can implement their own import methods, but benefit from the database methods in here via inheritance,
-    rather than depending on yet another object.
+    This class represents a database-bound Bible. It is used as a base class for all the custom
+    bible importers, so that they can implement their own import methods, but benefit from the
+    database methods in here via inheritance, rather than depending on yet another object.
     """
     log.info('BibleDB loaded')
 
@@ -155,11 +155,26 @@ class BibleDB(DBManager):
             text = Column(UnicodeText, index=True)
 
             book = relationship('Book', back_populates='verses')
+            encodings = relationship('Encoding', back_populates='verse')
+
+        class Encoding(Base):
+            """
+            Encoding model
+            """
+            __tablename__ = 'encoding'
+
+            id = Column(Integer, primary_key=True)
+            verse_id = Column(Integer, ForeignKey('verse.id'), index=True)
+            model_name = Column(Unicode(50), index=True)
+            encoding = Column(LargeBinary, index=True)
+
+            verse = relationship('Verse', back_populates='encodings')
 
         # Assign the classes so that they can be used elsewhere in the BibleDB class
         self.BibleMeta = BibleMeta
         self.Book = Book
         self.Verse = Verse
+        self.Encoding = Encoding
 
         session, metadata = init_db(url, base=Base)
         metadata.create_all(bind=metadata.bind, checkfirst=True)
@@ -809,3 +824,35 @@ class AlternativeBookNamesDB(object):
         return AlternativeBookNamesDB.run_sql(
             'INSERT INTO alternative_book_names(book_reference_id, language_id, name) '
             'VALUES (?, ?, ?)', (book_reference_id, language_id, name), True)
+
+
+Base = declarative_base()
+
+
+class Model(Base):
+    """
+    Model model
+    """
+    __tablename__ = 'model'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(Unicode(50), index=True, unique=True, nullable=False)
+    type = Column(Enum(ModelType), index=True, nullable=False)
+    library = Column(Enum(ModelLibrary), nullable=False)
+    description = Column(UnicodeText)
+    path = Column(UnicodeText, unique=True)
+    download_date = Column(DateTime)
+    download_source = Column(Unicode(100))
+    meta = Column(JSON)
+
+
+def init_schema(url):
+    """
+    Setup the models database connection and initialise the database schema.
+
+    :param url: The database to setup
+
+    """
+    session, metadata = init_db(url, base=Base)
+    metadata.create_all(bind=metadata.bind, checkfirst=True)
+    return session
