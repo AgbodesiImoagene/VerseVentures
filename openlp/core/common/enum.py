@@ -50,7 +50,8 @@ class BibleSearch(IntEnum):
     """
     Reference = 1
     Text = 2
-    Combined = 3
+    Semantic = 3
+    Combined = 4
 
 
 @unique

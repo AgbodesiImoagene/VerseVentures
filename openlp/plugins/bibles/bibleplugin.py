@@ -57,8 +57,10 @@ class BiblePlugin(Plugin):
         log.info('bibles Initialising')
         super(BiblePlugin, self).initialise()
         self.import_bible_item.setVisible(True)
+        self.import_model_item.setVisible(True)
         action_list = ActionList.get_instance()
-        action_list.add_action(self.import_bible_item, UiStrings().Import)
+        action_list.add_action(self.import_bible_item, translate('BiblesPlugin', 'Import Bibles'))
+        action_list.add_action(self.import_model_item, translate('BiblesPlugin', 'Import Models'))
         # Set to invisible until we can export bibles
         self.export_bible_item.setVisible(False)
 
@@ -72,6 +74,7 @@ class BiblePlugin(Plugin):
         action_list = ActionList.get_instance()
         action_list.remove_action(self.import_bible_item, UiStrings().Import)
         self.import_bible_item.setVisible(False)
+        self.import_model_item.setVisible(False)
         self.export_bible_item.setVisible(False)
 
     def add_import_menu_item(self, import_menu):
@@ -83,7 +86,11 @@ class BiblePlugin(Plugin):
         self.import_bible_item = create_action(import_menu, 'importBibleItem',
                                                text=translate('BiblesPlugin', '&Bible'), visible=False,
                                                triggers=self.on_bible_import_click)
+        self.import_model_item = create_action(import_menu, 'importModelItem',
+                                               text=translate('BiblesPlugin', '&Model'), visible=False,
+                                               triggers=self.on_model_import_click)
         import_menu.addAction(self.import_bible_item)
+        import_menu.addAction(self.import_model_item)
 
     def add_export_menu_item(self, export_menu):
         """
@@ -101,6 +108,13 @@ class BiblePlugin(Plugin):
         """
         if self.media_item:
             self.media_item.on_import_click()
+
+    def on_model_import_click(self):
+        """
+        Show the Model Import wizard
+        """
+        if self.media_item:
+            self.media_item.on_model_import_click()
 
     @staticmethod
     def about():

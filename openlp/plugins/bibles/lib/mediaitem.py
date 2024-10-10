@@ -38,6 +38,7 @@ from openlp.core.ui.icons import UiIcons
 from openlp.core.widgets.edits import SearchEdit
 from openlp.plugins.bibles.forms.bibleimportform import BibleImportForm
 from openlp.plugins.bibles.forms.editbibleform import EditBibleForm
+from openlp.plugins.bibles.forms.modeldownloadform import ModelDownloadForm
 from openlp.plugins.bibles.lib import get_reference_match, get_reference_separator
 from openlp.plugins.bibles.lib.versereferencelist import VerseReferenceList
 
@@ -79,7 +80,8 @@ class SearchTabs(IntEnum):
     """
     Search = 0
     Select = 1
-    Options = 2
+    Suggestions = 2
+    Options = 3
 
 
 class BibleMediaItem(MediaManagerItem):
@@ -100,6 +102,7 @@ class BibleMediaItem(MediaManagerItem):
         self.clear_icon = UiIcons().square
         self.save_results_icon = UiIcons().save
         self.sort_icon = UiIcons().sort
+        self.microphone_icon = UiIcons().microphone
         self.bible = None
         self.second_bible = None
         self.saved_results = []
@@ -189,7 +192,22 @@ class BibleMediaItem(MediaManagerItem):
         self.select_layout.addRow(translate('BiblesPlugin.MediaItem', 'To:'), self.to_layout)
         self.select_tab.setVisible(False)
         self.page_layout.addWidget(self.select_tab)
-        # General Search Opions
+        # Add the Suggestions tab.
+        self.suggestions_tab = QtWidgets.QWidget()
+        self.suggestions_tab.setSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Minimum)
+        self.search_tab_bar.addTab(translate('BiblesPlugin.MediaItem', 'Suggestions'))
+        self.suggestions_layout = QtWidgets.QFormLayout(self.suggestions_tab)
+        self.suggestion_buttons_layout = QtWidgets.QHBoxLayout()
+        self.toggle_microphone_button = QtWidgets.QToolButton()
+        self.toggle_microphone_button.setIcon(self.microphone_icon)
+        self.toggle_microphone_button.setCheckable(True)
+        self.toggle_microphone_button.setToolTip(translate('BiblesPlugin.MediaItem', 'Turn on microphone.'))
+        self.suggestion_buttons_layout.addWidget(self.toggle_microphone_button)
+        self.suggestions_layout.addRow(translate('BiblesPlugin.MediaItem', 'Suggestion options:'),
+                                       self.suggestion_buttons_layout)
+        self.suggestions_tab.setVisible(False)
+        self.page_layout.addWidget(self.suggestions_tab)
+        # General Search Options
         self.options_tab = QtWidgets.QWidget()
         self.options_tab.setSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Minimum)
         self.search_tab_bar.addTab(translate('BiblesPlugin.MediaItem', 'Options'))
@@ -228,7 +246,7 @@ class BibleMediaItem(MediaManagerItem):
         super().setup_ui()
         sort_model = QtCore.QSortFilterProxyModel(self.select_book_combo_box)
         model = self.select_book_combo_box.model()
-        # Reparent the combo box model to the sort proxy, otherwise it will be deleted when we change the comobox's
+        # Reparent the combo box model to the sort proxy, otherwise it will be deleted when we change the combobox's
         # model
         model.setParent(sort_model)
         sort_model.setSourceModel(model)
@@ -248,6 +266,7 @@ class BibleMediaItem(MediaManagerItem):
         self.search_edit.searchTypeChanged.connect(self.update_auto_completer)
         # Buttons
         self.book_order_button.toggled.connect(self.on_book_order_button_toggled)
+        self.toggle_microphone_button.toggled.connect(self.on_microphone_button_toggled)
         self.clear_button.clicked.connect(self.on_clear_button_clicked)
         self.save_results_button.clicked.connect(self.on_save_results_button_clicked)
         self.search_button.clicked.connect(self.on_search_button_clicked)
@@ -285,6 +304,8 @@ class BibleMediaItem(MediaManagerItem):
             self.search_edit.selectAll()
         if self.select_tab.isVisible():
             self.select_book_combo_box.setFocus()
+        if self.suggestions_tab.isVisible():
+            self.toggle_microphone_button.setFocus()
         if self.options_tab.isVisible():
             self.version_combo_box.setFocus()
 
@@ -318,6 +339,9 @@ class BibleMediaItem(MediaManagerItem):
             (BibleSearch.Reference, UiIcons().search_ref,
                 translate('BiblesPlugin.MediaItem', 'Scripture Reference'),
                 translate('BiblesPlugin.MediaItem', 'Search Scripture Reference...')),
+            (BibleSearch.Text, UiIcons().brain,
+                translate('BiblesPlugin.MediaItem', 'Semantic Search'),
+                translate('BiblesPlugin.MediaItem', 'Search by Theme...')),
             (BibleSearch.Text, UiIcons().text,
                 translate('BiblesPlugin.MediaItem', 'Text Search'),
                 translate('BiblesPlugin.MediaItem', 'Search Text...'))
@@ -416,7 +440,7 @@ class BibleMediaItem(MediaManagerItem):
         """
         books = []
         # We have to do a 'Reference Search' (Or as part of Combined Search).
-        if self.search_edit.current_search_type() is not BibleSearch.Text:
+        if self.search_edit.current_search_type() is not (BibleSearch.Text or BibleSearch.Semantic):
             if self.bible:
                 book_data = self.get_common_books(self.bible, self.second_bible)
                 language_selection = self.plugin.manager.get_language_selection(self.bible.name)
@@ -436,6 +460,18 @@ class BibleMediaItem(MediaManagerItem):
             self.import_wizard = BibleImportForm(self, self.plugin.manager, self.plugin)
         # If the import was not cancelled then reload.
         if self.import_wizard.exec():
+            self.reload_bibles()
+
+    def on_model_import_click(self):
+        """
+        Create, if not already, the `ModelDownloadForm` and execute it
+
+        :return: None
+        """
+        if not hasattr(self, 'model_import_wizard'):
+            self.model_import_wizard = ModelDownloadForm(self, self.plugin.manager, self.plugin)
+        # If the import was not cancelled then reload.
+        if self.model_import_wizard.exec():
             self.reload_bibles()
 
     def on_edit_click(self):
@@ -480,6 +516,7 @@ class BibleMediaItem(MediaManagerItem):
             self.search_button.setEnabled(False)
         self.search_tab.setVisible(index == SearchTabs.Search)
         self.select_tab.setVisible(index == SearchTabs.Select)
+        self.suggestions_tab.setVisible(index == SearchTabs.Suggestions)
         self.options_tab.setVisible(index == SearchTabs.Options)
         self.on_focus()
 
@@ -524,6 +561,15 @@ class BibleMediaItem(MediaManagerItem):
         else:
             # -1 Removes the sorting, and returns the items to the order they were added in
             self.select_book_combo_box.model().sort(-1)
+
+    def on_microphone_button_toggled(self, checked):
+        """
+        Turn on or off the microphone
+
+        :param checked: Indicates if the button is checked or not (Bool)
+        :return: None
+        """
+        pass
 
     def on_clear_button_clicked(self):
         """
@@ -783,7 +829,7 @@ class BibleMediaItem(MediaManagerItem):
     def text_search(self):
         """
         This triggers the proper 'Search' search based on which search type is used.
-        "Eg. "Reference Search", "Text Search" or "Combined search".
+        "Eg. "Reference Search", "Text Search", "Semantic Search" or "Combined search".
         """
         self.search_results = []
         log.debug('text_search called')
