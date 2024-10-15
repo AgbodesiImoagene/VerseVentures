@@ -19,11 +19,14 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 import datetime
+from functools import lru_cache
 import gc
 import logging
 from pathlib import Path
+from pickle import dumps, loads
+import re
 
-from sqlalchemy import and_
+from PySide6 import QtCore
 
 from openlp.core.common import delete_file
 from openlp.core.common.enum import LanguageSelection
@@ -32,8 +35,11 @@ from openlp.core.common.i18n import UiStrings, translate
 from openlp.core.common.mixins import LogMixin, RegistryProperties
 from openlp.core.common.registry import Registry
 from openlp.core.db.manager import DBManager
+from openlp.core.threading import run_thread
 from openlp.plugins.bibles.lib import ModelInfo, ModelType, parse_reference
 from openlp.plugins.bibles.lib.db import BibleDB, Model, init_schema
+from openlp.plugins.bibles.lib.model import TranscriberModel
+from openlp.plugins.bibles.lib.workers.audioworker import AudioWorker
 
 from .importers.csvbible import CSVBible
 from .importers.http import HTTPBible
@@ -108,6 +114,7 @@ class BibleManager(LogMixin, RegistryProperties):
     """
     The Bible manager which holds and manages all the Bibles.
     """
+    transcriber_model_changed = QtCore.Signal(TranscriberModel)
     log.info('Bible manager loaded')
 
     def __init__(self, parent):
@@ -124,15 +131,29 @@ class BibleManager(LogMixin, RegistryProperties):
         self.db_cache = None
         self.path = AppLocation.get_section_data_path('bibles')
         self.model_path = AppLocation.get_section_data_path('models')
+        self.model_manager = DBManager('models', init_schema)
         self.encoder_model = None
         self.transcriber_model = None
+        self.models_cache = None
         self.suffix = '.sqlite'
         self.import_wizard = None
-        self.model_manager = DBManager('models', init_schema)
-        self.reload_bibles()
+        self.reload_bibles(encode=True)
+        self.reload_models()
         self.media = None
+        self.audio_worker = None
 
-    def reload_bibles(self):
+    def setup_audio_worker(self):
+        """
+        Setup the audio worker.
+        """
+        self.audio_worker = AudioWorker()
+        self.media.microphone_source.connect(self.audio_worker.setup_microphone)
+        self.media.microphone_toggled.connect(self.audio_worker.toggle_active)
+        self.transcriber_model_changed.connect(self.audio_worker.set_model)
+        self.audio_worker.submitted_text.connect(self.media.audio_search)
+        run_thread(self.audio_worker, 'audio-worker')
+
+    def reload_bibles(self, encode=False):
         """
         Reloads the Bibles from the available Bible databases on disk. If a web Bible is encountered, an instance
         of HTTPBible is loaded instead of the BibleDB class.
@@ -164,7 +185,18 @@ class BibleManager(LogMixin, RegistryProperties):
                 web_bible = HTTPBible(self.parent, path=self.path, file=file_path, download_source=source.value,
                                       download_name=download_name)
                 self.db_cache[name] = web_bible
+            elif encode:
+                print('Encoding Bible')
+                self.encode_with_all_models(bible)
         log.debug('Bibles reloaded')
+
+    def reload_models(self):
+        """
+        Reloads the models from the available model databases on disk.
+        """
+        log.debug('Reload models')
+        all_models = self.model_manager.get_all_objects(Model, Model.download_date != None)
+        self.models_cache = {model.name: model for model in all_models}
 
     def set_process_dialog(self, wizard):
         """
@@ -205,6 +237,53 @@ class BibleManager(LogMixin, RegistryProperties):
         bible.session = None
         gc.collect()
         return delete_file(bible.path / '{name}{suffix}'.format(name=name, suffix=self.suffix))
+
+    def _prepare_verse(self, verse):
+        """
+        Prepare a verse for encoding.
+        """
+        sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s', verse)
+        if len(sentences) > 1:
+            sentences.append(verse)
+
+        def clean_text(text):
+            return text.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ').strip()
+        
+        sentences = [clean_text(sentence) for sentence in sentences]
+        return list(filter(lambda x: x, sentences))
+
+    def _encode_bible(self, bible, model):
+        log.debug('Encoding Bible {bible} with {model}'.format(bible=bible.name, model=model.name))
+        if not bible or not model:
+            return
+        all_verses = bible.get_all_objects(bible.Verse)
+        verse_texts = [(verse.id, text) for verse in all_verses for text in self._prepare_verse(verse.text)]
+        # split list into ids and texts
+        verse_ids, verse_texts = zip(*verse_texts)
+        encodings = model.encode(verse_texts)
+        encodings = [bible.Encoding(verse_id=verse_id, model_name=model.name, encoding=dumps(encoding))
+                     for verse_id, encoding in zip(verse_ids, encodings)]
+        bible.save_objects(encodings)
+
+    def encode_all_bibles(self, model):
+        if not model:
+            return
+        key = 'bible_embedding_{model}'.format(model=model.name)
+        for bible in self.db_cache.values():
+            if not bible.get_object(bible.BibleMeta, key) and not bible.is_web_bible:
+                self._encode_bible(bible, model)
+                bible.save_meta(key, True)
+
+    def encode_with_all_models(self, bible):
+        if not bible:
+            return
+        for model_name in self.get_models(type=ModelType.ENCODER):
+            key = 'bible_embedding_{model}'.format(model=model_name)
+            if not bible.get_object(bible.BibleMeta, key) and not bible.is_web_bible:
+                model = self.load_model(model_name)
+                self._encode_bible(bible, model)
+                bible.save_meta(key, True)
+                model.destroy()
 
     def get_bibles(self):
         """
@@ -340,9 +419,9 @@ class BibleManager(LogMixin, RegistryProperties):
                 UiStrings().BibleNoBiblesTitle,
                 UiStrings().BibleNoBibles)
             return None
-        # Check if the bible or second_bible is a web bible.
+        # Check if the bible is a web bible.
         if self.db_cache[bible].is_web_bible:
-            # If either Bible is Web, cursor is reset to normal and message is given.
+            # If Bible is Web, cursor is reset to normal and message is given.
             self.application.set_normal_cursor()
             self.main_window.information_message(
                 translate('BiblesPlugin.BibleManager', 'Web Bible cannot be used in Text Search'),
@@ -352,10 +431,57 @@ class BibleManager(LogMixin, RegistryProperties):
             )
             return None
         # Fetch the results from db. If no results are found, return None, no message is given for this.
-        if text:
-            return self.db_cache[bible].verse_search(text)
-        else:
+        return self.db_cache[bible].verse_search(text)
+
+    def similarity_search(self, bible, text, similarity_threshold=0.5, max_results=10):
+        """
+        Does a similarity search for the given bible and text.
+
+        :param str bible: The bible to search
+        :param str text: The text to search for
+        :return: The search results if valid, or None if the search is invalid.
+        :rtype: None | list
+        """
+        log.debug('BibleManager.similarity_search("{bible}", "{text}")'.format(bible=bible, text=text))
+        if not text:
             return None
+        # If no bibles are installed, message is given.
+        if not bible:
+            self.main_window.information_message(
+                UiStrings().BibleNoBiblesTitle,
+                UiStrings().BibleNoBibles)
+            return None
+        # Check if the bible is a web bible.
+        if self.db_cache[bible].is_web_bible:
+            # If Bible is Web, cursor is reset to normal and message is given.
+            self.application.set_normal_cursor()
+            self.main_window.information_message(
+                translate('BiblesPlugin.BibleManager', 'Web Bible cannot be used in Semantic Search'),
+                translate('BiblesPlugin.BibleManager', 'Semantic Search is not available with Web Bibles.\n'
+                                                       'Please use the Scripture Reference Search instead.\n\n'
+                                                       'This means that the currently selected Bible is a Web Bible.')
+            )
+            return None
+        if self.encoder_model is None:
+            self.main_window.information_message(
+                translate('BiblesPlugin.BibleManager', 'No Encoder Model Selected'),
+                translate('BiblesPlugin.BibleManager', 'Please select an encoder model to use for semantic search.')
+            )
+            return None
+        # Fetch the embeddings from db. If no results are found, return None, no message is given for this.
+        verse_ids, encodings = zip(*self.get_encodings(bible, self.encoder_model.name))
+        similarities = self.encoder_model.similarity(text, encodings)
+        verse_similarity = zip(verse_ids, similarities)
+        verse_similarity = sorted(verse_similarity, key=lambda x: x[1], reverse=True)
+        # Filter out duplicate verses, keeping the highest similarity.
+        results = []
+        for verse_id, similarity in verse_similarity:
+            # print(verse_id, similarity)
+            if verse_id not in results and similarity >= similarity_threshold:
+                results.append(verse_id)
+                if len(results) >= max_results:
+                    break
+        return self.db_cache[bible].get_verses_by_id(results)
 
     def process_verse_range(self, book_ref_id, chapter_from, verse_from, chapter_to, verse_to):
         verse_ranges = []
@@ -408,33 +534,30 @@ class BibleManager(LogMixin, RegistryProperties):
         log.debug('Committing %s model to database', model.name)
         model_info = ModelInfo.get_model_info(model.name)
         db_model = self.model_manager.get_object_filtered(Model, Model.name == model.name)
-        db_model = Model() if db_model is None else db_model
-        db_model.name = model.name
-        db_model.type = model_info.get('type')
-        db_model.library = model_info.get('library')
-        db_model.description = model_info.get('description')
+        if db_model is None:
+            db_model = Model()
+            db_model.name = model.name
+            db_model.type = model_info.get('type')
+            db_model.library = model_info.get('library')
+            db_model.description = model_info.get('description')
         db_model.path = str(model.path)
         if model.is_downloaded() and db_model.download_date is None:
             db_model.download_date = datetime.datetime.now()
-        db_model.download_source = model.url
+            db_model.download_source = model.url
         db_model.meta = model.model_info
         self.model_manager.save_object(db_model)
 
-    def get_models(self, type: ModelType | None = None, downloaded: bool = True):
+    def get_models(self, type: ModelType | None = None):
         """
-        Get all the models from the database.
+        Get all the models from the cache.
 
         :param type: The type of model to get.
         :param downloaded: Whether to get only downloaded models.
-        :return: A list of available model names.
+        :return: Available models.
         """
-        clauses = []
-        if downloaded:
-            clauses.append(Model.download_date.isnot_(None))
-        if type is not None:
-            clauses.append(Model.type == type)
-        models = self.model_manager.get_all_objects(Model, filter_clause=and_(*clauses))
-        return [model.name for model in models]
+        if type is None or not self.models_cache:
+            return {}
+        return {name: model for name, model in self.models_cache.items() if model.type == type}
 
     def load_model(self, model_name):
         """
@@ -446,7 +569,51 @@ class BibleManager(LogMixin, RegistryProperties):
         db_model = self.model_manager.get_object_filtered(Model, Model.name == model_name)
         if db_model is None:
             return None
-        
+        model_info = model_data = ModelInfo.get_model_info(model_name)
+        model_info.update(db_model.meta)
+        model_info['path'] = db_model.path
+        model_class = db_model.library.model_class
+        model = model_class(model_name, self, **model_data)
+        model.load()
+        return model
+
+    @lru_cache(maxsize=8)
+    def get_encodings(self, bible, model_name):
+        """
+        Load the encodings for a bible.
+
+        :param str bible: The bible to load the encodings for.
+        :param str model_name: The name of the model to load.
+        """
+        if not bible or not model_name:
+            return None
+        bible_model = self.db_cache[bible]
+        if bible_model.is_web_bible:
+            return None
+        key = 'bible_embedding_{model}'.format(model=model_name)
+        if not bible_model.get_object(bible_model.BibleMeta, key):
+            self._encode_bible(bible_model, self.load_model(model_name))
+            bible_model.save_meta(key, True)
+        results = bible_model.get_all_objects(bible_model.Encoding, bible_model.Encoding.model_name == model_name)
+        return [(result.verse_id, loads(result.encoding)) for result in results]
+
+    def set_encoder_model(self, model_name):
+        """
+        Set the encoder model.
+
+        :param model_name: The name of the model to set.
+        """
+        if model_name in ModelInfo.embedding_models:
+            self.encoder_model = self.load_model(model_name)
+
+    def set_transcriber_model(self, model_name):
+        """
+        Set the transcriber model.
+
+        :param model_name: The name of the model to set.
+        """
+        if model_name in ModelInfo.transcription_models:
+            self.transcriber_model_changed.emit(model_name)
 
     def exists(self, name):
         """

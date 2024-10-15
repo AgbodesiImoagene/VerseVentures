@@ -43,3 +43,5 @@ tensorflow-text
 openai-whisper
 # deepspeech
 speechbrain
+SpeechRecognition
+PyAudio

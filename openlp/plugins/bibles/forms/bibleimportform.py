@@ -767,7 +767,7 @@ class BibleImportForm(OpenLPWizard):
             if importer.do_import(license_version) and not importer.stop_import_flag:
                 self.manager.save_meta_data(license_version, license_version,
                                             license_copyright, license_permissions, license_full_license)
-                self.manager.reload_bibles()
+                self.manager.reload_bibles(encode=True)
                 if bible_type == BibleFormat.WebDownload:
                     self.progress_label.setText(
                         translate('BiblesPlugin.ImportWizardForm', 'Registered Bible. Please note, that verses will be '

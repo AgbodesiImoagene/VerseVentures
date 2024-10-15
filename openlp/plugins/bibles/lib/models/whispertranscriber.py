@@ -74,7 +74,7 @@ class WhisperTranscriberModel(TranscriberModel):
             if not self.is_downloaded():
                 self.download()
             log.debug("Loading WhisperTranscriberModel: %s", self.name)
-            self.model = load_model(self.filename)
+            self.model = load_model(str(self.filename))
 
     def transcribe(self, audio: np.ndarray, *args, **kwargs) -> str:
         """

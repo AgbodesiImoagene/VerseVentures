@@ -63,6 +63,7 @@ class SentenceTransformerEncoderModel(EncoderModel):
         Download the model.
         """
         if self.is_downloaded():
+            log.debug("Model already downloaded: %s", self.name)
             return self.path
         log.debug("Downloading SentenceTransformerEncoderModel: %s", self.name)
         return snapshot_download(self._get_repo_id(), local_dir=self.path)
@@ -81,7 +82,7 @@ class SentenceTransformerEncoderModel(EncoderModel):
             if not self.is_downloaded():
                 self.download()
             self.model = SentenceTransformer(
-                self.path, device=get_device_name(), local_files_only=True
+                str(self.path), device=get_device_name(), local_files_only=True
             )
 
     def encode(self, text: str | List[str], *args, **kwargs) -> np.ndarray:
@@ -109,4 +110,4 @@ class SentenceTransformerEncoderModel(EncoderModel):
         """
         if not self.model:
             self.load()
-        return cos_sim(self.encode(text), embeddings).numpy()
+        return cos_sim(self.encode(text), embeddings).numpy().squeeze()

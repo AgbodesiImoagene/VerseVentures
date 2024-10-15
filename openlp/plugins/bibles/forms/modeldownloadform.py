@@ -105,7 +105,7 @@ class ModelDownloadForm(OpenLPWizard):
         self.model_type_combo_box.addItems(['', ''])
         self.model_type_combo_box.setObjectName('ModelTypeComboBox')
         self.model_type_layout.addRow(self.model_type_label, self.model_type_combo_box)
-        self.spacer = QtWidgets.QSpacerItem(10, 0, QtWidgets.QSizePolicy.Policy.Fixed,
+        self.spacer = QtWidgets.QSpacerItem(10, 0, QtWidgets.QSizePolicy.Policy.MinimumExpanding,
                                             QtWidgets.QSizePolicy.Policy.Minimum)
         self.model_type_layout.setItem(1, QtWidgets.QFormLayout.ItemRole.LabelRole, self.spacer)
         self.select_page_layout.addLayout(self.model_type_layout)
@@ -203,7 +203,7 @@ class ModelDownloadForm(OpenLPWizard):
         )
         self.download_location_edit.setObjectName('DownloadLocationEdit')
         self.download_location_layout.addRow(self.download_location_label, self.download_location_edit)
-        self.download_location_layout.setItem(1, QtWidgets.QFormLayout.ItemRole.LabelRole, self.spacer)
+        self.download_location_layout.setItem(1, QtWidgets.QFormLayout.ItemRole.FieldRole, self.spacer)
         self.addPage(self.download_location_page)
 
     def _populate_models_table(self, table, models):
@@ -345,10 +345,9 @@ class ModelDownloadForm(OpenLPWizard):
         model_data = None
         if model_type == ModelType.ENCODER.value:
             model_name = self.embedding_models_table.selectedItems()[0].text()
-            model_data = ModelInfo.embedding_models[model_name]
         elif model_type == ModelType.TRANSCRIBER.value:
             model_name = self.transcription_models_table.selectedItems()[0].text()
-            model_data = ModelInfo.transcription_models[model_name]
+        model_data = ModelInfo.get_model_info(model_name)
         self.settings.setValue('models/last directory download', self.download_location_edit.path)
         download_location = self.download_location_edit.path / clean_filename(model_name)
         create_paths(download_location)
@@ -359,7 +358,11 @@ class ModelDownloadForm(OpenLPWizard):
             if not model.stop_import_flag:
                 self.manager.import_model(model)
                 if model_type == ModelType.ENCODER.value:
-                    self.manager.reload_bibles()
+                    print('Reloading models')
+                    self.manager.reload_models()
+                    print('Models reloaded')
+                    self.manager.reload_bibles(encode=True)
+                    print('Embedding model imported')
                 self.progress_label.setText(WizardStrings.FinishedImport)
                 return
         except Exception:

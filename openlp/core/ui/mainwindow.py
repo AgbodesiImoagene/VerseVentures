@@ -746,6 +746,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, LogMixin, RegistryPropert
         Registry().execute('theme_change_global')
         # Check if any Bibles downloaded.  If there are, they will be processed.
         Registry().execute('bibles_load_list')
+        # Registry().execute('models_load_list')
         self.application.set_normal_cursor()
 
     def is_display_blank(self):

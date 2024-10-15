@@ -20,6 +20,7 @@
 ##########################################################################
 
 import logging
+from pathlib import Path
 import subprocess
 from typing import List
 
@@ -53,7 +54,7 @@ class ModelBase(QtCore.QObject, LogMixin, RegistryProperties):
         self.wizard = None
         self.stop_import_flag = False
         self.model_info = {}
-        self.path = kwargs['path']
+        self.path = Path(kwargs['path'])
         self.url = kwargs['url']
         if 'display_name' in kwargs:
             self.model_info['display_name'] = kwargs['display_name']

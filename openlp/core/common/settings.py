@@ -319,6 +319,7 @@ class Settings(QtCore.QSettings):
         'models/db database': '',
         'models/encoder model': '',
         'models/transcriber model': '',
+        'models/default microphone': '',
         'models/last directory download': None,
         'players/background color': '#000000',
         'planningcenter/status': PluginStatus.Inactive,

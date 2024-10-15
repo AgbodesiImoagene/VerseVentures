@@ -403,6 +403,15 @@ class BibleDB(DBManager):
         verses = verses.all()
         return verses
 
+    def get_verses_by_id(self, verse_ids: List[int]):
+        """
+        Return a list of verses by their ids.
+
+        :param verse_ids: The list of verse ids to return.
+        """
+        log.debug('BibleDB.get_verses_by_id("{ids}")'.format(ids=verse_ids))
+        return self.session.query(self.Verse).filter(self.Verse.id.in_(verse_ids)).all()
+
     def get_chapter_count(self, book) -> int:
         """
         Return the number of chapters in a book.

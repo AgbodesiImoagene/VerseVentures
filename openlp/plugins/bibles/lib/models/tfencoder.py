@@ -25,6 +25,7 @@ from urllib.request import Request, urlopen
 
 import numpy as np
 import tensorflow as tf
+import tensorflow_text  # noqa
 from tensorflow_hub.file_utils import extract_tarfile_to_destination
 
 from openlp.plugins.bibles.lib.model import EncoderModel
@@ -112,7 +113,7 @@ class TensorFlowEncoderModel(EncoderModel):
         # normalize the embeddings
         text_embedding = text_embedding / np.linalg.norm(text_embedding, ord=2, axis=1, keepdims=True)
         embeddings = embeddings / np.linalg.norm(embeddings, ord=2, axis=1, keepdims=True)
-        return np.dot(text_embedding, embeddings.T)
+        return np.dot(text_embedding, embeddings.T).squeeze()
 
     def has_gpu(self):
         """

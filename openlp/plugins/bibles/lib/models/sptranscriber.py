@@ -84,7 +84,7 @@ class SpeechBrainTranscriberModel(TranscriberModel):
             if not self.is_downloaded():
                 self.download()
             log.debug("Loading SpeechBrainTranscriberModel: %s", self.name)
-            self.model = EncoderDecoderASR.from_hparams(source=self.path)
+            self.model = EncoderDecoderASR.from_hparams(source=str(self.path))
 
     def transcribe(self, audio: np.ndarray, *args, **kwargs) -> str:
         """
