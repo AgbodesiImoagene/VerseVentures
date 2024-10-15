@@ -19,7 +19,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import UiStrings
 from openlp.core.lib.ui import create_button_box
@@ -37,7 +37,7 @@ class Ui_SongMaintenanceDialog(object):
         """
         song_maintenance_dialog.setObjectName('song_maintenance_dialog')
         song_maintenance_dialog.setWindowIcon(UiIcons().main_icon)
-        song_maintenance_dialog.setWindowModality(QtCore.Qt.WindowModality.ApplicationModal)
+        song_maintenance_dialog.setWindowModality(QtCore.Qt.ApplicationModal)
         song_maintenance_dialog.resize(600, 600)
         self.dialog_layout = QtWidgets.QGridLayout(song_maintenance_dialog)
         self.dialog_layout.setObjectName('dialog_layout')

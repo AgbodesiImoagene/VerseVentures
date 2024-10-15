@@ -21,7 +21,7 @@
 import logging
 import time
 
-from PySide6 import QtCore
+from PyQt5 import QtCore
 
 from openlp.core.common import get_uno_command, get_uno_instance, normalize_str
 from openlp.core.common.i18n import translate

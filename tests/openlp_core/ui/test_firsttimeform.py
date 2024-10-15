@@ -25,7 +25,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import MagicMock, call, patch, DEFAULT
 
-from PySide6 import QtCore, QtWidgets, QtTest
+from PyQt5 import QtCore, QtWidgets, QtTest
 
 from openlp.core.common.registry import Registry
 from openlp.core.ui.firsttimeform import FirstTimeForm, ThemeListWidgetItem
@@ -115,7 +115,7 @@ def test_init_download_worker(download_env, mock_settings):
     assert mocked_ftw.thumbnail_download_threads == ['thumbnail_download_BlueBurst.png']
 
 
-def test_firsttimeform_initialise(mock_settings):
+def test_firsttimeform_initialise():
     """
     Test if we can intialise the FirstTimeForm
     """
@@ -134,7 +134,7 @@ def test_firsttimeform_initialise(mock_settings):
 
 
 @patch('openlp.core.ui.firsttimeform.QtWidgets.QWizard.exec')
-def test_firsttimeform_exec(mocked_qwizard_exec, mock_settings):
+def test_firsttimeform_exec(mocked_qwizard_exec):
 
     # GIVEN: An instance of FirstTimeForm
     frw = FirstTimeForm(None)
@@ -316,7 +316,7 @@ def test__parse_config_invalid_config(mocked_message_box):
 
 @patch('openlp.core.ui.firsttimeform.get_web_page')
 @patch('openlp.core.ui.firsttimeform.QtWidgets.QMessageBox')
-def test_network_error(mocked_message_box, mocked_get_web_page, mock_settings):
+def test_network_error(mocked_message_box, mocked_get_web_page, ftf_app):
     """
     Test we catch a network error in First Time Wizard - bug 1409627
     """
@@ -324,6 +324,7 @@ def test_network_error(mocked_message_box, mocked_get_web_page, mock_settings):
     first_time_form = FirstTimeForm(None)
     first_time_form.initialize(MagicMock())
     mocked_get_web_page.side_effect = ConnectionError('')
+    mocked_message_box.Ok = 'OK'
 
     # WHEN: the First Time Wizard calls to get the initial configuration
     first_time_form._download_index()
@@ -331,8 +332,7 @@ def test_network_error(mocked_message_box, mocked_get_web_page, mock_settings):
     # THEN: the critical_error_message_box should have been called
     mocked_message_box.critical.assert_called_once_with(
         first_time_form, 'Network Error',
-        'There was a network error attempting to connect to retrieve initial configuration information',
-        mocked_message_box.StandardButton.Ok)
+        'There was a network error attempting to connect to retrieve initial configuration information', 'OK')
 
 
 def test_accept_method_theme_selected(mock_settings):
@@ -494,7 +494,7 @@ def test_help(mocked_help, settings):
     frw = FirstTimeForm(None)
 
     # WHEN: The Help button is clicked
-    QtTest.QTest.mouseClick(frw.button(QtWidgets.QWizard.WizardButton.HelpButton), QtCore.Qt.MouseButton.LeftButton)
+    QtTest.QTest.mouseClick(frw.button(QtWidgets.QWizard.WizardButton.HelpButton), QtCore.Qt.LeftButton)
 
     # THEN: The Help function should be called
     mocked_help.assert_called_once()

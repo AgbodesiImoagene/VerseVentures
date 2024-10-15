@@ -45,7 +45,7 @@ def test_projector_reset_information(mock_log, pjlink):
             patch.object(pjlink, 'status_timer') as mock_status_timer, \
             patch.object(pjlink, 'poll_timer') as mock_poll_timer, \
             patch.object(pjlink, 'state') as mock_state:
-        mock_state.return_value.value = QSOCKET_STATE[S_NOT_CONNECTED]
+        mock_state.return_value = QSOCKET_STATE[S_NOT_CONNECTED]
         # Set attributes to something other than None or {} or []
         pjlink.fan = True
         pjlink.filter_time = True

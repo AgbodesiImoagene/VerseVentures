@@ -35,7 +35,7 @@ from pathlib import Path
 from shutil import copytree, move
 from traceback import format_exception
 
-from PySide6 import QtCore, QtGui, QtWebEngineCore, QtWidgets  # noqa
+from PyQt5 import QtCore, QtGui, QtWebEngineWidgets, QtWidgets  # noqa
 
 from openlp.core.api.deploy import check_for_remote_update
 from openlp.core.common.applocation import AppLocation
@@ -43,7 +43,7 @@ from openlp.core.common.enum import HiDPIMode
 from openlp.core.common.i18n import LanguageManager, UiStrings, translate
 from openlp.core.common.mixins import LogMixin
 from openlp.core.common.path import create_paths, resolve
-from openlp.core.common.platform import is_macosx, is_wayland_compositor, is_win
+from openlp.core.common.platform import is_macosx, is_win
 from openlp.core.common.registry import Registry
 from openlp.core.common.settings import Settings
 from openlp.core.display.screens import ScreenList
@@ -110,7 +110,7 @@ class OpenLP(QtCore.QObject, LogMixin):
         if not has_run_wizard:
             ftw = FirstTimeForm()
             ftw.initialize(screens)
-            if ftw.exec() == QtWidgets.QDialog.DialogCode.Accepted:
+            if ftw.exec() == QtWidgets.QDialog.Accepted:
                 self.settings.setValue('core/has run wizard', True)
             else:
                 QtCore.QCoreApplication.exit()
@@ -124,9 +124,7 @@ class OpenLP(QtCore.QObject, LogMixin):
         # Check if OpenLP has been upgrade and if a backup of data should be created
         self.backup_on_upgrade(has_run_wizard, can_show_splash)
         # start the main app window
-        Registry().toggle_suppressing()
         loader()
-        Registry().toggle_suppressing()
         # Set the darkmode based on theme
         set_default_theme(app)
         self.main_window = MainWindow()
@@ -164,7 +162,7 @@ class OpenLP(QtCore.QObject, LogMixin):
         Tell the user there is a 2nd instance running.
         """
         QtWidgets.QMessageBox.critical(None, UiStrings().Error, UiStrings().OpenLPStart,
-                                       QtWidgets.QMessageBox.StandardButton(QtWidgets.QMessageBox.StandardButton.Ok))
+                                       QtWidgets.QMessageBox.StandardButtons(QtWidgets.QMessageBox.Ok))
 
     def is_data_path_missing(self):
         """
@@ -182,10 +180,9 @@ class OpenLP(QtCore.QObject, LogMixin):
                                     'current location available.\n\nDo you want to reset to the default data location? '
                                     'If not, OpenLP will be closed so you can try to fix the problem.')
                 .format(path=data_folder_path),
-                QtWidgets.QMessageBox.StandardButton(QtWidgets.QMessageBox.StandardButton.Yes |
-                                                     QtWidgets.QMessageBox.StandardButton.No),
-                QtWidgets.QMessageBox.StandardButton.No)
-            if status == QtWidgets.QMessageBox.StandardButton.No:
+                QtWidgets.QMessageBox.StandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No),
+                QtWidgets.QMessageBox.No)
+            if status == QtWidgets.QMessageBox.No:
                 # If answer was "No", return "True", it will shutdown OpenLP in def main
                 log.info('User requested termination')
                 return True
@@ -233,11 +230,10 @@ class OpenLP(QtCore.QObject, LogMixin):
         elif data_version != openlp_version:
             if can_show_splash and self.splash.isVisible():
                 self.splash.hide()
-            if (QtWidgets.QMessageBox.question(None, translate('OpenLP', 'Backup'),
-                                               translate('OpenLP', 'OpenLP has been upgraded, do you want to create\n'
-                                                                   'a backup of the old data folder?'),
-                                               defaultButton=QtWidgets.QMessageBox.StandardButton.Yes) ==
-                    QtWidgets.QMessageBox.StandardButton.Yes):
+            if QtWidgets.QMessageBox.question(None, translate('OpenLP', 'Backup'),
+                                              translate('OpenLP', 'OpenLP has been upgraded, do you want to create\n'
+                                                                  'a backup of the old data folder?'),
+                                              defaultButton=QtWidgets.QMessageBox.Yes) == QtWidgets.QMessageBox.Yes:
                 # Create copy of data folder
                 data_folder_path = AppLocation.get_data_path()
                 timestamp = time.strftime("%Y%m%d-%H%M%S")
@@ -270,7 +266,7 @@ class OpenLP(QtCore.QObject, LogMixin):
         """
         Sets the Busy Cursor for the Application
         """
-        QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.CursorShape.BusyCursor)
+        QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.BusyCursor)
         QtWidgets.QApplication.processEvents()
 
     @staticmethod
@@ -333,7 +329,7 @@ def set_up_web_engine_cache(web_cache_path):
     :param Path web_cache_path: The folder for the web engine files
     :rtype: None
     """
-    web_engine_profile = QtWebEngineCore.QWebEngineProfile.defaultProfile()
+    web_engine_profile = QtWebEngineWidgets.QWebEngineProfile.defaultProfile()
     web_engine_profile.setCachePath(str(web_cache_path))
     web_engine_profile.setPersistentStoragePath(str(web_cache_path))
 
@@ -363,10 +359,9 @@ def backup_if_version_changed(settings):
                       'OpenLP will start with a fresh install as downgrading data is not supported. Any existing data '
                       'will be backed up to:\n\n{data_folder_backup_path}\n\n'
                       'Do you want to continue?').format(data_folder_backup_path=data_folder_backup_path),
-            QtWidgets.QMessageBox.StandardButton(QtWidgets.QMessageBox.StandardButton.Yes |
-                                                 QtWidgets.QMessageBox.StandardButton.No),
-            QtWidgets.QMessageBox.StandardButton.No)
-        if close_result == QtWidgets.QMessageBox.StandardButton.No:
+            QtWidgets.QMessageBox.StandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No),
+            QtWidgets.QMessageBox.No)
+        if close_result == QtWidgets.QMessageBox.No:
             # Return false as backup failed.
             return False
     # Backup the settings
@@ -415,6 +410,14 @@ def apply_dpi_adjustments_stage_qt(hidpi_mode, qt_args):
                 qt_args[platform_index + 1] += ' windows:dpiawareness=0'
             except ValueError:
                 qt_args.extend(['-platform', 'windows:dpiawareness=0'])
+    else:
+        QtWidgets.QApplication.setAttribute(QtCore.Qt.ApplicationAttribute.AA_EnableHighDpiScaling)
+    if hidpi_mode == HiDPIMode.Default:
+        no_custom_factor_rounding = not ('QT_SCALE_FACTOR_ROUNDING_POLICY' in os.environ
+                                         and bool(os.environ['QT_SCALE_FACTOR_ROUNDING_POLICY'].strip()))
+        if no_custom_factor_rounding:
+            # TODO Won't be needed on PyQt6, PassThrough is the default
+            os.environ['QT_SCALE_FACTOR_ROUNDING_POLICY'] = 'PassThrough'
 
 
 def apply_dpi_adjustments_stage_application(hidpi_mode: HiDPIMode, application: QtWidgets.QApplication):
@@ -425,12 +428,20 @@ def apply_dpi_adjustments_stage_application(hidpi_mode: HiDPIMode, application: 
     :param settings: The settings object
     :param stage: The stage of app
     """
-    if hidpi_mode == HiDPIMode.Default and is_win() and application.devicePixelRatio() > 1.0:
-        # Increasing font size to match pixel ratio (Windows only)
-        # TODO: Review on Qt6 migration
-        font = application.font()
-        font.setPointSizeF(font.pointSizeF() * application.devicePixelRatio())
-        application.setFont(font)
+    if hidpi_mode == HiDPIMode.Default:
+        no_custom_factor_rounding = not ('QT_SCALE_FACTOR_ROUNDING_POLICY' in os.environ
+                                         and bool(os.environ['QT_SCALE_FACTOR_ROUNDING_POLICY'].strip()))
+        if no_custom_factor_rounding and hasattr(QtWidgets.QApplication, 'setHighDpiScaleFactorRoundingPolicy'):
+            # TODO Won't be needed on PyQt6, PassThrough is the default
+            application.setHighDpiScaleFactorRoundingPolicy(QtCore.Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
+        if is_win() and application.devicePixelRatio() > 1.0:
+            # Increasing font size to match pixel ratio (Windows only)
+            # TODO: Review on PyQt6 migration
+            font = application.font()
+            font.setPointSizeF(font.pointSizeF() * application.devicePixelRatio())
+            application.setFont(font)
+    if hidpi_mode != HiDPIMode.Windows_Unaware:
+        application.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
 
 
 def setup_portable_settings(portable_path: Path | str | None) -> Settings:
@@ -474,15 +485,17 @@ def main():
         # support dark mode on windows 10. This makes the titlebar dark, the rest is setup later
         # by calling set_windows_darkmode
         qt_args.extend(['-platform', 'windows:darkmode=1'])
-    elif is_macosx() and getattr(sys, 'frozen', False) and not os.environ.get('QTWEBENGINEPROCESS_PATH'):
+    elif is_macosx() and getattr(sys, 'frozen', False):
         # Set the location to the QtWebEngineProcess binary, normally set by PyInstaller, but it moves around...
-        os.environ['QTWEBENGINEPROCESS_PATH'] = str((AppLocation.get_directory(AppLocation.AppDir) / 'PySide6' /
-                                                     'Qt6' / 'lib' / 'QtWebEngineCore.framework' / 'Versions' /
-                                                     '6' / 'Helpers' / 'QtWebEngineProcess.app' / 'Contents' /
-                                                     'MacOS' / 'QtWebEngineProcess').resolve())
-    # Prevent the use of wayland, use xcb instead
-    if is_wayland_compositor():
-        qt_args.extend(['-platform', 'xcb'])
+        os.environ['QTWEBENGINEPROCESS_PATH'] = str((AppLocation.get_directory(AppLocation.AppDir) / '..' /
+                                                     'Frameworks' / 'QtWebEngineCore.framework' / 'Versions' / '5' /
+                                                     'Helpers' / 'QtWebEngineProcess.app' / 'Contents' / 'MacOS' /
+                                                     'QtWebEngineProcess').resolve())
+    no_custom_factor_rounding = not ('QT_SCALE_FACTOR_ROUNDING_POLICY' in os.environ
+                                     and bool(os.environ['QT_SCALE_FACTOR_ROUNDING_POLICY'].strip()))
+    if no_custom_factor_rounding:
+        # TODO Won't be needed on PyQt6
+        os.environ['QT_SCALE_FACTOR_ROUNDING_POLICY'] = 'PassThrough'
     # Initialise the resources
     qInitResources()
     # Initialise OpenLP
@@ -505,9 +518,12 @@ def main():
     # Instantiating QCoreApplication
     init_webview_custom_schemes()
     application = QtWidgets.QApplication(qt_args)
-    application.setAttribute(QtCore.Qt.ApplicationAttribute.AA_DontCreateNativeWidgetSiblings, True)
+    application.setAttribute(QtCore.Qt.AA_DontCreateNativeWidgetSiblings, True)
     # Doing HiDPI adjustments that need to be done after QCoreApplication instantiation.
     apply_dpi_adjustments_stage_application(hidpi_mode, application)
+    if no_custom_factor_rounding and hasattr(QtWidgets.QApplication, 'setHighDpiScaleFactorRoundingPolicy'):
+        # TODO: Check won't be needed on PyQt6
+        application.setHighDpiScaleFactorRoundingPolicy(QtCore.Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
     if is_win() and application.devicePixelRatio() > 1.0:
         # Increasing font size to match pixel ratio (Windows only)
         font = application.font()

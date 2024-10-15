@@ -33,9 +33,9 @@ from ipaddress import IPv4Address, IPv6Address, AddressValueError
 from pathlib import Path
 from shutil import which
 
-from PySide6 import QtGui
-from PySide6.QtCore import QCryptographicHash as QHash
-from PySide6.QtNetwork import QAbstractSocket, QHostAddress, QNetworkInterface
+from PyQt5 import QtGui
+from PyQt5.QtCore import QCryptographicHash as QHash
+from PyQt5.QtNetwork import QAbstractSocket, QHostAddress, QNetworkInterface
 from chardet.universaldetector import UniversalDetector
 
 log = logging.getLogger(__name__ + '.__init__')
@@ -68,21 +68,21 @@ def get_network_interfaces():
             log.debug('Filtering out interfaces we don\'t care about: {name}'.format(name=interface_name))
             continue
         log.debug('Checking for isValid and flags == IsUP | IsRunning')
-        if not interface.isValid() or not (interface.flags() & (QNetworkInterface.InterfaceFlag.IsUp |
-                                                                QNetworkInterface.InterfaceFlag.IsRunning)):
+        if not interface.isValid() or not (interface.flags() & (QNetworkInterface.IsUp | QNetworkInterface.IsRunning)):
             continue
         log.debug('Checking address(es) protocol')
         for address in interface.addressEntries():
             ip = address.ip()
             log.debug('Checking for protocol == IPv4Protocol')
-            if ip.protocol() == QAbstractSocket.NetworkLayerProtocol.IPv4Protocol:
+            if ip.protocol() == QAbstractSocket.IPv4Protocol:
                 log.debug('Getting interface information')
                 interfaces[interface_name] = {
                     'ip': ip.toString(),
                     'broadcast': address.broadcast().toString(),
                     'netmask': address.netmask().toString(),
                     'prefix': address.prefixLength(),
-                    'localnet': QHostAddress(address.netmask().toIPv4Address() & ip.toIPv4Address()).toString()
+                    'localnet': QHostAddress(address.netmask().toIPv4Address() &
+                                             ip.toIPv4Address()).toString()
                 }
                 log.debug('Adding {interface} to active list'.format(interface=interface.name()))
     if len(interfaces) == 0:
@@ -298,7 +298,7 @@ def sha256_file_hash(filename):
 def qmd5_hash(salt=None, data=None):
     """
     Returns the hashed output of MD5Sum on salt, data
-    using PySide6.QCryptographicHash. Function returns a
+    using PyQt5.QCryptographicHash. Function returns a
     QByteArray instead of a text string.
     If you need a string instead, call with
 

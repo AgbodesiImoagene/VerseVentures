@@ -26,7 +26,7 @@ from tempfile import TemporaryDirectory
 from unittest.mock import ANY, MagicMock, patch
 
 import pytest
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.enum import ImageThemeMode
 from openlp.core.common.registry import Registry

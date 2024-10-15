@@ -23,7 +23,7 @@ The bible import functions for OpenLP
 """
 import logging
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common import trace_error_handler
 from openlp.core.common.applocation import AppLocation

@@ -24,7 +24,7 @@ Package to test the openlp.plugins.bibles.forms.bibleimportform package.
 from unittest.mock import MagicMock, patch
 
 import pytest
-from PySide6 import QtWidgets, QtTest, QtCore
+from PyQt5 import QtWidgets, QtTest, QtCore
 
 from openlp.core.common.registry import Registry
 from openlp.core.common.settings import Settings
@@ -89,7 +89,7 @@ def test_help(mocked_help: MagicMock, settings: Settings):
 
     # WHEN: The Help button is clicked
     QtTest.QTest.mouseClick(bible_import_form.button(QtWidgets.QWizard.WizardButton.HelpButton),
-                            QtCore.Qt.MouseButton.LeftButton)
+                            QtCore.Qt.LeftButton)
 
     # THEN: The Help function should be called
     mocked_help.assert_called_once()

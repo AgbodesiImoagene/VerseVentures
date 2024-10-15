@@ -27,7 +27,7 @@ import re
 from datetime import date
 from zipfile import ZipFile
 
-from PySide6 import QtCore
+from PyQt5 import QtCore
 
 from openlp.core.common.applocation import AppLocation
 from openlp.core.common.httputils import download_file, get_web_page, get_openlp_user_agent
@@ -45,8 +45,8 @@ class RemoteVersionWorker(ThreadWorker):
     A worker class to fetch the version of the web remote. This is run from within a thread so that it
     doesn't affect the loading time of OpenLP.
     """
-    new_version = QtCore.Signal(str)
-    no_internet = QtCore.Signal()
+    new_version = QtCore.pyqtSignal(str)
+    no_internet = QtCore.pyqtSignal()
 
     def __init__(self, current_version):
         """

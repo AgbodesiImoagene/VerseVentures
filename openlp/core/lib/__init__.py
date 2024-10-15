@@ -28,7 +28,7 @@ import base64
 from enum import IntEnum
 from pathlib import Path
 
-from PySide6 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from openlp.core.common.i18n import UiStrings, translate
 
@@ -70,6 +70,14 @@ class ImageSource(object):
     ImagePlugin = 1
     Theme = 2
     CommandPlugins = 3
+
+
+class MediaType(object):
+    """
+    An enumeration class for types of media.
+    """
+    Audio = 1
+    Video = 2
 
 
 class ServiceItemAction(object):

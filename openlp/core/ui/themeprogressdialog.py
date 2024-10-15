@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License      #
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import translate
 from openlp.core.display.render import ThemePreviewRenderer
@@ -54,7 +54,7 @@ class UiThemeProgressDialog(object):
         self.theme_preview_layout.addWidget(self.theme_display)
         self.theme_progress_layout.addWidget(self.preview_area)
         self.label = QtWidgets.QLabel(theme_progress_dialog)
-        self.label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.label.setAlignment(QtCore.Qt.AlignCenter)
         self.label.setObjectName('label')
         self.theme_progress_layout.addWidget(self.label)
         self.progress_bar = QtWidgets.QProgressBar(theme_progress_dialog)

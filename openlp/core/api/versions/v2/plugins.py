@@ -24,7 +24,7 @@ import json
 import re
 
 from flask import abort, request, Blueprint, jsonify, Response
-from PySide6 import QtCore
+from PyQt5 import QtCore
 
 from openlp.core.api.lib import login_required, extract_request, old_success_response, old_auth
 from openlp.core.lib.plugin import PluginStatus
@@ -46,7 +46,7 @@ def search(plugin_name, text):
         if hasattr(plugin.media_item.search, '__pyqtSignature__'):
             # If this method has a signature, it means that it should be called from the parent thread
             results = plugin.media_item.staticMetaObject.invokeMethod(
-                plugin.media_item, 'search', QtCore.Qt.ConnectionType.BlockingQueuedConnection,
+                plugin.media_item, 'search', QtCore.Qt.BlockingQueuedConnection,
                 QtCore.Q_RETURN_ARG(list), QtCore.Q_ARG(str, text), QtCore.Q_ARG(bool, False))
         else:
             # Fall back to original behaviour

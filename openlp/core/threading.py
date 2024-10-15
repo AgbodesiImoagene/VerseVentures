@@ -21,7 +21,7 @@
 """
 The :mod:`openlp.core.threading` module contains some common threading code
 """
-from PySide6 import QtCore
+from PyQt5 import QtCore
 
 from openlp.core.common.mixins import LogMixin
 from openlp.core.common.registry import Registry
@@ -31,8 +31,8 @@ class ThreadWorker(QtCore.QObject, LogMixin):
     """
     The :class:`~openlp.core.threading.ThreadWorker` class provides a base class for all worker objects
     """
-    quit = QtCore.Signal()
-    error = QtCore.Signal(str, str)
+    quit = QtCore.pyqtSignal()
+    error = QtCore.pyqtSignal(str, str)
 
     def start(self):
         """

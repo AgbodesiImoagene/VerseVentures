@@ -24,7 +24,7 @@ Package to test the openlp.plugins.songs.forms.editsongform package.
 import pytest
 from unittest.mock import MagicMock, patch
 
-from PySide6 import QtWidgets, QtTest, QtCore
+from PyQt5 import QtWidgets, QtTest, QtCore
 
 from openlp.core.common.i18n import UiStrings
 from openlp.core.common.registry import Registry
@@ -158,7 +158,7 @@ def test_help(mocked_help, settings):
 
     # WHEN: The Help button is clicked
     QtTest.QTest.mouseClick(edit_song_form.button_box.button(QtWidgets.QDialogButtonBox.StandardButton.Help),
-                            QtCore.Qt.MouseButton.LeftButton)
+                            QtCore.Qt.LeftButton)
 
     # THEN: The Help function should be called
     mocked_help.assert_called_once()

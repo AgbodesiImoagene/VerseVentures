@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import Any, List, Optional, Tuple
 
 import chardet
-from PySide6 import QtCore
+from PyQt5 import QtCore
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, JSON, LargeBinary, func, or_
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session, declarative_base, relationship
@@ -157,6 +157,7 @@ class BibleDB(DBManager):
             book = relationship('Book', back_populates='verses')
             encodings = relationship('Encoding', back_populates='verse')
 
+
         class Encoding(Base):
             """
             Encoding model
@@ -175,6 +176,7 @@ class BibleDB(DBManager):
         self.Book = Book
         self.Verse = Verse
         self.Encoding = Encoding
+
 
         session, metadata = init_db(url, base=Base)
         metadata.create_all(bind=metadata.bind, checkfirst=True)

@@ -26,7 +26,7 @@ import logging
 import re
 from datetime import date, datetime
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import translate
 from openlp.core.common.registry import Registry
@@ -46,9 +46,7 @@ class SelectPlanForm(QtWidgets.QDialog, Ui_SelectPlanDialog):
     """
 
     def __init__(self, parent=None, plugin=None):
-        QtWidgets.QDialog.__init__(self, parent,
-                                   QtCore.Qt.WindowType.WindowSystemMenuHint |
-                                   QtCore.Qt.WindowType.WindowTitleHint)
+        QtWidgets.QDialog.__init__(self, parent, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint)
         self.plugin = plugin
         # create an Planning Center API Object
         application_id = Registry().get('settings').value("planningcenter/application_id")
@@ -104,7 +102,7 @@ class SelectPlanForm(QtWidgets.QDialog, Ui_SelectPlanDialog):
         """
         Open the edit auth screen
         """
-        self.done(QtWidgets.QDialog.DialogCode.Accepted)
+        self.done(QtWidgets.QDialog.Accepted)
         settings_form = Registry().get('settings_form')
         settings_form.exec(translate('PlanningCenterPlugin', 'PlanningCenter'))
 
@@ -150,14 +148,14 @@ class SelectPlanForm(QtWidgets.QDialog, Ui_SelectPlanDialog):
         keep changed items
         """
         self._do_import(update=True)
-        self.done(QtWidgets.QDialog.DialogCode.Accepted)
+        self.done(QtWidgets.QDialog.Accepted)
 
     def on_import_as_new_button_clicked(self):
         """
         Create a new service and import all of the PCO items into it
         """
         self._do_import(update=False)
-        self.done(QtWidgets.QDialog.DialogCode.Accepted)
+        self.done(QtWidgets.QDialog.Accepted)
 
     def _do_import(self, update=False):
         """

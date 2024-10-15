@@ -21,13 +21,12 @@
 """
 Package to test the openlp.core.ui package.
 """
-from unittest.mock import MagicMock
-from PySide6 import QtCore
+from PyQt5 import QtCore
 
 from openlp.core.ui.splashscreen import SplashScreen
 
 
-def test_splashscreen(mock_settings: MagicMock):
+def test_splashscreen():
     """
     Test that the SpashScreen is created correctly
     """
@@ -39,5 +38,5 @@ def test_splashscreen(mock_settings: MagicMock):
     assert ss.objectName() == 'splashScreen', 'The ObjectName should have be ' \
         'splashScreen'
     assert ss.frameSize() == QtCore.QSize(370, 370), 'The frameSize should be (370, 370)'
-    assert ss.contextMenuPolicy() == QtCore.Qt.ContextMenuPolicy.PreventContextMenu, 'The ContextMenuPolicy ' \
-        'should have been QtCore.Qt.ContextMenuPolicy.PreventContextMenu or 4'
+    assert ss.contextMenuPolicy() == QtCore.Qt.PreventContextMenu, 'The ContextMenuPolicy ' \
+        'should have been QtCore.Qt.PreventContextMenu or 4'

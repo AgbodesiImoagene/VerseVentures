@@ -21,7 +21,7 @@
 
 import logging
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from .mediafilesdialog import Ui_MediaFilesDialog
 
@@ -36,10 +36,8 @@ class MediaFilesForm(QtWidgets.QDialog, Ui_MediaFilesDialog):
     log.info('{name} MediaFilesForm loaded'.format(name=__name__))
 
     def __init__(self, parent):
-        super(MediaFilesForm, self).__init__(parent,
-                                             QtCore.Qt.WindowType.WindowSystemMenuHint |
-                                             QtCore.Qt.WindowType.WindowTitleHint |
-                                             QtCore.Qt.WindowType.WindowCloseButtonHint)
+        super(MediaFilesForm, self).__init__(parent, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint |
+                                             QtCore.Qt.WindowCloseButtonHint)
         self.setup_ui(self)
 
     def populate_files(self, file_paths):
@@ -50,11 +48,11 @@ class MediaFilesForm(QtWidgets.QDialog, Ui_MediaFilesDialog):
         self.file_list_widget.clear()
         for file_path in file_paths:
             item = QtWidgets.QListWidgetItem(file_path.name)
-            item.setData(QtCore.Qt.ItemDataRole.UserRole, file_path)
+            item.setData(QtCore.Qt.UserRole, file_path)
             self.file_list_widget.addItem(item)
 
     def get_selected_files(self):
         """
         :rtype: list[pathlib.Path]
         """
-        return [item.data(QtCore.Qt.ItemDataRole.UserRole) for item in self.file_list_widget.selectedItems()]
+        return [item.data(QtCore.Qt.UserRole) for item in self.file_list_widget.selectedItems()]

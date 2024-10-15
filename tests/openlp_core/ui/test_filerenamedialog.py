@@ -24,7 +24,7 @@ Package to test the openlp.core.ui package.
 import pytest
 from unittest.mock import MagicMock, patch
 
-from PySide6 import QtTest
+from PyQt5 import QtTest
 
 from openlp.core.common.registry import Registry
 from openlp.core.common.settings import Settings
@@ -43,7 +43,7 @@ def test_window_title(form: FileRenameForm):
     Test the windowTitle of the FileRenameDialog
     """
     # GIVEN: A mocked QDialog.exec() method
-    with patch('PySide6.QtWidgets.QDialog.exec'):
+    with patch('PyQt5.QtWidgets.QDialog.exec'):
 
         # WHEN: The form is executed with no args
         form.exec()
@@ -70,7 +70,7 @@ def test_line_edit_focus(form: FileRenameForm):
     Test that the file_name_edit setFocus has called with True when executed
     """
     # GIVEN: A mocked QDialog.exec() method and mocked file_name_edit.setFocus() method.
-    with patch('PySide6.QtWidgets.QDialog.exec'):
+    with patch('PyQt5.QtWidgets.QDialog.exec'):
         mocked_set_focus = MagicMock()
         form.file_name_edit.setFocus = mocked_set_focus
 

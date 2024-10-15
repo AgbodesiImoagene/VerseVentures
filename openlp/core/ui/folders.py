@@ -19,7 +19,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import get_natural_key, translate
 from openlp.core.lib.ui import create_button_box, critical_error_message_box
@@ -57,8 +57,8 @@ class AddFolderForm(QtWidgets.QDialog, FolderPopulateMixin):
         """
         Constructor
         """
-        super().__init__(parent, QtCore.Qt.WindowType.WindowSystemMenuHint | QtCore.Qt.WindowType.WindowTitleHint |
-                         QtCore.Qt.WindowType.WindowCloseButtonHint)
+        super().__init__(parent, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint |
+                         QtCore.Qt.WindowCloseButtonHint)
         self.setup_ui()
         self.db_manager = db_manager
         self.folder_class = folder_class
@@ -137,7 +137,7 @@ class AddFolderForm(QtWidgets.QDialog, FolderPopulateMixin):
         """
         if self.folder_combobox.currentIndex() == 0:
             return None
-        return self.folder_combobox.itemData(self.folder_combobox.currentIndex(), QtCore.Qt.ItemDataRole.UserRole).id
+        return self.folder_combobox.itemData(self.folder_combobox.currentIndex(), QtCore.Qt.UserRole).id
 
     @property
     def folder_name(self):
@@ -170,8 +170,8 @@ class ChooseFolderForm(QtWidgets.QDialog, FolderPopulateMixin):
         """
         Constructor
         """
-        super().__init__(parent, QtCore.Qt.WindowType.WindowSystemMenuHint | QtCore.Qt.WindowType.WindowTitleHint |
-                         QtCore.Qt.WindowType.WindowCloseButtonHint)
+        super().__init__(parent, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint |
+                         QtCore.Qt.WindowCloseButtonHint)
         self.setup_ui()
         self.db_manager = db_manager
         self.folder_class = folder_class
@@ -186,8 +186,7 @@ class ChooseFolderForm(QtWidgets.QDialog, FolderPopulateMixin):
         self.choose_folder_layout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
         self.choose_folder_layout.setContentsMargins(8, 8, 8, 8)
         self.choose_folder_layout.setSpacing(8)
-        self.choose_folder_layout.setLabelAlignment(QtCore.Qt.AlignmentFlag.AlignLeft |
-                                                    QtCore.Qt.AlignmentFlag.AlignVCenter)
+        self.choose_folder_layout.setLabelAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         self.choose_folder_layout.setObjectName('choose_folder_layout')
         self.folder_question_label = QtWidgets.QLabel(self)
         self.folder_question_label.setWordWrap(True)
@@ -261,7 +260,7 @@ class ChooseFolderForm(QtWidgets.QDialog, FolderPopulateMixin):
         else:
             return QtWidgets.QDialog.accept(self)
 
-    def on_folder_combobox_selected(self, index: int):
+    def on_folder_combobox_selected(self, index):
         """
         Handles the activated signal from the existing folder combobox when the
         user makes a selection
@@ -271,7 +270,7 @@ class ChooseFolderForm(QtWidgets.QDialog, FolderPopulateMixin):
         self.existing_radio_button.setChecked(True)
         self.folder_combobox.setFocus()
 
-    def on_new_folder_edit_changed(self, new_folder: str):
+    def on_new_folder_edit_changed(self, new_folder):
         """
         Handles the textEdited signal from the new folder text input field
         when the user enters a new folder name
@@ -290,7 +289,7 @@ class ChooseFolderForm(QtWidgets.QDialog, FolderPopulateMixin):
     @property
     def folder(self):
         if self.existing_radio_button.isChecked() and self.folder_combobox.currentIndex() != -1:
-            return self.folder_combobox.currentData(QtCore.Qt.ItemDataRole.UserRole)
+            return self.folder_combobox.currentData(QtCore.Qt.UserRole)
         elif self.new_radio_button.isChecked() and self.new_folder_edit.text():
             return self.folder_class(name=self.new_folder_edit.text())
         return None

@@ -21,7 +21,7 @@
 
 import logging
 
-from PySide6 import QtCore, QtWidgets, QtGui
+from PyQt5 import QtCore, QtWidgets, QtGui
 
 from openlp.core.common.i18n import translate
 from openlp.core.common.registry import Registry
@@ -44,10 +44,8 @@ class EditCustomForm(QtWidgets.QDialog, Ui_CustomEditDialog):
         """
         Constructor
         """
-        super(EditCustomForm, self).__init__(parent,
-                                             QtCore.Qt.WindowType.WindowSystemMenuHint |
-                                             QtCore.Qt.WindowType.WindowTitleHint |
-                                             QtCore.Qt.WindowType.WindowCloseButtonHint)
+        super(EditCustomForm, self).__init__(parent, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint |
+                                             QtCore.Qt.WindowCloseButtonHint)
         self.manager = manager
         self.media_item = media_item
         self.setup_ui(self)

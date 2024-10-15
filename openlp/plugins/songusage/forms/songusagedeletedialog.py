@@ -19,7 +19,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import translate
 from openlp.core.lib.ui import create_button_box
@@ -47,7 +47,7 @@ class Ui_SongUsageDeleteDialog(object):
         self.delete_label.setObjectName('delete_label')
         self.vertical_layout.addWidget(self.delete_label)
         self.delete_calendar = QtWidgets.QCalendarWidget(song_usage_delete_dialog)
-        self.delete_calendar.setFirstDayOfWeek(QtCore.Qt.DayOfWeek.Sunday)
+        self.delete_calendar.setFirstDayOfWeek(QtCore.Qt.Sunday)
         self.delete_calendar.setGridVisible(True)
         self.delete_calendar.setVerticalHeaderFormat(QtWidgets.QCalendarWidget.VerticalHeaderFormat.NoVerticalHeader)
         self.delete_calendar.setObjectName('delete_calendar')

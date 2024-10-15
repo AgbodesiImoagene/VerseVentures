@@ -33,7 +33,7 @@
 import logging
 import time
 
-from PySide6 import QtCore
+from PyQt5 import QtCore
 
 from openlp.core.common import delete_file, get_uno_command, get_uno_instance, trace_error_handler
 from openlp.core.common.platform import is_win

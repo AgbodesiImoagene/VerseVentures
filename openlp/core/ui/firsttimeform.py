@@ -30,7 +30,7 @@ import urllib.request
 from pathlib import Path
 from tempfile import gettempdir
 
-from PySide6 import QtCore, QtWidgets, QtGui
+from PyQt5 import QtCore, QtWidgets, QtGui
 
 from openlp.core.api.deploy import get_latest_size, download_and_install
 from openlp.core.common import trace_error_handler
@@ -100,10 +100,8 @@ class FirstTimeForm(QtWidgets.QWizard, UiFirstTimeWizard, RegistryProperties):
         """
         Create and set up the first time wizard.
         """
-        super(FirstTimeForm, self).__init__(parent,
-                                            QtCore.Qt.WindowType.WindowSystemMenuHint |
-                                            QtCore.Qt.WindowType.WindowTitleHint |
-                                            QtCore.Qt.WindowType.WindowCloseButtonHint)
+        super(FirstTimeForm, self).__init__(parent, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint |
+                                            QtCore.Qt.WindowCloseButtonHint)
         self.has_web_access = True
         self.web = ''
         self.is_index_downloaded = False
@@ -192,7 +190,7 @@ class FirstTimeForm(QtWidgets.QWizard, UiFirstTimeWizard, RegistryProperties):
             QtWidgets.QMessageBox.critical(self, translate('OpenLP.FirstTimeWizard', 'Network Error'),
                                            translate('OpenLP.FirstTimeWizard', 'There was a network error attempting '
                                                      'to connect to retrieve initial configuration information'),
-                                           QtWidgets.QMessageBox.StandardButton.Ok)
+                                           QtWidgets.QMessageBox.Ok)
         if web_config and self._parse_config(web_config):
             self.has_web_access = True
         self.application.process_events()
@@ -210,18 +208,18 @@ class FirstTimeForm(QtWidgets.QWizard, UiFirstTimeWizard, RegistryProperties):
             for song in config['songs'].values():
                 self.application.process_events()
                 item = QtWidgets.QListWidgetItem(song['title'], self.songs_list_widget)
-                item.setData(QtCore.Qt.ItemDataRole.UserRole, (song['file_name'], song['sha256']))
-                item.setCheckState(QtCore.Qt.CheckState.Unchecked)
-                item.setFlags(item.flags() | QtCore.Qt.ItemFlag.ItemIsUserCheckable)
+                item.setData(QtCore.Qt.UserRole, (song['file_name'], song['sha256']))
+                item.setCheckState(QtCore.Qt.Unchecked)
+                item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
             for lang in config['bibles'].values():
                 self.application.process_events()
                 lang_item = QtWidgets.QTreeWidgetItem(self.bibles_tree_widget, [lang['title']])
                 for translation in lang['translations'].values():
                     self.application.process_events()
                     item = QtWidgets.QTreeWidgetItem(lang_item, [translation['title']])
-                    item.setData(0, QtCore.Qt.ItemDataRole.UserRole, (translation['file_name'], translation['sha256']))
-                    item.setCheckState(0, QtCore.Qt.CheckState.Unchecked)
-                    item.setFlags(item.flags() | QtCore.Qt.ItemFlag.ItemIsUserCheckable)
+                    item.setData(0, QtCore.Qt.UserRole, (translation['file_name'], translation['sha256']))
+                    item.setCheckState(0, QtCore.Qt.Unchecked)
+                    item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
             self.bibles_tree_widget.expandAll()
             self.application.process_events()
             for theme in config['themes'].values():
@@ -417,8 +415,8 @@ class FirstTimeForm(QtWidgets.QWizard, UiFirstTimeWizard, RegistryProperties):
             for i in range(self.songs_list_widget.count()):
                 self.application.process_events()
                 item = self.songs_list_widget.item(i)
-                if item.checkState() == QtCore.Qt.CheckState.Checked:
-                    filename, sha256 = item.data(QtCore.Qt.ItemDataRole.UserRole)
+                if item.checkState() == QtCore.Qt.Checked:
+                    filename, sha256 = item.data(QtCore.Qt.UserRole)
                     size = get_url_file_size('{path}{name}'.format(path=self.songs_url, name=filename))
                     self.max_progress += size
             # Loop through the Bibles list and increase for each selected item
@@ -426,8 +424,8 @@ class FirstTimeForm(QtWidgets.QWizard, UiFirstTimeWizard, RegistryProperties):
             while iterator.value():
                 self.application.process_events()
                 item = iterator.value()
-                if item.parent() and item.checkState(0) == QtCore.Qt.CheckState.Checked:
-                    filename, sha256 = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
+                if item.parent() and item.checkState(0) == QtCore.Qt.Checked:
+                    filename, sha256 = item.data(0, QtCore.Qt.UserRole)
                     size = get_url_file_size('{path}{name}'.format(path=self.bibles_url, name=filename))
                     self.max_progress += size
                 iterator += 1
@@ -510,8 +508,8 @@ class FirstTimeForm(QtWidgets.QWizard, UiFirstTimeWizard, RegistryProperties):
         # Download songs
         for i in range(self.songs_list_widget.count()):
             item = self.songs_list_widget.item(i)
-            if item.checkState() == QtCore.Qt.CheckState.Checked:
-                filename, sha256 = item.data(QtCore.Qt.ItemDataRole.UserRole)
+            if item.checkState() == QtCore.Qt.Checked:
+                filename, sha256 = item.data(QtCore.Qt.UserRole)
                 self._increment_progress_bar(self.downloading.format(name=filename), 0)
                 self.previous_size = 0
                 destination = songs_destination_path / str(filename)
@@ -522,8 +520,8 @@ class FirstTimeForm(QtWidgets.QWizard, UiFirstTimeWizard, RegistryProperties):
         bibles_iterator = QtWidgets.QTreeWidgetItemIterator(self.bibles_tree_widget)
         while bibles_iterator.value():
             item = bibles_iterator.value()
-            if item.parent() and item.checkState(0) == QtCore.Qt.CheckState.Checked:
-                bible, sha256 = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
+            if item.parent() and item.checkState(0) == QtCore.Qt.Checked:
+                bible, sha256 = item.data(0, QtCore.Qt.UserRole)
                 self._increment_progress_bar(self.downloading.format(name=bible), 0)
                 self.previous_size = 0
                 if not download_file(self, '{path}{name}'.format(path=self.bibles_url, name=bible),
@@ -557,7 +555,7 @@ class FirstTimeForm(QtWidgets.QWizard, UiFirstTimeWizard, RegistryProperties):
             msg.setInformativeText(translate('OpenLP.FirstTimeWizard',
                                              'The following files were not able to be '
                                              'downloaded:<br \\>{text}'.format(text=file_list)))
-            msg.setStandardButtons(msg.StandardButton.Ok)
+            msg.setStandardButtons(msg.Ok)
             msg.exec()
         return True
 
@@ -565,5 +563,5 @@ class FirstTimeForm(QtWidgets.QWizard, UiFirstTimeWizard, RegistryProperties):
         """
         Set the status of a plugin.
         """
-        status = PluginStatus.Active if field.checkState() == QtCore.Qt.CheckState.Checked else PluginStatus.Inactive
+        status = PluginStatus.Active if field.checkState() == QtCore.Qt.Checked else PluginStatus.Inactive
         self.settings.setValue(tag, status)

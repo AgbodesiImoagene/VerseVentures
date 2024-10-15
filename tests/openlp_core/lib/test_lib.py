@@ -27,7 +27,7 @@ import pytest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from PySide6 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui
 
 from openlp.core.lib import DataType, build_icon, check_item_selected, create_separated_list, create_thumb, \
     get_text_file_string, image_to_byte, read_or_fail, read_int, resize_image, seek_or_fail, str_to_bool, \

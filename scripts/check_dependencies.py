@@ -39,9 +39,10 @@ IS_MAC = sys.platform.startswith('dar')
 
 
 VERS = {
-    'Python': '3.12',
-    'PySide6': '6.7',
-    'Qt6': '6.7',
+    'Python': '3.6',
+    'PyQt5': '5.12',
+    'Qt5': '5.9',
+    'pymediainfo': '2.2',
     'sqlalchemy': '0.5',
     'enchant': '1.6'
 }
@@ -68,16 +69,16 @@ MACOSX_MODULES = [
 
 
 MODULES = [
-    'PySide6',
-    'PySide6.QtCore',
-    'PySide6.QtGui',
-    'PySide6.QtWidgets',
-    'PySide6.QtNetwork',
-    'PySide6.QtOpenGL',
-    'PySide6.QtSvg',
-    'PySide6.QtTest',
-    ('PySide6.QtWebEngineCore', '(PySideWebEngine on PyPI)'),
-    'PySide6.QtMultimedia',
+    'PyQt5',
+    'PyQt5.QtCore',
+    'PyQt5.QtGui',
+    'PyQt5.QtWidgets',
+    'PyQt5.QtNetwork',
+    'PyQt5.QtOpenGL',
+    'PyQt5.QtSvg',
+    'PyQt5.QtTest',
+    ('PyQt5.QtWebEngineWidgets', '(PyQtWebEngine on PyPI)'),
+    'PyQt5.QtMultimedia',
     'platformdirs',
     'sqlalchemy',
     'alembic',
@@ -91,6 +92,8 @@ MODULES = [
     'waitress',
     'requests',
     'qtawesome',
+    'pymediainfo',
+    'vlc',
     'qrcode',
     'packaging',
 ]
@@ -107,7 +110,7 @@ OPTIONAL_MODULES = [
     ('uno', '(LibreOffice/OpenOffice support)'),
     # development/testing modules
     ('pytest', '(testing framework)'),
-    ('pytestqt', '(PySide testing framework - pytest-qt on PyPI)'),
+    ('pytestqt', '(PyQt testing framework - pytest-qt on PyPI)'),
     ('flake8', '(linter)')
 ]
 
@@ -178,12 +181,12 @@ def verify_python():
 def verify_versions():
     print('Verifying version of modules...')
     try:
-        from PySide6 import QtCore
-        check_vers(QtCore.PYQT_VERSION_STR, VERS['PySide6'], 'PySide6')
-        check_vers(QtCore.qVersion(), VERS['Qt6'], 'Qt6')
+        from PyQt5 import QtCore
+        check_vers(QtCore.PYQT_VERSION_STR, VERS['PyQt5'], 'PyQt5')
+        check_vers(QtCore.qVersion(), VERS['Qt5'], 'Qt5')
     except ImportError:
-        print_vers_fail(VERS['PySide6'], 'PySide6')
-        print_vers_fail(VERS['Qt6'], 'Qt6')
+        print_vers_fail(VERS['PyQt5'], 'PyQt5')
+        print_vers_fail(VERS['Qt5'], 'Qt5')
     try:
         import sqlalchemy
         check_vers(sqlalchemy.__version__, VERS['sqlalchemy'], 'sqlalchemy')
@@ -214,11 +217,11 @@ def print_enchant_backends_and_languages():
 
 def print_qt_image_formats():
     """
-    Print out the image formats that Qt6 supports.
+    Print out the image formats that Qt5 supports.
     """
-    w('Qt6 image formats... ')
+    w('Qt5 image formats... ')
     try:
-        from PySide6 import QtGui
+        from PyQt5 import QtGui
         read_f = ', '.join([bytes(fmt).decode().lower() for fmt in QtGui.QImageReader.supportedImageFormats()])
         write_f = ', '.join([bytes(fmt).decode().lower() for fmt in QtGui.QImageWriter.supportedImageFormats()])
         w(os.linesep)

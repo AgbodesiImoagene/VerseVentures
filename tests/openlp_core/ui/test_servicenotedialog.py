@@ -24,7 +24,7 @@ Package to test the openlp.core.ui package.
 import pytest
 from unittest.mock import patch
 
-from PySide6 import QtCore, QtTest
+from PyQt5 import QtCore, QtTest
 
 from openlp.core.common.registry import Registry
 from openlp.core.common.settings import Settings
@@ -48,8 +48,8 @@ def test_basic_display(form: ServiceNoteForm):
     # WHEN displaying the UI and pressing enter
     with patch('openlp.core.ui.servicenoteform.QtWidgets.QDialog.exec'):
         form.exec()
-    ok_widget = form.button_box.button(form.button_box.StandardButton.Save)
-    QtTest.QTest.mouseClick(ok_widget, QtCore.Qt.MouseButton.LeftButton)
+    ok_widget = form.button_box.button(form.button_box.Save)
+    QtTest.QTest.mouseClick(ok_widget, QtCore.Qt.LeftButton)
 
     # THEN the following input text is returned
     assert form.text_edit.toPlainText() == '', 'The returned text should be empty'
@@ -59,8 +59,8 @@ def test_basic_display(form: ServiceNoteForm):
     form.text_edit.setPlainText(text)
     with patch('openlp.core.ui.servicenoteform.QtWidgets.QDialog.exec'):
         form.exec()
-    ok_widget = form.button_box.button(form.button_box.StandardButton.Save)
-    QtTest.QTest.mouseClick(ok_widget, QtCore.Qt.MouseButton.LeftButton)
+    ok_widget = form.button_box.button(form.button_box.Save)
+    QtTest.QTest.mouseClick(ok_widget, QtCore.Qt.LeftButton)
 
     # THEN the following text is returned
     assert form.text_edit.toPlainText() == text, 'The text originally entered should still be there'
@@ -70,8 +70,8 @@ def test_basic_display(form: ServiceNoteForm):
     with patch('openlp.core.ui.servicenoteform.QtWidgets.QDialog.exec'):
         form.exec()
         form.text_edit.setPlainText(text)
-    ok_widget = form.button_box.button(form.button_box.StandardButton.Save)
-    QtTest.QTest.mouseClick(ok_widget, QtCore.Qt.MouseButton.LeftButton)
+    ok_widget = form.button_box.button(form.button_box.Save)
+    QtTest.QTest.mouseClick(ok_widget, QtCore.Qt.LeftButton)
 
     # THEN the following text is returned
     assert form.text_edit.toPlainText() == text, 'The new text should be returned'

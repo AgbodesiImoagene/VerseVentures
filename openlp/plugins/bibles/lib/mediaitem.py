@@ -24,7 +24,7 @@ import re
 from enum import IntEnum, unique
 from typing import Any
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.enum import BibleSearch, DisplayStyle, LayoutStyle
 from openlp.core.common.i18n import UiStrings, get_locale_key, translate
@@ -83,13 +83,12 @@ class SearchTabs(IntEnum):
     Suggestions = 2
     Options = 3
 
-
 class BibleMediaItem(MediaManagerItem):
     """
     This is the custom media manager item for Bibles.
     """
-    bibles_go_live = QtCore.Signal(list)
-    bibles_add_to_service = QtCore.Signal(list)
+    bibles_go_live = QtCore.pyqtSignal(list)
+    bibles_add_to_service = QtCore.pyqtSignal(list)
     log.info('Bible Media Item loaded')
 
     def __init__(self, *args, **kwargs):
@@ -102,8 +101,8 @@ class BibleMediaItem(MediaManagerItem):
         self.clear_icon = UiIcons().square
         self.save_results_icon = UiIcons().save
         self.sort_icon = UiIcons().sort
-        self.microphone_icon = UiIcons().microphone
         self.bible = None
+        self.microphone_icon = UiIcons().microphone
         self.second_bible = None
         self.saved_results = []
         self.current_results = []
@@ -206,8 +205,8 @@ class BibleMediaItem(MediaManagerItem):
         self.suggestions_layout.addRow(translate('BiblesPlugin.MediaItem', 'Suggestion options:'),
                                        self.suggestion_buttons_layout)
         self.suggestions_tab.setVisible(False)
-        self.page_layout.addWidget(self.suggestions_tab)
-        # General Search Options
+        self.page_layout.addWidget(self.suggestions_tab)        
+        # General Search Opions
         self.options_tab = QtWidgets.QWidget()
         self.options_tab.setSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Minimum)
         self.search_tab_bar.addTab(translate('BiblesPlugin.MediaItem', 'Options'))
@@ -246,7 +245,7 @@ class BibleMediaItem(MediaManagerItem):
         super().setup_ui()
         sort_model = QtCore.QSortFilterProxyModel(self.select_book_combo_box)
         model = self.select_book_combo_box.model()
-        # Reparent the combo box model to the sort proxy, otherwise it will be deleted when we change the combobox's
+        # Reparent the combo box model to the sort proxy, otherwise it will be deleted when we change the comobox's
         # model
         model.setParent(sort_model)
         sort_model.setSourceModel(model)
@@ -266,8 +265,8 @@ class BibleMediaItem(MediaManagerItem):
         self.search_edit.searchTypeChanged.connect(self.update_auto_completer)
         # Buttons
         self.book_order_button.toggled.connect(self.on_book_order_button_toggled)
-        self.toggle_microphone_button.toggled.connect(self.on_microphone_button_toggled)
         self.clear_button.clicked.connect(self.on_clear_button_clicked)
+        self.toggle_microphone_button.toggled.connect(self.on_microphone_button_toggled)        
         self.save_results_button.clicked.connect(self.on_save_results_button_clicked)
         self.search_button.clicked.connect(self.on_search_button_clicked)
         # Other stuff
@@ -338,10 +337,10 @@ class BibleMediaItem(MediaManagerItem):
                 translate('BiblesPlugin.MediaItem', 'Text or Reference...')),
             (BibleSearch.Reference, UiIcons().search_ref,
                 translate('BiblesPlugin.MediaItem', 'Scripture Reference'),
+                translate('BiblesPlugin.MediaItem', 'Search Scripture Reference...')),            
+            (BibleSearch.Reference, UiIcons().search_ref,
+                translate('BiblesPlugin.MediaItem', 'Scripture Reference'),
                 translate('BiblesPlugin.MediaItem', 'Search Scripture Reference...')),
-            (BibleSearch.Text, UiIcons().brain,
-                translate('BiblesPlugin.MediaItem', 'Semantic Search'),
-                translate('BiblesPlugin.MediaItem', 'Search by Theme...')),
             (BibleSearch.Text, UiIcons().text,
                 translate('BiblesPlugin.MediaItem', 'Text Search'),
                 translate('BiblesPlugin.MediaItem', 'Search Text...'))
@@ -498,7 +497,7 @@ class BibleMediaItem(MediaManagerItem):
                 translate('BiblesPlugin.MediaItem',
                           'Are you sure you want to completely delete "{bible}" Bible from OpenLP?\n\n'
                           'You will need to re-import this Bible to use it again.').format(bible=self.bible.name),
-                    defaultButton=QtWidgets.QMessageBox.StandardButton.No) == QtWidgets.QMessageBox.StandardButton.No:
+                    defaultButton=QtWidgets.QMessageBox.No) == QtWidgets.QMessageBox.No:
                 return
             self.plugin.manager.delete_bible(self.bible.name)
             self.reload_bibles()
@@ -580,7 +579,7 @@ class BibleMediaItem(MediaManagerItem):
         current_index = self.results_view_tab.currentIndex()
         for item in self.list_view.selectedItems():
             self.list_view.takeItem(self.list_view.row(item))
-        results = [item.data(QtCore.Qt.ItemDataRole.UserRole) for item in self.list_view.allItems()]
+        results = [item.data(QtCore.Qt.UserRole) for item in self.list_view.allItems()]
         if current_index == ResultsTab.Saved:
             self.saved_results = results
         elif current_index == ResultsTab.Search:
@@ -594,7 +593,7 @@ class BibleMediaItem(MediaManagerItem):
         :return: None
         """
         for verse in self.list_view.selectedItems():
-            self.saved_results.append(verse.data(QtCore.Qt.ItemDataRole.UserRole))
+            self.saved_results.append(verse.data(QtCore.Qt.UserRole))
         self.on_results_view_tab_total_update(ResultsTab.Saved)
 
     def on_style_combo_box_index_changed(self, index):
@@ -637,7 +636,7 @@ class BibleMediaItem(MediaManagerItem):
                     message=translate('BiblesPlugin.MediaItem',
                                       'OpenLP cannot combine single and dual Bible verse search results. '
                                       'Do you want to clear your saved results?'),
-                        parent=self, question=True) == QtWidgets.QMessageBox.StandardButton.Yes:
+                        parent=self, question=True) == QtWidgets.QMessageBox.Yes:
                     self.saved_results = []
                     self.on_results_view_tab_total_update(ResultsTab.Saved)
                 else:
@@ -960,7 +959,7 @@ class BibleMediaItem(MediaManagerItem):
         list_widget_items = []
         for data in items:
             bible_verse = QtWidgets.QListWidgetItem(data['item_title'])
-            bible_verse.setData(QtCore.Qt.ItemDataRole.UserRole, data)
+            bible_verse.setData(QtCore.Qt.UserRole, data)
             list_widget_items.append(bible_verse)
         return list_widget_items
 
@@ -987,7 +986,7 @@ class BibleMediaItem(MediaManagerItem):
         raw_slides = []
         verses = VerseReferenceList()
         for bitem in items:
-            data = bitem.data(QtCore.Qt.ItemDataRole.UserRole)
+            data = bitem.data(QtCore.Qt.UserRole)
             verses.add(
                 data['book'], data['chapter'], data['verse'], data['version'], data['copyright'], data['permissions'])
             verse_text = self.format_verse(old_chapter, data['chapter'], data['verse'])
@@ -1120,7 +1119,7 @@ class BibleMediaItem(MediaManagerItem):
         else:
             return False
 
-    @QtCore.Slot(str, bool, result=list)
+    @QtCore.pyqtSlot(str, bool, result=list)
     def search(self, string: str, show_error: bool = True) -> list[list[Any]]:
         """
         Search for some Bible verses (by reference).

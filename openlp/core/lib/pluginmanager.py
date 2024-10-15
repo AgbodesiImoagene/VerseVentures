@@ -23,7 +23,7 @@ Provide plugin management
 """
 import os
 
-from PySide6 import QtWidgets
+from PyQt5 import QtWidgets
 
 from openlp.core.state import State, MessageType
 from openlp.core.common import extension_loader
@@ -176,12 +176,10 @@ class PluginManager(RegistryBase, LogMixin, RegistryProperties):
             display_text = display_text + error_text + '\n' + \
                 translate('OpenLP.PluginManager', 'See the log file for more details')
             QtWidgets.QMessageBox.critical(None, UiStrings().Error, display_text,
-                                           QtWidgets.QMessageBox.StandardButton(
-                                               QtWidgets.QMessageBox.StandardButton.Ok))
+                                           QtWidgets.QMessageBox.StandardButtons(QtWidgets.QMessageBox.Ok))
         if info_text:
             QtWidgets.QMessageBox.information(None, UiStrings().Error, info_text,
-                                              QtWidgets.QMessageBox.StandardButton(
-                                                  QtWidgets.QMessageBox.StandardButton.Ok))
+                                              QtWidgets.QMessageBox.StandardButtons(QtWidgets.QMessageBox.Ok))
 
     def finalise_plugins(self):
         """

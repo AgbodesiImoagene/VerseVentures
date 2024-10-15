@@ -26,7 +26,7 @@ import os
 
 from unittest.mock import MagicMock, call, create_autospec, patch, ANY
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import UiStrings
 from openlp.core.common.registry import Registry
@@ -121,7 +121,7 @@ def test_get_current_item_id(maintenance_form: SongMaintenanceForm):
 
     # THEN: The result should be -1
     mocked_list_widget.currentItem.assert_called_once_with()
-    mocked_item.data.assert_called_once_with(QtCore.Qt.ItemDataRole.UserRole)
+    mocked_item.data.assert_called_once_with(QtCore.Qt.UserRole)
     assert result == 7
 
 
@@ -184,7 +184,7 @@ def test_delete_item(mocked_critical_error_message_box: MagicMock, maintenance_f
     mocked_item.songs = []
     mocked_item.id = 1
     maintenance_form.manager.get_object.return_value = mocked_item
-    mocked_critical_error_message_box.return_value = QtWidgets.QMessageBox.StandardButton.Yes
+    mocked_critical_error_message_box.return_value = QtWidgets.QMessageBox.Yes
     mocked_list_widget = MagicMock()
     mocked_reset_func = MagicMock()
     dialog_title = 'Delete Item'
@@ -215,7 +215,7 @@ def test_delete_book_assigned(mocked_critical_error_message_box: MagicMock, main
     mocked_item.id = 1
     mocked_item.songs = [MagicMock(title='Amazing Grace')]
     maintenance_form.manager.get_object.return_value = mocked_item
-    mocked_critical_error_message_box.return_value = QtWidgets.QMessageBox.StandardButton.Yes
+    mocked_critical_error_message_box.return_value = QtWidgets.QMessageBox.Yes
     mocked_list_widget = MagicMock()
     mocked_reset_func = MagicMock()
     dialog_title = 'Delete Book'
@@ -269,8 +269,8 @@ def test_reset_authors(MockedAuthor: MagicMock, MockedQListWidgetItem: MagicMock
     maintenance_form.manager.get_all_objects.assert_called_once_with(MockedAuthor)
     # Do not care which order items are called since the order is different on macos vs others
     MockedQListWidgetItem.assert_has_calls(expected_widget_item_calls, any_order=True)
-    mocked_author_item1.setData.assert_called_once_with(QtCore.Qt.ItemDataRole.UserRole, ANY)
-    mocked_author_item2.setData.assert_called_once_with(QtCore.Qt.ItemDataRole.UserRole, ANY)
+    mocked_author_item1.setData.assert_called_once_with(QtCore.Qt.UserRole, ANY)
+    mocked_author_item2.setData.assert_called_once_with(QtCore.Qt.UserRole, ANY)
     mocked_authors_list_widget.addItem.assert_has_calls([
         call(mocked_author_item1), call(mocked_author_item2)])
 
@@ -298,7 +298,7 @@ def test_reset_topics(MockedTopic: MagicMock, MockedQListWidgetItem: MagicMock, 
     mocked_topic_list_widget.clear.assert_called_once_with()
     maintenance_form.manager.get_all_objects.assert_called_once_with(MockedTopic)
     MockedQListWidgetItem.assert_called_once_with('Grace')
-    mocked_topic_item.setData.assert_called_once_with(QtCore.Qt.ItemDataRole.UserRole, 1)
+    mocked_topic_item.setData.assert_called_once_with(QtCore.Qt.UserRole, 1)
     mocked_topic_list_widget.addItem.assert_called_once_with(mocked_topic_item)
 
 
@@ -327,7 +327,7 @@ def test_reset_song_books(MockedBook: MagicMock, MockedQListWidgetItem: MagicMoc
     mocked_song_book_list_widget.clear.assert_called_once_with()
     maintenance_form.manager.get_all_objects.assert_called_once_with(MockedBook)
     MockedQListWidgetItem.assert_called_once_with('Hymnal (Hymns and Psalms, Inc.)')
-    mocked_song_book_item.setData.assert_called_once_with(QtCore.Qt.ItemDataRole.UserRole, 1)
+    mocked_song_book_item.setData.assert_called_once_with(QtCore.Qt.UserRole, 1)
     mocked_song_book_list_widget.addItem.assert_called_once_with(mocked_song_book_item)
 
 

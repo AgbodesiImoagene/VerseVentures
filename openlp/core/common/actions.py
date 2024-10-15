@@ -24,7 +24,7 @@ by the shortcuts system.
 """
 import logging
 
-from PySide6 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from openlp.core.common.registry import Registry
 
@@ -352,19 +352,17 @@ class ActionList(object):
         :param existing_actions: A list of actions which already use a particular shortcut.
         :param action: The action which wants to use a particular shortcut.
         """
-        global_context = action.shortcutContext() in [QtCore.Qt.ShortcutContext.WindowShortcut,
-                                                      QtCore.Qt.ShortcutContext.ApplicationShortcut]
+        global_context = action.shortcutContext() in [QtCore.Qt.WindowShortcut, QtCore.Qt.ApplicationShortcut]
         affected_actions = []
         if global_context:
             affected_actions = [a for a in self.get_all_child_objects(action.parent()) if isinstance(a,
-                                                                                                     QtGui.QAction)]
+                                                                                                     QtWidgets.QAction)]
         for existing_action in existing_actions:
             if action is existing_action:
                 continue
             if existing_action in affected_actions:
                 return False
-            if existing_action.shortcutContext() in [QtCore.Qt.ShortcutContext.WindowShortcut,
-                                                     QtCore.Qt.ShortcutContext.ApplicationShortcut]:
+            if existing_action.shortcutContext() in [QtCore.Qt.WindowShortcut, QtCore.Qt.ApplicationShortcut]:
                 return False
             elif action in self.get_all_child_objects(existing_action.parent()):
                 return False

@@ -30,7 +30,7 @@ from random import randint
 from tempfile import gettempdir
 
 import requests
-from PySide6 import QtCore
+from PyQt5 import QtCore
 
 from openlp.core.common import trace_error_handler
 from openlp.core.common.registry import Registry
@@ -249,8 +249,8 @@ class DownloadWorker(ThreadWorker):
     """
     This worker allows a file to be downloaded in a thread
     """
-    download_failed = QtCore.Signal()
-    download_succeeded = QtCore.Signal(Path)
+    download_failed = QtCore.pyqtSignal()
+    download_succeeded = QtCore.pyqtSignal(Path)
 
     def __init__(self, base_url, file_name):
         """
@@ -283,7 +283,7 @@ class DownloadWorker(ThreadWorker):
             time.sleep(1)
             self.quit.emit()
 
-    @QtCore.Slot()
+    @QtCore.pyqtSlot()
     def cancel_download(self):
         """
         A slot to allow the download to be cancelled from outside of the thread

@@ -27,7 +27,7 @@ from qrcode.image.svg import SvgPathFillImage
 
 from time import sleep
 
-from PySide6 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from openlp.core.api.deploy import download_and_install, download_version_info, get_installed_version
 from openlp.core.common import get_network_interfaces
@@ -65,8 +65,8 @@ class ApiTab(SettingsTab):
         self.server_settings_layout.addRow(self.address_label)
         self.address_edit = QtWidgets.QLineEdit(self.server_settings_group_box)
         self.address_edit.setSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
-        self.address_edit.setValidator(QtGui.QRegularExpressionValidator(QtCore.QRegularExpression(
-                                       r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}'), self))
+        self.address_edit.setValidator(QtGui.QRegExpValidator(QtCore.QRegExp(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}'),
+                                       self))
         self.address_edit.setObjectName('address_edit')
         self.address_revert_button = QtWidgets.QToolButton(self.server_settings_group_box)
         self.address_revert_button.setObjectName('address_revert_button')
@@ -165,7 +165,7 @@ class ApiTab(SettingsTab):
         self.app_qr_layout.setObjectName('app_qr_layout')
         self.app_qr_code_label = QtWidgets.QLabel(self.app_group_box)
         self.app_qr_code_label.setPixmap(QtGui.QPixmap(':/remotes/app_qr.svg'))
-        self.app_qr_code_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.app_qr_code_label.setAlignment(QtCore.Qt.AlignCenter)
         self.app_qr_code_label.setObjectName('app_qr_code_label')
         self.app_qr_layout.addWidget(self.app_qr_code_label)
         self.app_qr_description_label = QtWidgets.QLabel(self.app_group_box)
@@ -372,7 +372,7 @@ class ApiTab(SettingsTab):
         """
         self.twelve_hour = False
         # we have a set value convert to True/False
-        if check_state == QtCore.Qt.CheckState.Checked:
+        if check_state == QtCore.Qt.Checked:
             self.twelve_hour = True
 
     def on_thumbnails_check_box_changed(self, check_state):
@@ -381,7 +381,7 @@ class ApiTab(SettingsTab):
         """
         self.thumbnails = False
         # we have a set value convert to True/False
-        if check_state == QtCore.Qt.CheckState.Checked:
+        if check_state == QtCore.Qt.Checked:
             self.thumbnails = True
 
     def on_check_for_updates_button_clicked(self):

@@ -23,12 +23,12 @@ Package to test the openlp.core.ui.settingsform package.
 """
 from unittest.mock import MagicMock, patch
 
-from PySide6 import QtCore, QtWidgets, QtTest
+from PyQt5 import QtCore, QtWidgets, QtTest
 
 from openlp.core.ui.settingsform import SettingsForm
 
 
-def test_insert_tab_visible(registry, mock_settings):
+def test_insert_tab_visible(registry):
     """
     Test that the insert_tab() method works correctly when a visible tab is inserted
     """
@@ -49,7 +49,7 @@ def test_insert_tab_visible(registry, mock_settings):
         assert 1 == mocked_add_item.call_count, 'addItem should have been called'
 
 
-def test_insert_tab_not_visible(registry, mock_settings):
+def test_insert_tab_not_visible(registry):
     """
     Test that the insert_tab() method works correctly when a tab that should not be visible is inserted
     """
@@ -68,7 +68,7 @@ def test_insert_tab_not_visible(registry, mock_settings):
         assert 0 == mocked_add_item.call_count, 'addItem should not have been called'
 
 
-def test_accept_with_inactive_plugins(registry, mock_settings):
+def test_accept_with_inactive_plugins(registry):
     """
     Test that the accept() method works correctly when some of the plugins are inactive
     """
@@ -101,7 +101,7 @@ def test_accept_with_inactive_plugins(registry, mock_settings):
     assert 0 == mocked_theme_save.call_count, 'The Themes tab\'s save() should not have been called'
 
 
-def test_list_item_changed_invalid_item(registry, mock_settings):
+def test_list_item_changed_invalid_item(registry):
     """
     Test that the list_item_changed() slot handles a non-existent item
     """
@@ -123,7 +123,7 @@ def test_list_item_changed_invalid_item(registry, mock_settings):
         assert 0 == mocked_count.call_count, 'The count method of the stacked layout should not be called'
 
 
-def test_reject_with_inactive_items(registry, mock_settings):
+def test_reject_with_inactive_items(registry):
     """
     Test that the reject() method works correctly when some of the plugins are inactive
     """
@@ -154,7 +154,7 @@ def test_reject_with_inactive_items(registry, mock_settings):
     assert 0 == mocked_theme_cancel.call_count, 'The Themes tab\'s cancel() should not have been called'
 
 
-def test_register_post_process(registry, mock_settings):
+def test_register_post_process(registry):
     """
     Test that the register_post_process() method works correctly
     """
@@ -170,7 +170,7 @@ def test_register_post_process(registry, mock_settings):
 
 
 @patch.object(SettingsForm, 'provide_help')
-def test_help(mocked_help, mock_settings):
+def test_help(mocked_help, settings):
     """
     Test the help button
     """
@@ -179,7 +179,7 @@ def test_help(mocked_help, mock_settings):
 
     # WHEN: The Help button is clicked
     QtTest.QTest.mouseClick(settings_form.button_box.button(QtWidgets.QDialogButtonBox.StandardButton.Help),
-                            QtCore.Qt.MouseButton.LeftButton)
+                            QtCore.Qt.LeftButton)
 
     # THEN: The Help function should be called
     mocked_help.assert_called_once()

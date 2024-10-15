@@ -25,8 +25,8 @@ Module implementing BookNameForm.
 import logging
 import re
 
-from PySide6 import QtCore
-from PySide6.QtWidgets import QDialog
+from PyQt5 import QtCore
+from PyQt5.QtWidgets import QDialog
 
 from openlp.core.common.i18n import translate
 from openlp.core.lib.ui import critical_error_message_box
@@ -49,10 +49,8 @@ class BookNameForm(QDialog, Ui_BookNameDialog):
         """
         Constructor
         """
-        super(BookNameForm, self).__init__(parent,
-                                           QtCore.Qt.WindowType.WindowSystemMenuHint |
-                                           QtCore.Qt.WindowType.WindowTitleHint |
-                                           QtCore.Qt.WindowType.WindowCloseButtonHint)
+        super(BookNameForm, self).__init__(parent, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint |
+                                           QtCore.Qt.WindowCloseButtonHint)
         self.setup_ui(self)
         self.custom_signals()
         self.book_names = BibleStrings().BookNames
@@ -84,13 +82,11 @@ class BookNameForm(QDialog, Ui_BookNameDialog):
                 if book.book_reference_id == item['id']:
                     add_book = False
                     break
-            if (self.old_testament_check_box.checkState() == QtCore.Qt.CheckState.Unchecked
-                    and item['testament_id'] == 1):
+            if self.old_testament_check_box.checkState() == QtCore.Qt.Unchecked and item['testament_id'] == 1:
                 add_book = False
-            elif (self.new_testament_check_box.checkState() == QtCore.Qt.CheckState.Unchecked
-                    and item['testament_id'] == 2):
+            elif self.new_testament_check_box.checkState() == QtCore.Qt.Unchecked and item['testament_id'] == 2:
                 add_book = False
-            elif self.apocrypha_check_box.checkState() == QtCore.Qt.CheckState.Unchecked and item['testament_id'] == 3:
+            elif self.apocrypha_check_box.checkState() == QtCore.Qt.Unchecked and item['testament_id'] == 3:
                 add_book = False
             if add_book:
                 self.corresponding_combo_box.addItem(self.book_names[item['abbreviation']])
@@ -99,10 +95,10 @@ class BookNameForm(QDialog, Ui_BookNameDialog):
         self.books = books
         log.debug(max_books)
         if max_books <= 27:
-            self.old_testament_check_box.setCheckState(QtCore.Qt.CheckState.Unchecked)
-            self.apocrypha_check_box.setCheckState(QtCore.Qt.CheckState.Unchecked)
+            self.old_testament_check_box.setCheckState(QtCore.Qt.Unchecked)
+            self.apocrypha_check_box.setCheckState(QtCore.Qt.Unchecked)
         elif max_books <= 66:
-            self.apocrypha_check_box.setCheckState(QtCore.Qt.CheckState.Unchecked)
+            self.apocrypha_check_box.setCheckState(QtCore.Qt.Unchecked)
         self.reload_combo_box()
         self.current_book_label.setText(str(name))
         self.corresponding_combo_box.setFocus()

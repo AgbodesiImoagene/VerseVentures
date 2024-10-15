@@ -41,7 +41,6 @@ log = logging.getLogger(__name__)
 REFERENCE_MATCHES = {}
 REFERENCE_SEPARATORS = {}
 
-
 class ModelType(Enum):
     """
     This is a special enumeration class that holds the various types of models.
@@ -51,7 +50,6 @@ class ModelType(Enum):
 
     def __str__(self):
         return self.name.lower()
-
 
 class ModelLibrary(Enum):
     """
@@ -82,7 +80,6 @@ class ModelLibrary(Enum):
         if self == ModelLibrary.SENTENCE_TRANSFORMERS or self == ModelLibrary.TENSORFLOW:
             return ModelType.ENCODER
         return ModelType.TRANSCRIBER
-
 
 class BibleStrings(metaclass=Singleton):
     """
@@ -196,7 +193,7 @@ def update_reference_separators():
             translate('BiblesPlugin', '-',
                       'range identifier e.g. Genesis 1 verse 1 - 2 = Genesis Chapter 1 Verses 1 To 2'),
             translate('BiblesPlugin', 'to',
-                      'range identifier e.g. Genesis 1 verse 1 to 2 = Genesis Chapter 1 Verses 1 To 2')]),
+                      'range identifier e.g. Genesis 1 verse 1 - 2 = Genesis Chapter 1 Verses 1 To 2')]),
         '|'.join([
             translate('BiblesPlugin', ',', 'connecting identifier e.g. Genesis 1 verse 1 - 2, 4 - 5 = '
                                            'Genesis Chapter 1 Verses 1 To 2 And Verses 4 To 5'),
@@ -435,7 +432,6 @@ class SearchResults(object):
         Returns whether or not the verse list contains verses.
         """
         return len(self.verse_list) > 0
-
 
 class ModelInfo(object):
     """

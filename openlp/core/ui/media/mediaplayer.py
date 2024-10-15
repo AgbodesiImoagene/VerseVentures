@@ -19,216 +19,210 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 """
-The :mod:`~openlp.core.ui.media.mediaplayer` module for media playing.
+The :mod:`~openlp.core.ui.media.mediaplayer` module contains the MediaPlayer class.
 """
-import logging
-import re
-
-from PySide6 import QtCore, QtWidgets
-from PySide6.QtMultimedia import QAudioInput, QAudioOutput, QCamera, QMediaDevices, QMediaCaptureSession, QMediaPlayer
-from PySide6.QtMultimediaWidgets import QVideoWidget
-from PySide6.QtCore import QUrl
-
-from openlp.core.common.mixins import LogMixin
-from openlp.core.common.registry import Registry
+from openlp.core.common.mixins import RegistryProperties
+from openlp.core.common.platform import is_macosx, is_win
+from openlp.core.display.screens import ScreenList
 from openlp.core.display.window import DisplayWindow
+from openlp.core.ui.media import MediaState
 from openlp.core.ui.slidecontroller import SlideController
-from openlp.core.ui.media.mediabase import MediaBase
-from openlp.core.ui.media import MediaType
-
-log = logging.getLogger(__name__)
 
 
-class MediaPlayer(MediaBase, LogMixin):
+class MediaPlayer(RegistryProperties):
     """
-    A specialised version of the MediaPlayer class, which provides an media player for media when the main media class
-    is also in use.
+    This is the base class media Player class to provide OpenLP with a pluggable media display framework.
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent, name='media_player'):
         """
         Constructor
         """
-        super(MediaPlayer, self).__init__(parent, "qt6")
         self.parent = parent
+        self.name = name
+        self.available = self.check_available()
+        self.can_background = False
+        self.can_folder = False
+        self.state = {0: MediaState.Off, 1: MediaState.Off}
+        self.has_own_widget = False
+        self.can_repeat = False
 
-    def setup(self, controller: SlideController, display: DisplayWindow) -> None:
+    def check_available(self):
         """
-        Set up an media and audio player and bind it to a controller and display
+        Player is available on this machine
+        """
+        return False
 
-        :param controller: The controller where the media is
-        :param display: The display where the media is.
-        :return:
+    def setup(self, controller, display):
         """
-        if controller.is_live:
-            controller.media_widget = QtWidgets.QWidget(controller)
-            controller.media_widget.setWindowFlags(
-                QtCore.Qt.WindowType.FramelessWindowHint
-                | QtCore.Qt.WindowType.Tool
-                | QtCore.Qt.WindowType.WindowStaysOnTopHint)
-            controller.media_widget.setAttribute(QtCore.Qt.WidgetAttribute.WA_X11NetWmWindowTypeDialog)
+        Create the related widgets for the current display
 
-        else:
-            controller.media_widget = QtWidgets.QWidget(display)
-        self.media_player = QMediaPlayer(None)
-        self.audio_output = QAudioOutput()
-        self.media_player.setAudioOutput(self.audio_output)
-        self.video_widget = QVideoWidget()
-        layout = QtWidgets.QVBoxLayout(controller.media_widget)
-        layout.addWidget(self.video_widget)
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.controller = controller
-        self.display = display
-        self.media_player.positionChanged.connect(self.position_changed_event)
-        self.media_player.mediaStatusChanged.connect(self.media_status_changed_event)
-        # device stream objects. setVideoOutput is called when loading stream, video_widget can't be used by both
-        # QMediaCaptureSession and QMediaPlayer
-        self.media_capture_session = QMediaCaptureSession()
-        self.media_capture_session.setAudioOutput(self.audio_output)
-        self.device_video_input = None
-        self.device_audio_input = None
+        :param controller: Which Controller is running the show.
+        :param display: The display to be updated.
+        """
+        pass
 
-    def media_status_changed_event(self, event):
+    def load(self, controller, display, file):
         """
-        Handle the end of Media event and update UI
-        """
-        if self.controller.media_play_item.media_type == MediaType.Dual:
-            return
-        if event == QMediaPlayer.MediaStatus.EndOfMedia:
-            if self.controller.is_live:
-                Registry().get("media_controller").live_media_status_changed.emit()
-            else:
-                Registry().get("media_controller"). preview_media_status_changed.emit()
-
-    def position_changed_event(self, position) -> None:
-        """
-        Media callback for position changed event.  Saves position and calls UI updates.
-        :param event: The media position has changed
-        :return: None
-        """
-        if self.controller.media_play_item.media_type == MediaType.Dual:
-            return
-        self.controller.media_play_item.timer = position
-        if self.controller.is_live:
-            Registry().get("media_controller").live_media_tick.emit()
-        else:
-            Registry().get("media_controller"). preview_media_tick.emit()
-
-    def toggle_loop(self, loop_required: bool) -> None:
-        """
-        Switch the loop toggle setting
-
-        :param loop_required: Do I need to loop
-        """
-        if loop_required:
-            self.media_player.setLoops(QMediaPlayer.Loops.Infinite)
-        else:
-            self.media_player.setLoops(QMediaPlayer.Loops.Once)
-
-    def check_available(self) -> bool:
-        """
-        Return the availability of component
+        Load a new media file and check if it is valid
+        :param controller: Which Controller is running the show.
+        :param display: The display to be updated.
+        :param file: The file to be loaded
         """
         return True
 
-    def load(self) -> bool:
-        """
-        Load a media file into the player
+    def add_display(self, controller: SlideController):
+        # The media player has to be 'connected' to the QFrame.
+        # (otherwise a video would be displayed in it's own window)
+        # This is platform specific!
+        # You have to give the id of the QFrame (or similar object)
+        # to vlc, different platforms have different functions for this.
+        win_id = int(controller.vlc_widget.winId())
+        if is_win():
+            controller.vlc_media_player.set_hwnd(win_id)
+        elif is_macosx():
+            # We have to use 'set_nsobject' since Qt5 on OSX uses Cocoa
+            # framework and not the old Carbon.
+            controller.vlc_media_player.set_nsobject(win_id)
+        else:
+            # for Linux/*BSD using the X Server
+            controller.vlc_media_player.set_xwindow(win_id)
+        self.has_own_widget = True
 
-        :return:  Success or Failure
+    def resize(self, controller: SlideController) -> None:
         """
-        self.log_debug("load external media stream in Media Player")
-        if self.controller.media_play_item.media_file:
-            self.media_capture_session.setVideoOutput(None)
-            self.media_player.setAudioOutput(self.audio_output)
-            self.media_player.setVideoOutput(self.video_widget)
-            self.media_player.setSource(QUrl.fromLocalFile(str(self.controller.media_play_item.media_file)))
-            return True
-        return False
+        Resize the player
 
-    def load_stream(self) -> bool:
-        """
-        Load a media stream into the player
-        :return:  Success or Failure
-        """
-        self.log_debug("load stream  in Media Player")
-
-        if self.controller.media_play_item.external_stream:
-            mrl = self.controller.media_play_item.external_stream[0]
-            if self.controller.media_play_item.media_type == MediaType.DeviceStream:
-                self.media_player.setVideoOutput(None)
-                self.media_capture_session.setVideoOutput(self.video_widget)
-                vdev_name = re.search(r'qt6video=(.+);', mrl)
-                self.device_video_input = None
-                if vdev_name:
-                    for vdev in QMediaDevices.videoInputs():
-                        if vdev.description() == vdev_name.group(1):
-                            self.device_video_input = QCamera(vdev)
-                            self.media_capture_session.setCamera(self.device_video_input)
-                            break
-                adev_name = re.search(r'qt6audio=(.+)', mrl)
-                self.device_audio_input = None
-                if adev_name:
-                    for adev in QMediaDevices.audioInputs():
-                        if adev.description() == adev_name.group(1):
-                            self.device_audio_input = QAudioInput()
-                            self.device_audio_input.setDevice(adev)
-                            self.device_audio_input.setMuted(True)
-                            self.media_capture_session.setAudioInput(self.device_audio_input)
-                            break
-                return True
-            elif self.controller.media_play_item.media_type == MediaType.NetworkStream:
-                self.media_capture_session.setVideoOutput(None)
-                self.media_player.setVideoOutput(self.video_widget)
-                self.media_player.setSource(QUrl(mrl))
-                return True
-        return False
-
-    def play(self) -> None:
-        """
-        Play the current loaded audio item
+        :param controller: The display where the media is stored within the controller.
         :return:
         """
-        if self.controller.media_play_item.media_type == MediaType.DeviceStream:
-            if self.device_video_input:
-                self.device_video_input.start()
-            if self.device_audio_input:
-                self.device_audio_input.setMuted(False)
+        if controller.is_live:
+            controller.vlc_widget.setGeometry(ScreenList().current.display_geometry)
         else:
-            self.media_player.play()
-        # TODO handle variable start times fpr first play
+            controller.vlc_widget.resize(controller.preview_display.size())
 
-    def pause(self) -> None:
+    def play(self, controller, display):
         """
-        Pause the current item
+        Starts playing of current Media File, media player is expected to loop automatically
 
-        :param controller: The controller which is managing the display
-        :return:
+        :param controller: Which Controller is running the show.
+        :param display: The display to be updated.
         """
-        if self.controller.media_play_item.media_type == MediaType.DeviceStream:
-            if self.device_video_input:
-                self.device_video_input.stop()
-            if self.device_audio_input:
-                self.device_audio_input.setMuted(True)
-        else:
-            self.media_player.pause()
+        pass
 
-    def stop(self) -> None:
+    def pause(self, controller):
         """
-        Stop the current item
+        Pause of current Media File
 
+        :param controller: Which Controller is running the show.
+        """
+        pass
+
+    def stop(self, controller):
+        """
+        Stop playing of current Media File
+
+        :param controller: Which Controller is running the show.
+        """
+        pass
+
+    def volume(self, controller: SlideController, vol: int) -> None:
+        """
+        Set the volume
+
+        :param vol: The volume to be sets
         :param controller: The controller where the media is
         :return:
         """
-        if self.controller.media_play_item.media_type == MediaType.DeviceStream:
-            if self.device_video_input:
-                self.device_video_input.stop()
-            if self.device_audio_input:
-                self.device_audio_input.setMuted(True)
-        else:
-            self.media_player.stop()
+        controller.vlc_media_player.audio_set_volume(vol)
 
-    def duration(self) -> int:
+    def seek(self, controller: SlideController, seek_value: int) -> None:
         """
+        Go to a particular position
+
+        :param seek_value: The position of where a seek goes to
+        :param controller: The controller where the media is
         """
-        return self.media_player.duration()
+        if controller.vlc_media_player.is_seekable():
+            controller.vlc_media_player.set_time(seek_value)
+
+    def reset(self, controller: SlideController) -> None:
+        """
+        Reset the player
+
+        :param controller: The controller where the media is
+        """
+        controller.vlc_media_player.stop()
+        self.set_state(MediaState.Off, controller)
+
+    def set_visible(self, controller: SlideController, status: bool) -> None:
+        """
+        Set the visibility
+
+        :param controller: The controller where the media display is
+        :param status: The visibility status
+        """
+        controller.vlc_widget.setVisible(status)
+
+    def update_ui(self, controller: SlideController, output_display: DisplayWindow) -> None:
+        """
+        Update the UI
+
+        :param controller: Which Controller is running the show.
+        :param output_display: The display where the media is
+        """
+        if not controller.mediabar.seek_slider.isSliderDown():
+            controller.mediabar.seek_slider.blockSignals(True)
+            controller.mediabar.seek_slider.setSliderPosition(controller.vlc_media_player.get_time())
+            controller.mediabar.seek_slider.blockSignals(False)
+
+    def toggle_loop(self, controller, loop_required: bool) -> None:
+        """
+        Changes the looping style
+        :param controller: Which Controller is running the show.
+        :param loop_required: Are we to be toggled or not
+        :return: none
+        """
+        pass
+
+    def get_live_state(self):
+        """
+        Get the state of the live player
+        :return: Live state
+        """
+        return self.state[0]
+
+    def set_live_state(self, state):
+        """
+        Set the State of the Live player
+        :param state: State to be set
+        :return: None
+        """
+        self.state[0] = state
+
+    def get_preview_state(self):
+        """
+        Get the state of the preview player
+        :return: Preview State
+        """
+        return self.state[1]
+
+    def set_preview_state(self, state):
+        """
+        Set the state of the Preview Player
+        :param state: State to be set
+        :return: None
+        """
+        self.state[1] = state
+
+    def set_state(self, state, controller):
+        """
+        Set the State based on the display being processed within the controller
+        :param state: State to be set
+        :param controller: Identify the Display type
+        :return: None
+        """
+        if controller.is_live:
+            self.set_live_state(state)
+        else:
+            self.set_preview_state(state)

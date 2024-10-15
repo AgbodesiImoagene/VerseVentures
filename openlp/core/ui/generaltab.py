@@ -24,7 +24,7 @@ The general tab of the configuration dialog.
 import logging
 from pathlib import Path
 
-from PySide6 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from openlp.core.common import get_images_filter
 from openlp.core.common.i18n import UiStrings, translate
@@ -400,6 +400,6 @@ class GeneralTab(SettingsTab):
         self.logo_background_color = color
 
     def on_search_as_type_check_box_changed(self, check_state):
-        self.is_search_as_you_type_enabled = (check_state == QtCore.Qt.CheckState.Checked)
+        self.is_search_as_you_type_enabled = (check_state == QtCore.Qt.Checked)
         self.settings_form.register_post_process('songs_config_updated')
         self.settings_form.register_post_process('custom_config_updated')

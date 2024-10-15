@@ -35,7 +35,7 @@ def tagform_env(registry):
     setup_patcher.stop()
 
 
-def test_on_row_selected(tagform_env, mock_settings):
+def test_on_row_selected(tagform_env):
     """
     Test that the appropriate actions are preformed when on_row_selected is called
     """
@@ -50,7 +50,7 @@ def test_on_row_selected(tagform_env, mock_settings):
     form.delete_button.setEnabled.assert_called_with(True)
 
 
-def test_on_new_clicked(tagform_env, mock_settings):
+def test_on_new_clicked(tagform_env):
     """
     Test that clicking the Add a new tag button does the right thing
     """

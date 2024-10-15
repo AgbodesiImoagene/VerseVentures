@@ -26,7 +26,7 @@ import pytest
 
 from unittest.mock import MagicMock, call, patch
 
-from PySide6 import QtCore, QtWidgets, QtTest
+from PyQt5 import QtCore, QtWidgets, QtTest
 
 from openlp.core.common.settings import ProxyMode
 from openlp.core.display.screens import Screen
@@ -91,11 +91,11 @@ def test_spinboxes_no_previous_custom_geometry(mocked_screenList, form):
 
     # WHEN: When I go into screen settings for the display screen and set the custom geometry
     ScreenSelectionWidget.load(form)
-    QtTest.QTest.mouseClick(form.custom_geometry_button, QtCore.Qt.MouseButton.LeftButton)
-    QtTest.QTest.keyClick(form.left_spin_box, QtCore.Qt.Key.Key_Up)
-    QtTest.QTest.keyClick(form.top_spin_box, QtCore.Qt.Key.Key_Up)
-    QtTest.QTest.keyClick(form.width_spin_box, QtCore.Qt.Key.Key_Down)
-    QtTest.QTest.keyClick(form.height_spin_box, QtCore.Qt.Key.Key_Down)
+    QtTest.QTest.mouseClick(form.custom_geometry_button, QtCore.Qt.LeftButton)
+    QtTest.QTest.keyClick(form.left_spin_box, QtCore.Qt.Key_Up)
+    QtTest.QTest.keyClick(form.top_spin_box, QtCore.Qt.Key_Up)
+    QtTest.QTest.keyClick(form.width_spin_box, QtCore.Qt.Key_Down)
+    QtTest.QTest.keyClick(form.height_spin_box, QtCore.Qt.Key_Down)
 
     # THEN: The spin boxes should show the correct values
     assert form.left_spin_box.value() == 1
@@ -117,11 +117,11 @@ def test_spinboxes_with_previous_custom_geometry(mocked_screenList, form):
 
     # WHEN: When I go into screen settings for the display screen and update the custom geometry
     ScreenSelectionWidget.load(form)
-    QtTest.QTest.mouseClick(form.custom_geometry_button, QtCore.Qt.MouseButton.LeftButton)
-    QtTest.QTest.keyClick(form.left_spin_box, QtCore.Qt.Key.Key_Up)
-    QtTest.QTest.keyClick(form.top_spin_box, QtCore.Qt.Key.Key_Up)
-    QtTest.QTest.keyClick(form.width_spin_box, QtCore.Qt.Key.Key_Down)
-    QtTest.QTest.keyClick(form.height_spin_box, QtCore.Qt.Key.Key_Down)
+    QtTest.QTest.mouseClick(form.custom_geometry_button, QtCore.Qt.LeftButton)
+    QtTest.QTest.keyClick(form.left_spin_box, QtCore.Qt.Key_Up)
+    QtTest.QTest.keyClick(form.top_spin_box, QtCore.Qt.Key_Up)
+    QtTest.QTest.keyClick(form.width_spin_box, QtCore.Qt.Key_Down)
+    QtTest.QTest.keyClick(form.height_spin_box, QtCore.Qt.Key_Down)
 
     # THEN: The spin boxes should show the updated values
     assert form.left_spin_box.value() == 2
@@ -144,12 +144,12 @@ def test_spinboxes_going_outside_screen_geometry(mocked_screenList, form):
     # WHEN: When I go into screen settings for the display screen and
     #       update the custom geometry to be outside the screen coordinates
     ScreenSelectionWidget.load(form)
-    QtTest.QTest.mouseClick(form.custom_geometry_button, QtCore.Qt.MouseButton.LeftButton)
+    QtTest.QTest.mouseClick(form.custom_geometry_button, QtCore.Qt.LeftButton)
     for _ in range(2):
-        QtTest.QTest.keyClick(form.left_spin_box, QtCore.Qt.Key.Key_Down)
-        QtTest.QTest.keyClick(form.top_spin_box, QtCore.Qt.Key.Key_Down)
-        QtTest.QTest.keyClick(form.width_spin_box, QtCore.Qt.Key.Key_Up)
-        QtTest.QTest.keyClick(form.height_spin_box, QtCore.Qt.Key.Key_Up)
+        QtTest.QTest.keyClick(form.left_spin_box, QtCore.Qt.Key_Down)
+        QtTest.QTest.keyClick(form.top_spin_box, QtCore.Qt.Key_Down)
+        QtTest.QTest.keyClick(form.width_spin_box, QtCore.Qt.Key_Up)
+        QtTest.QTest.keyClick(form.height_spin_box, QtCore.Qt.Key_Up)
 
     # THEN: The spin boxes should show the updated values
     assert form.left_spin_box.value() == -1
@@ -548,16 +548,15 @@ def test_on_identify_button_clicked():
 
     # THEN: The labels should be cleared
     MockLabel.assert_called_once_with(None)
-    mocked_label.setAlignment.assert_called_once_with(QtCore.Qt.AlignmentFlag.AlignCenter)
+    mocked_label.setAlignment.assert_called_once_with(QtCore.Qt.AlignCenter)
     mocked_label.setText.assert_called_once_with('Screen 1')
     mocked_label.setStyleSheet.assert_called_once_with('font-size: 24pt; font-weight: bold; '
                                                        'background-color: #0C0; color: #000; '
                                                        'border: 5px solid #000;')
     mocked_label.setGeometry.assert_called_once_with(QtCore.QRect(0, 0, 1920, 100))
-    mocked_label.setWindowFlags.assert_called_once_with(QtCore.Qt.WindowType.FramelessWindowHint |
-                                                        QtCore.Qt.WindowType.Tool |
-                                                        QtCore.Qt.WindowType.WindowStaysOnTopHint |
-                                                        QtCore.Qt.WindowType.WindowDoesNotAcceptFocus)
+    mocked_label.setWindowFlags.assert_called_once_with(QtCore.Qt.FramelessWindowHint | QtCore.Qt.Tool |
+                                                        QtCore.Qt.WindowStaysOnTopHint |
+                                                        QtCore.Qt.WindowDoesNotAcceptFocus)
     mocked_label.show.assert_called_once()
     assert instance.identify_labels == [mocked_label]
     instance.timer.start.assert_called_once()

@@ -22,7 +22,7 @@ import logging
 import os
 import shutil
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 from pathlib import Path
 
 from openlp.core.common import sha256_file_hash
@@ -47,8 +47,8 @@ class PresentationMediaItem(FolderLibraryItem):
     This is the Presentation media manager item for Presentation Items. It can present files using Openoffice and
     Powerpoint
     """
-    presentations_go_live = QtCore.Signal(list)
-    presentations_add_to_service = QtCore.Signal(list)
+    presentations_go_live = QtCore.pyqtSignal(list)
+    presentations_add_to_service = QtCore.pyqtSignal(list)
     log.info('Presentations Media Item loaded')
 
     def __init__(self, parent, plugin, controllers):
@@ -168,7 +168,7 @@ class PresentationMediaItem(FolderLibraryItem):
         if self.display_type_combo_box.count() > 1:
             self.display_type_combo_box.insertItem(0, self.automatic, userData='automatic')
             self.display_type_combo_box.setCurrentIndex(0)
-        if self.settings.value('presentations/override app') == QtCore.Qt.CheckState.Checked:
+        if self.settings.value('presentations/override app') == QtCore.Qt.Checked:
             self.presentation_widget.show()
         else:
             self.presentation_widget.hide()
@@ -183,7 +183,7 @@ class PresentationMediaItem(FolderLibraryItem):
         if not file_path.exists():
             tree_item = QtWidgets.QTreeWidgetItem([file_name])
             tree_item.setIcon(0, UiIcons().delete)
-            tree_item.setData(0, QtCore.Qt.ItemDataRole.UserRole, item)
+            tree_item.setData(0, QtCore.Qt.UserRole, item)
             tree_item.setToolTip(0, str(file_path))
         else:
             controller_name = self.find_controller_by_type(file_path)
@@ -212,7 +212,7 @@ class PresentationMediaItem(FolderLibraryItem):
                                                          'This type of presentation is not supported.'))
                     return None
             tree_item = QtWidgets.QTreeWidgetItem([file_name])
-            tree_item.setData(0, QtCore.Qt.ItemDataRole.UserRole, item)
+            tree_item.setData(0, QtCore.Qt.UserRole, item)
             tree_item.setIcon(0, icon)
             tree_item.setToolTip(0, str(file_path))
         return tree_item
@@ -301,12 +301,12 @@ class PresentationMediaItem(FolderLibraryItem):
         items = [self.list_view.itemFromIndex(item) if isinstance(item, QtCore.QModelIndex) else item
                  for item in items]
         # If this is a folder, show an error message and return
-        is_folder = (items and not isinstance(items[0], ServiceItem) and
-                     isinstance(items[0].data(0, QtCore.Qt.ItemDataRole.UserRole), Folder))
+        is_folder = items and not isinstance(items[0], ServiceItem) and isinstance(items[0].data(0, QtCore.Qt.UserRole),
+                                                                                   Folder)
         if is_folder:
             return False
         if file_path is None:
-            file_path = Path(items[0].data(0, QtCore.Qt.ItemDataRole.UserRole).file_path)
+            file_path = Path(items[0].data(0, QtCore.Qt.UserRole).file_path)
         file_type = file_path.suffix.lower()[1:]
         if not self.display_type_combo_box.currentText():
             return False
@@ -322,7 +322,7 @@ class PresentationMediaItem(FolderLibraryItem):
             service_item.theme = -1
             for bitem in items:
                 if file_path is None:
-                    file_path = Path(bitem.data(0, QtCore.Qt.ItemDataRole.UserRole).file_path)
+                    file_path = Path(bitem.data(0, QtCore.Qt.UserRole).file_path)
                 path, file_name = file_path.parent, file_path.name
                 service_item.title = file_name
                 if file_path.exists():
@@ -359,7 +359,7 @@ class PresentationMediaItem(FolderLibraryItem):
             service_item.processor = self.display_type_combo_box.currentText()
             service_item.add_capability(ItemCapabilities.ProvidesOwnDisplay)
             for bitem in items:
-                file_path = Path(bitem.data(0, QtCore.Qt.ItemDataRole.UserRole).file_path)
+                file_path = Path(bitem.data(0, QtCore.Qt.UserRole).file_path)
                 path, file_name = file_path.parent, file_path.name
                 service_item.title = file_name
                 if file_path.exists():

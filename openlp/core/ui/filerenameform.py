@@ -21,7 +21,7 @@
 """
 The file rename dialog.
 """
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import translate
 from openlp.core.common.mixins import RegistryProperties
@@ -37,10 +37,8 @@ class FileRenameForm(QtWidgets.QDialog, Ui_FileRenameDialog, RegistryProperties)
         """
         Constructor
         """
-        super(FileRenameForm, self).__init__(Registry().get('main_window'),
-                                             QtCore.Qt.WindowType.WindowSystemMenuHint |
-                                             QtCore.Qt.WindowType.WindowTitleHint |
-                                             QtCore.Qt.WindowType.WindowCloseButtonHint)
+        super(FileRenameForm, self).__init__(Registry().get('main_window'), QtCore.Qt.WindowSystemMenuHint |
+                                             QtCore.Qt.WindowTitleHint | QtCore.Qt.WindowCloseButtonHint)
         self._setup()
 
     def _setup(self):

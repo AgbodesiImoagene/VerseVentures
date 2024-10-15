@@ -24,8 +24,8 @@ Functional tests to test calls for network interfaces.
 from unittest.mock import MagicMock, call, patch
 
 import pytest
-from PySide6.QtCore import QObject
-from PySide6.QtNetwork import QHostAddress, QNetworkAddressEntry, QNetworkInterface
+from PyQt5.QtCore import QObject
+from PyQt5.QtNetwork import QHostAddress, QNetworkAddressEntry, QNetworkInterface
 
 # import openlp.core.common
 from openlp.core.common import get_network_interfaces
@@ -70,7 +70,7 @@ class FakeIP4InterfaceEntry(QObject):
         """
         Return a QFlags enum with IsUp and IsRunning
         """
-        return QNetworkInterface.InterfaceFlag.IsUp | QNetworkInterface.InterfaceFlag.IsRunning
+        return QNetworkInterface.IsUp | QNetworkInterface.IsRunning
 
     def name(self):
         return self.my_name

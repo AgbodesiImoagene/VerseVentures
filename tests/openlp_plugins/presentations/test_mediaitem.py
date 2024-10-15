@@ -24,7 +24,7 @@ This module contains tests for the lib submodule of the Presentations plugin.
 from pathlib import Path
 from unittest.mock import MagicMock, PropertyMock, call, patch
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.lib import ServiceItemContext
 from openlp.core.lib.serviceitem import ItemCapabilities
@@ -140,7 +140,7 @@ def test_generate_slide_data_from_folder(media_item):
     mocked_service_item = MagicMock()
     folder = Folder(id=1, name='Mock folder')
     list_item = QtWidgets.QTreeWidgetItem(None)
-    list_item.setData(0, QtCore.Qt.ItemDataRole.UserRole, folder)
+    list_item.setData(0, QtCore.Qt.UserRole, folder)
 
     # WHEN: generate_slide_data is called
     result = media_item.generate_slide_data(mocked_service_item, item=list_item)
@@ -175,7 +175,7 @@ def test_generate_slide_data_with_file_path_from_item(media_item):
     mocked_service_item = MagicMock()
     item = Item(id=1, file_path='path/to/presentation.odp')
     list_item = QtWidgets.QTreeWidgetItem(None)
-    list_item.setData(0, QtCore.Qt.ItemDataRole.UserRole, item)
+    list_item.setData(0, QtCore.Qt.UserRole, item)
 
     # WHEN: generate_slide_data is called
     result = media_item.generate_slide_data(mocked_service_item, item=list_item)

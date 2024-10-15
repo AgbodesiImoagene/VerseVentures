@@ -23,25 +23,29 @@ import logging
 import os
 from pathlib import Path
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
+from sqlalchemy.sql.expression import or_
 
 from openlp.core.common import delete_file
 from openlp.core.common.applocation import AppLocation
 from openlp.core.common.i18n import UiStrings, translate
 from openlp.core.common.path import create_paths
 from openlp.core.common.registry import Registry
-from openlp.core.lib import ServiceItemContext
+from openlp.core.lib import MediaType, ServiceItemContext
 from openlp.core.lib.serviceitem import ItemCapabilities
-from openlp.core.lib.ui import create_widget_action, critical_error_message_box
+from openlp.core.lib.ui import create_action, create_widget_action, critical_error_message_box
 from openlp.core.state import State
 from openlp.core.ui.icons import UiIcons
 from openlp.core.ui.library import FolderLibraryItem
-from openlp.core.ui.media import get_supported_media_suffix, parse_stream_path, MediaType
+from openlp.core.ui.media import parse_optical_path, parse_stream_path, format_milliseconds, AUDIO_EXT, VIDEO_EXT
+from openlp.core.ui.media.vlcplayer import get_vlc
 
 from openlp.plugins.media.lib.db import Folder, Item
 
-from openlp.plugins.media.forms.streamselectorform import StreamSelectorForm
-from openlp.plugins.media.forms.networkstreamselectorform import NetworkStreamSelectorForm
+if get_vlc() is not None:
+    from openlp.plugins.media.forms.mediaclipselectorform import MediaClipSelectorForm
+    from openlp.plugins.media.forms.streamselectorform import StreamSelectorForm
+    from openlp.plugins.media.forms.networkstreamselectorform import NetworkStreamSelectorForm
 
 
 log = logging.getLogger(__name__)
@@ -51,8 +55,8 @@ class MediaMediaItem(FolderLibraryItem):
     """
     This is the custom media manager item for Media Slides.
     """
-    media_go_live = QtCore.Signal(list)
-    media_add_to_service = QtCore.Signal(list)
+    media_go_live = QtCore.pyqtSignal(list)
+    media_add_to_service = QtCore.pyqtSignal(list)
     log.info('{name} MediaMediaItem loaded'.format(name=__name__))
 
     def __init__(self, parent, plugin):
@@ -124,20 +128,6 @@ class MediaMediaItem(FolderLibraryItem):
         self.service_path = AppLocation.get_section_data_path('media') / 'thumbnails'
         self.rebuild_players()
 
-    def add_middle_header_bar(self):
-        super().add_middle_header_bar()
-        self.toolbar.addSeparator()
-        network_stream_button_text = translate('MediaPlugin.MediaItem', 'Open network stream')
-        network_stream_button_tooltip = translate('MediaPlugin.MediaItem', 'Open network stream')
-        self.toolbar.add_toolbar_action('networkstream_action', text=network_stream_button_text,
-                                        icon=UiIcons().network_stream, tooltip=network_stream_button_tooltip,
-                                        triggers=self.on_open_network_stream)
-        device_stream_button_text = translate('MediaPlugin.MediaItem', 'Open device stream')
-        device_stream_button_tooltip = translate('MediaPlugin.MediaItem', 'Open device stream')
-        self.toolbar.add_toolbar_action('devicestream_action', text=device_stream_button_text,
-                                        icon=UiIcons().device_stream, tooltip=device_stream_button_tooltip,
-                                        triggers=self.on_open_device_stream)
-
     def add_custom_context_actions(self):
         """
         Add custom actions to the context menu.
@@ -151,6 +141,42 @@ class MediaMediaItem(FolderLibraryItem):
             text=translate('MediaPlugin', 'Add new media'),
             icon=UiIcons().open, triggers=self.on_file_click)
         create_widget_action(self.list_view, separator=True)
+
+    def setup_ui(self):
+        """
+        Re-implement to add a dropdown menu to the load icon
+        """
+        super().setup_ui()
+        if State().check_preconditions('media'):
+            optical_button_text = translate('MediaPlugin.MediaItem', 'Load CD/DVD')
+            optical_button_tooltip = translate('MediaPlugin.MediaItem', 'Load CD/DVD')
+            self.load_optical = create_action(self, 'load_optical',
+                                              icon=UiIcons().optical,
+                                              text=optical_button_text,
+                                              tooltip=optical_button_tooltip,
+                                              triggers=self.on_load_optical)
+            device_stream_button_text = translate('MediaPlugin.MediaItem', 'Open device stream')
+            device_stream_button_tooltip = translate('MediaPlugin.MediaItem', 'Open device stream')
+            self.open_stream = create_action(self, 'open_device_stream',
+                                             icon=UiIcons().device_stream,
+                                             text=device_stream_button_text,
+                                             tooltip=device_stream_button_tooltip,
+                                             triggers=self.on_open_device_stream)
+            network_stream_button_text = translate('MediaPlugin.MediaItem', 'Open network stream')
+            network_stream_button_tooltip = translate('MediaPlugin.MediaItem', 'Open network stream')
+            self.open_network_stream = create_action(self, 'open_network_stream',
+                                                     icon=UiIcons().network_stream,
+                                                     text=network_stream_button_text,
+                                                     tooltip=network_stream_button_tooltip,
+                                                     triggers=self.on_open_network_stream)
+            self.load_menu = QtWidgets.QMenu(self.toolbar)
+            self.load_menu.setObjectName('load_menu')
+            self.load_menu.addAction(self.load_optical)
+            self.load_menu.addAction(self.open_stream)
+            self.load_menu.addAction(self.open_network_stream)
+            self.toolbar.actions['mediaLoadAction'].setMenu(self.load_menu)
+            button = self.toolbar.widgetForAction(self.toolbar.actions['mediaLoadAction'])
+            button.setPopupMode(QtWidgets.QToolButton.ToolButtonPopupMode.MenuButtonPopup)
 
     def generate_slide_data(self, service_item, *, item=None, remote=False, context=ServiceItemContext.Service,
                             **kwargs):
@@ -169,14 +195,33 @@ class MediaMediaItem(FolderLibraryItem):
                 return False
         if isinstance(item, QtCore.QModelIndex):
             item = self.list_view.itemFromIndex(item)
-        media_item = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
+        media_item = item.data(0, QtCore.Qt.UserRole)
         if not isinstance(media_item, Item):
             return False
         filename = media_item.file_path
-        if filename.startswith('devicestream:') or filename.startswith('networkstream:'):
+        # Special handling if the filename is a optical clip
+        if filename.startswith('optical:'):
+            (name, title, audio_track, subtitle_track, start, end, clip_name) = parse_optical_path(filename)
+            if not os.path.exists(name):
+                if not remote:
+                    # Optical disc is no longer present
+                    critical_error_message_box(
+                        translate('MediaPlugin.MediaItem', 'Missing Media File'),
+                        translate('MediaPlugin.MediaItem',
+                                  'The optical disc {name} is no longer available.').format(name=name))
+                return False
+            service_item.processor = 'vlc'
+            service_item.add_capability(ItemCapabilities.IsOptical)
+            service_item.add_from_command(filename, name, self.clapperboard)
+            service_item.title = clip_name
+            # Set the length
+            service_item.set_media_length(end - start)
+            service_item.start_time = start
+            service_item.end_time = end
+        elif filename.startswith('devicestream:') or filename.startswith('networkstream:'):
             # Special handling if the filename is a devicestream
-            (_, name, _, _) = parse_stream_path(filename)
-            service_item.processor = 'qt6'
+            (name, mrl, options) = parse_stream_path(filename)
+            service_item.processor = 'vlc'
             service_item.add_capability(ItemCapabilities.CanStream)
             service_item.add_from_command(filename, name, self.clapperboard)
             service_item.title = name
@@ -190,7 +235,7 @@ class MediaMediaItem(FolderLibraryItem):
                 return False
             (path, name) = os.path.split(filename)
             service_item.title = name
-            service_item.processor = 'qt6'
+            service_item.processor = 'vlc'
             service_item.add_from_command(path, name, self.clapperboard)
             # Only get start and end times if going to a service
             service_item.set_media_length(self.media_controller.media_length(filename))
@@ -208,11 +253,10 @@ class MediaMediaItem(FolderLibraryItem):
         Rebuild the tab in the media manager when changes are made in the settings.
         """
         # self.populate_display_types()
-        audio, video = get_supported_media_suffix()
         self.on_new_file_masks = translate('MediaPlugin.MediaItem',
                                            'Videos ({video});;Audio ({audio});;{files} '
-                                           '(*)').format(video=' '.join(video),
-                                                         audio=' '.join(audio),
+                                           '(*)').format(video=' '.join(VIDEO_EXT),
+                                                         audio=' '.join(AUDIO_EXT),
                                                          files=UiStrings().AllFiles)
 
     def file_to_item(self, filename):
@@ -222,8 +266,11 @@ class MediaMediaItem(FolderLibraryItem):
         if isinstance(filename, Path):
             name = filename.name
             filename = str(filename)
+        elif filename.startswith('optical:'):
+            # Handle optical based item
+            _, _, _, _, _, _, name = parse_optical_path(filename)
         elif filename.startswith('devicestream:') or filename.startswith('networkstream:'):
-            _, name, _, _ = parse_stream_path(filename)
+            name, _, _ = parse_stream_path(filename)
         else:
             name = os.path.basename(filename)
         item = self.item_class(name=name, file_path=filename)
@@ -237,11 +284,20 @@ class MediaMediaItem(FolderLibraryItem):
         track_str = str(item.file_path)
         track_info = QtCore.QFileInfo(track_str)
         tree_item = None
-        if track_str.startswith('devicestream:') or track_str.startswith('networkstream:'):
-            (stream_type, name, mrl, _) = parse_stream_path(track_str)
+        if track_str.startswith('optical:'):
+            # Handle optical based item
+            (file_name, title, audio_track, subtitle_track, start, end, clip_name) = parse_optical_path(track_str)
+            tree_item = QtWidgets.QTreeWidgetItem([clip_name])
+            tree_item.setText(0, clip_name)
+            tree_item.setIcon(0, UiIcons().optical)
+            tree_item.setToolTip(0, '{name}@{start}-{end}'.format(name=file_name,
+                                                                  start=format_milliseconds(start),
+                                                                  end=format_milliseconds(end)))
+        elif track_str.startswith('devicestream:') or track_str.startswith('networkstream:'):
+            (name, mrl, options) = parse_stream_path(track_str)
             tree_item = QtWidgets.QTreeWidgetItem([name])
             tree_item.setText(0, name)
-            if stream_type == MediaType.DeviceStream:
+            if track_str.startswith('devicestream:'):
                 tree_item.setIcon(0, UiIcons().device_stream)
             else:
                 tree_item.setIcon(0, UiIcons().network_stream)
@@ -259,14 +315,13 @@ class MediaMediaItem(FolderLibraryItem):
             tree_item = QtWidgets.QTreeWidgetItem([file_name])
             tree_item.setText(0, file_name)
             search = "*." + file_name.split('.')[-1].lower()
-            _, v_suffixes = get_supported_media_suffix()
-            if search in v_suffixes:
+            if search in AUDIO_EXT:
                 tree_item.setIcon(0, UiIcons().audio)
             else:
                 tree_item.setIcon(0, UiIcons().video)
             tree_item.setToolTip(0, track_str)
         if tree_item:
-            tree_item.setData(0, QtCore.Qt.ItemDataRole.UserRole, item)
+            tree_item.setData(0, QtCore.Qt.UserRole, item)
         return tree_item
 
     def delete_item(self, item):
@@ -284,19 +339,61 @@ class MediaMediaItem(FolderLibraryItem):
         """
         if Path(item.file_path).exists():
             return [item.file_path, Path(item.file_path).name]
-        elif item.file_path.startswith('device') or item.file_path.startswith('network'):
-            (_, name, _, _) = parse_stream_path(item.file_path)
+        elif item.file_path.startswith('device'):
+            (name, _, _) = parse_stream_path(item.file_path)
             return [item.file_path, name]
         else:
             return super().format_search_result(item)
+
+    def get_list(self, media_type=MediaType.Audio):
+        """
+        Get the list of media, optional select media type.
+
+        :param media_type: Type to get, defaults to audio.
+        :return: The media list
+        """
+        if media_type == MediaType.Audio:
+            extensions = AUDIO_EXT
+        else:
+            extensions = VIDEO_EXT
+        clauses = []
+        for extension in extensions:
+            # Drop the initial * and add to the list of clauses
+            clauses.append(Item.file_path.endswith(extension[1:]))
+        items = self.manager.get_all_objects(Item, or_(*clauses))
+        return [Path(item.file_path) for item in items]
+
+    def on_load_optical(self):
+        """
+        When the load optical button is clicked, open the clip selector window.
+        """
+        if get_vlc():
+            media_clip_selector_form = MediaClipSelectorForm(self, self.main_window, None)
+            media_clip_selector_form.exec()
+            del media_clip_selector_form
+        else:
+            critical_error_message_box(translate('MediaPlugin.MediaItem', 'VLC is not available'),
+                                       translate('MediaPlugin.MediaItem', 'Optical device support requires VLC.'))
+
+    def add_optical_clip(self, optical):
+        """
+        Add a optical based clip to the mediamanager, called from media_clip_selector_form.
+
+        :param optical: The clip to add.
+        """
+        self.validate_and_load([str(optical)])
 
     def on_open_device_stream(self):
         """
         When the open device stream button is clicked, open the stream selector window.
         """
-        stream_selector_form = StreamSelectorForm(self.main_window, self.add_device_stream)
-        stream_selector_form.exec()
-        del stream_selector_form
+        if get_vlc():
+            stream_selector_form = StreamSelectorForm(self.main_window, self.add_device_stream)
+            stream_selector_form.exec()
+            del stream_selector_form
+        else:
+            critical_error_message_box(translate('MediaPlugin.MediaItem', 'VLC is not available'),
+                                       translate('MediaPlugin.MediaItem', 'Device streaming support requires VLC.'))
 
     def add_device_stream(self, stream):
         """
@@ -310,13 +407,13 @@ class MediaMediaItem(FolderLibraryItem):
         """
         When the open network stream button is clicked, open the stream selector window.
         """
-        # if get_vlc():
-        stream_selector_form = NetworkStreamSelectorForm(self.main_window, self.add_network_stream)
-        stream_selector_form.exec()
-        del stream_selector_form
-        # else:
-        #     critical_error_message_box(translate('MediaPlugin.MediaItem', 'VLC is not available'),
-        #                               translate('MediaPlugin.MediaItem', 'Network streaming support requires VLC.'))
+        if get_vlc():
+            stream_selector_form = NetworkStreamSelectorForm(self.main_window, self.add_network_stream)
+            stream_selector_form.exec()
+            del stream_selector_form
+        else:
+            critical_error_message_box(translate('MediaPlugin.MediaItem', 'VLC is not available'),
+                                       translate('MediaPlugin.MediaItem', 'Network streaming support requires VLC.'))
 
     def add_network_stream(self, stream):
         """

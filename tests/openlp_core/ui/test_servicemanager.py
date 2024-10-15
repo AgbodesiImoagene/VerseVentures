@@ -30,7 +30,7 @@ from unittest.mock import Mock, MagicMock, call, patch
 from zipfile import BadZipFile
 
 import pytest
-from PySide6 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from openlp.core.common import ThemeLevel
 from openlp.core.common.registry import Registry
@@ -54,7 +54,7 @@ def _create_mock_action(s_manager: ServiceManager, name: str, **kwargs):
     """
     Create a fake action with some "real" attributes
     """
-    action = QtGui.QAction(s_manager.toolbar)
+    action = QtWidgets.QAction(s_manager.toolbar)
     action.setObjectName(name)
     if kwargs.get('triggers'):
         action.triggered.connect(kwargs.pop('triggers'))
@@ -264,6 +264,36 @@ def test_is_modified(settings: Settings):
 
     # THEN: The result should be True
     assert result is True, 'is_modified should return True'
+
+
+def test_supported_suffixes(settings: Settings):
+    """
+    Test the create basic service array
+    """
+    # GIVEN: A new service manager instance.
+    service_manager = ServiceManager(None)
+    # WHEN: a suffix is added as an individual or a list.
+    service_manager.supported_suffixes('txt')
+    service_manager.supported_suffixes(['pptx', 'ppt'])
+    # THEN: The suffixes should be available to test.
+    assert 'txt' in service_manager.suffixes, 'The suffix txt should be in the list'
+    assert 'ppt' in service_manager.suffixes, 'The suffix ppt should be in the list'
+    assert 'pptx' in service_manager.suffixes, 'The suffix pptx should be in the list'
+
+
+def test_reset_supported_suffixes(settings: Settings):
+    """
+    Test the create basic service array
+    """
+    # GIVEN: A new service manager instance with some supported suffixes
+    service_manager = ServiceManager(None)
+    service_manager.suffixes = ['mp3', 'aac', 'wav', 'flac']
+
+    # WHEN: reset_supported_suffixes() is called
+    service_manager.reset_supported_suffixes()
+
+    # THEN: The suffixes should be cleared out
+    assert service_manager.suffixes == [], 'There should not be any suffixes'
 
 
 def test_build_context_menu(settings: Settings):
@@ -940,7 +970,7 @@ def test_theme_change_song(mocked_regenerate_service_items: MagicMock, settings:
         'The visibility should be True'
 
 
-@patch('PySide6.QtWidgets.QTreeWidgetItemIterator')
+@patch('PyQt5.QtWidgets.QTreeWidgetItemIterator')
 def test_regenerate_service_items(mocked_tree: MagicMock, settings: Settings):
     """
     test that an unmodified service item that is regenerated is still unmodified
@@ -968,7 +998,7 @@ def test_regenerate_service_items(mocked_tree: MagicMock, settings: Settings):
     service_manager.repaint_service_list.assert_called_once()
 
 
-@patch('PySide6.QtWidgets.QTreeWidgetItemIterator')
+@patch('PyQt5.QtWidgets.QTreeWidgetItemIterator')
 def test_regenerate_service_items_modified(mocked_tree: MagicMock, settings: Settings):
     """
     test that an unmodified service item that is regenerated is still unmodified
@@ -996,7 +1026,7 @@ def test_regenerate_service_items_modified(mocked_tree: MagicMock, settings: Set
     service_manager.repaint_service_list.assert_called_once()
 
 
-@patch('PySide6.QtWidgets.QTreeWidgetItemIterator')
+@patch('PyQt5.QtWidgets.QTreeWidgetItemIterator')
 def test_regenerate_service_items_set_modified(mocked_tree: MagicMock, settings: Settings):
     """
     test that a service item that is regenerated with the modified argument becomes modified
@@ -1076,7 +1106,7 @@ def test_service_manager_list_mouse_move_event_not_left_button():
     # GIVEN: A service manager and a mocked event
     service_manager_list = ServiceManagerList(None)
     mocked_event = MagicMock()
-    mocked_event.buttons.return_value = QtCore.Qt.MouseButton.RightButton
+    mocked_event.buttons.return_value = QtCore.Qt.RightButton
 
     # WHEN: The mouseMoveEvent method is called
     service_manager_list.mouseMoveEvent(mocked_event)
@@ -1095,7 +1125,7 @@ def test_service_manager_list_mouse_move_event_no_item(MockQCursor: MagicMock):
     service_manager_list.itemAt = MagicMock(return_value=None)
     service_manager_list.mapFromGlobal = MagicMock()
     mocked_event = MagicMock()
-    mocked_event.buttons.return_value = QtCore.Qt.MouseButton.LeftButton
+    mocked_event.buttons.return_value = QtCore.Qt.LeftButton
 
     # WHEN: The mouseMoveEvent method is called
     service_manager_list.mouseMoveEvent(mocked_event)
@@ -1117,7 +1147,7 @@ def test_service_manager_list_mouse_move_event(MockQMimeData: MagicMock, MockQDr
     service_manager_list.itemAt = MagicMock(return_value=True)
     service_manager_list.mapFromGlobal = MagicMock()
     mocked_event = MagicMock()
-    mocked_event.buttons.return_value = QtCore.Qt.MouseButton.LeftButton
+    mocked_event.buttons.return_value = QtCore.Qt.LeftButton
     mocked_drag = MagicMock()
     MockQDrag.return_value = mocked_drag
     mocked_mime_data = MagicMock()
@@ -1129,7 +1159,7 @@ def test_service_manager_list_mouse_move_event(MockQMimeData: MagicMock, MockQDr
     # THEN: The ignore() method on the event is called
     mocked_drag.setMimeData.assert_called_once_with(mocked_mime_data)
     mocked_mime_data.setText.assert_called_once_with('ServiceManager')
-    mocked_drag.exec.assert_called_once_with(QtCore.Qt.DropAction.CopyAction)
+    mocked_drag.exec.assert_called_once_with(QtCore.Qt.CopyAction)
 
 
 def test_on_new_service_clicked_not_saved_cancel(registry: Registry):
@@ -1137,7 +1167,7 @@ def test_on_new_service_clicked_not_saved_cancel(registry: Registry):
     # GIVEN: A Service manager and some mocks
     service_manager = ServiceManager(None)
     service_manager.is_modified = MagicMock(return_value=True)
-    service_manager.save_modified_service = MagicMock(return_value=QtWidgets.QMessageBox.StandardButton.Cancel)
+    service_manager.save_modified_service = MagicMock(return_value=QtWidgets.QMessageBox.Cancel)
 
     # WHEN: on_new_service_clicked() is called
     result = service_manager.on_new_service_clicked()
@@ -1151,7 +1181,7 @@ def test_on_new_service_clicked_not_saved_false_save(registry: Registry):
     # GIVEN: A Service manager and some mocks
     service_manager = ServiceManager(None)
     service_manager.is_modified = MagicMock(return_value=True)
-    service_manager.save_modified_service = MagicMock(return_value=QtWidgets.QMessageBox.StandardButton.Save)
+    service_manager.save_modified_service = MagicMock(return_value=QtWidgets.QMessageBox.Save)
     service_manager.decide_save_method = MagicMock(return_value=False)
 
     # WHEN: on_new_service_clicked() is called
@@ -1216,7 +1246,7 @@ def test_on_delete_from_service_confirmation_enabled_choose_delete(settings: Set
     _add_song_service_item(service_manager)
 
     # WHEN the on_delete_from_service function is called and the user chooses to delete
-    service_manager._delete_confirmation_dialog = MagicMock(return_value=QtWidgets.QMessageBox.StandardButton.Close)
+    service_manager._delete_confirmation_dialog = MagicMock(return_value=QtWidgets.QMessageBox.Close)
     service_manager.on_delete_from_service()
 
     # THEN the service_items list should be empty
@@ -1236,7 +1266,7 @@ def test_on_delete_from_service_confirmation_enabled_choose_cancel(settings: Set
     service_items_copy = service_manager.service_items.copy()
 
     # WHEN the on_delete_from_service function is called and the user cancels
-    service_manager._delete_confirmation_dialog = MagicMock(return_value=QtWidgets.QMessageBox.StandardButton.Cancel)
+    service_manager._delete_confirmation_dialog = MagicMock(return_value=QtWidgets.QMessageBox.Cancel)
     service_manager.on_delete_from_service()
 
     # THEN the service_items list should be unchanged
@@ -1266,7 +1296,7 @@ def test_load_service_modified_cancel_save(registry: Registry):
     # GIVEN: A modified ServiceManager
     service_manager = ServiceManager(None)
     service_manager.is_modified = MagicMock(return_value=True)
-    service_manager.save_modified_service = MagicMock(return_value=QtWidgets.QMessageBox.StandardButton.Cancel)
+    service_manager.save_modified_service = MagicMock(return_value=QtWidgets.QMessageBox.Cancel)
 
     # WHEN: A service is loaded
     result = service_manager.load_service()
@@ -1301,7 +1331,7 @@ def test_load_service_modified_saved_with_file_path(registry: Registry):
     registry.register('settings', mocked_settings)
     service_manager = ServiceManager(None)
     service_manager.is_modified = MagicMock(return_value=True)
-    service_manager.save_modified_service = MagicMock(return_value=QtWidgets.QMessageBox.StandardButton.Save)
+    service_manager.save_modified_service = MagicMock(return_value=QtWidgets.QMessageBox.Save)
     service_manager.decide_save_method = MagicMock()
     service_manager.load_file = MagicMock()
 
@@ -1354,7 +1384,7 @@ def test_on_recent_service_clicked_modified_cancel_save(registry: Registry):
     registry.register('main_window', None)
     service_manager = ServiceManager(None)
     service_manager.is_modified = MagicMock(return_value=True)
-    service_manager.save_modified_service = MagicMock(return_value=QtWidgets.QMessageBox.StandardButton.Cancel)
+    service_manager.save_modified_service = MagicMock(return_value=QtWidgets.QMessageBox.Cancel)
 
     # WHEN: on_recent_service_clicked is called
     result = service_manager.on_recent_service_clicked(True)
@@ -1371,7 +1401,7 @@ def test_on_recent_service_clicked_modified_saved_with_file_path(registry: Regis
     registry.register('main_window', None)
     service_manager = ServiceManager(None)
     service_manager.is_modified = MagicMock(return_value=True)
-    service_manager.save_modified_service = MagicMock(return_value=QtWidgets.QMessageBox.StandardButton.Save)
+    service_manager.save_modified_service = MagicMock(return_value=QtWidgets.QMessageBox.Save)
     service_manager.decide_save_method = MagicMock()
     service_manager.load_file = MagicMock()
     service_manager.sender = MagicMock(return_value=MagicMock())
@@ -1424,9 +1454,9 @@ def test_service_manager_delete_confirmation_dialog(MockMessageBox: MagicMock, r
     MockMessageBox.return_value = mocked_message_box
     # Restore a couple of items for a more realistic situation
     MockMessageBox.Question = QtWidgets.QMessageBox.Icon.Question
-    MockMessageBox.Close = QtWidgets.QMessageBox.StandardButton.Close
-    MockMessageBox.Cancel = QtWidgets.QMessageBox.StandardButton.Cancel
-    MockMessageBox.StandardButton = QtWidgets.QMessageBox.StandardButton
+    MockMessageBox.Close = QtWidgets.QMessageBox.Close
+    MockMessageBox.Cancel = QtWidgets.QMessageBox.Cancel
+    MockMessageBox.StandardButtons = QtWidgets.QMessageBox.StandardButtons
 
     # WHEN: _delete_confirmation_dialog() is called
     service_manager._delete_confirmation_dialog()
@@ -1434,12 +1464,11 @@ def test_service_manager_delete_confirmation_dialog(MockMessageBox: MagicMock, r
     # THEN: All the correct things should have been called
     MockMessageBox.assert_called_once_with(QtWidgets.QMessageBox.Icon.Question, 'Delete item from service',
                                            'Are you sure you want to delete this item from the service?',
-                                           QtWidgets.QMessageBox.StandardButton(
-                                               QtWidgets.QMessageBox.StandardButton.Close |
-                                               QtWidgets.QMessageBox.StandardButton.Cancel),
+                                           QtWidgets.QMessageBox.StandardButtons(QtWidgets.QMessageBox.Close |
+                                                                                 QtWidgets.QMessageBox.Cancel),
                                            service_manager)
-    mocked_message_box.button.assert_called_once_with(QtWidgets.QMessageBox.StandardButton.Close)
-    mocked_message_box.setDefaultButton.assert_called_once_with(QtWidgets.QMessageBox.StandardButton.Close)
+    mocked_message_box.button.assert_called_once_with(QtWidgets.QMessageBox.Close)
+    mocked_message_box.setDefaultButton.assert_called_once_with(QtWidgets.QMessageBox.Close)
     mocked_message_box.exec.assert_called_once()
 
 
@@ -1458,10 +1487,8 @@ def test_service_manager_save_modified_service(mocked_question: MagicMock, regis
     mocked_question.assert_called_once_with(mocked_main_window, 'Modified Service',
                                             'The current service has been modified. '
                                             'Would you like to save this service?',
-                                            QtWidgets.QMessageBox.StandardButton.Save |
-                                            QtWidgets.QMessageBox.StandardButton.Discard |
-                                            QtWidgets.QMessageBox.StandardButton.Cancel,
-                                            QtWidgets.QMessageBox.StandardButton.Save)
+                                            QtWidgets.QMessageBox.Save | QtWidgets.QMessageBox.Discard |
+                                            QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.Save)
 
 
 def test_service_manager_on_recent_service_clicked_cancel(registry: Registry):
@@ -1469,7 +1496,7 @@ def test_service_manager_on_recent_service_clicked_cancel(registry: Registry):
     # GIVEN: A service manager with some methods mocked out
     service_manager = ServiceManager(None)
     service_manager.is_modified = lambda: True
-    service_manager.save_modified_service = lambda: QtWidgets.QMessageBox.StandardButton.Cancel
+    service_manager.save_modified_service = lambda: QtWidgets.QMessageBox.Cancel
 
     # WHEN: on_recent_service_clicked() is called
     result = service_manager.on_recent_service_clicked(True)
@@ -1483,7 +1510,7 @@ def test_service_manager_on_recent_service_clicked_save(registry: Registry):
     # GIVEN: A service manager with some methods mocked out
     service_manager = ServiceManager(None)
     service_manager.is_modified = lambda: True
-    service_manager.save_modified_service = lambda: QtWidgets.QMessageBox.StandardButton.Save
+    service_manager.save_modified_service = lambda: QtWidgets.QMessageBox.Save
     service_manager.decide_save_method = lambda: None
     service_manager.sender = lambda: MagicMock(**{'data.return_value': '/path/to/service'})
     service_manager.load_file = MagicMock()
@@ -2249,7 +2276,7 @@ def test_expand_selection_on_right_arrow(service_manager: ServiceManager):
 
     # WHEN the right arrow key event is called
     service_manager.setup_ui(service_manager)
-    event = QtGui.QKeyEvent(QtCore.QEvent.Type.KeyPress, QtCore.Qt.Key.Key_Right, QtCore.Qt.KeyboardModifier.NoModifier)
+    event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, QtCore.Qt.Key_Right, QtCore.Qt.NoModifier)
     service_manager.service_manager_list.keyPressEvent(event)
 
     # THEN the on_expand_selection function should have been called.
@@ -2278,8 +2305,7 @@ def test_collapse_selection_on_left_arrow(service_manager: ServiceManager):
     service_manager.on_collapse_selection = MagicMock()
 
     # WHEN the left arrow key event is called
-    service_manager.setup_ui(service_manager)
-    event = QtGui.QKeyEvent(QtCore.QEvent.Type.KeyPress, QtCore.Qt.Key.Key_Left, QtCore.Qt.KeyboardModifier.NoModifier)
+    event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, QtCore.Qt.Key_Left, QtCore.Qt.NoModifier)
     service_manager.service_manager_list.keyPressEvent(event)
 
     # THEN the on_collapse_selection function should have been called.
@@ -2294,8 +2320,7 @@ def test_move_selection_down_on_down_arrow(service_manager: ServiceManager):
     service_manager.on_move_selection_down = MagicMock()
 
     # WHEN the down arrow key event is called
-    service_manager.setup_ui(service_manager)
-    event = QtGui.QKeyEvent(QtCore.QEvent.Type.KeyPress, QtCore.Qt.Key.Key_Down, QtCore.Qt.KeyboardModifier.NoModifier)
+    event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, QtCore.Qt.Key_Down, QtCore.Qt.NoModifier)
     service_manager.service_manager_list.keyPressEvent(event)
 
     # THEN the on_move_selection_down function should have been called.
@@ -2310,8 +2335,7 @@ def test_move_selection_up_on_up_arrow(service_manager: ServiceManager):
     service_manager.on_move_selection_up = MagicMock()
 
     # WHEN the up arrow key event is called
-    service_manager.setup_ui(service_manager)
-    event = QtGui.QKeyEvent(QtCore.QEvent.Type.KeyPress, QtCore.Qt.Key.Key_Up, QtCore.Qt.KeyboardModifier.NoModifier)
+    event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, QtCore.Qt.Key_Up, QtCore.Qt.NoModifier)
     service_manager.service_manager_list.keyPressEvent(event)
 
     # THEN the on_move_selection_up function should have been called.
@@ -2326,10 +2350,7 @@ def test_delete_selection_on_delete_key(service_manager: ServiceManager):
     service_manager.on_delete_from_service = MagicMock()
 
     # WHEN the delete key event is called
-    service_manager.setup_ui(service_manager)
-    event = QtGui.QKeyEvent(QtCore.QEvent.Type.KeyPress,
-                            QtCore.Qt.Key.Key_Delete,
-                            QtCore.Qt.KeyboardModifier.NoModifier)
+    event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, QtCore.Qt.Key_Delete, QtCore.Qt.NoModifier)
     service_manager.service_manager_list.keyPressEvent(event)
 
     # THEN the on_delete_from_service function should have been called.

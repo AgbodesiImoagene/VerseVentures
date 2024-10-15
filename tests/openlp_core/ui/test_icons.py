@@ -23,7 +23,7 @@ Package to test the openlp.core.ui.icons package.
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from PySide6 import QtGui
+from PyQt5 import QtGui
 
 from openlp.core.common import Singleton
 from openlp.core.common.registry import Registry

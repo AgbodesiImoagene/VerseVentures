@@ -21,7 +21,7 @@
 """
 The service item edit dialog
 """
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.mixins import RegistryProperties
 from openlp.core.common.registry import Registry
@@ -36,10 +36,8 @@ class ServiceItemEditForm(QtWidgets.QDialog, Ui_ServiceItemEditDialog, RegistryP
         """
         Constructor
         """
-        super(ServiceItemEditForm, self).__init__(Registry().get('main_window'),
-                                                  QtCore.Qt.WindowType.WindowSystemMenuHint |
-                                                  QtCore.Qt.WindowType.WindowTitleHint |
-                                                  QtCore.Qt.WindowType.WindowCloseButtonHint)
+        super(ServiceItemEditForm, self).__init__(Registry().get('main_window'), QtCore.Qt.WindowSystemMenuHint |
+                                                  QtCore.Qt.WindowTitleHint | QtCore.Qt.WindowCloseButtonHint)
         self.setup_ui(self)
         self.item_list = []
         self.list_widget.currentRowChanged.connect(self.on_current_row_changed)

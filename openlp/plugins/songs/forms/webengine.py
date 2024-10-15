@@ -23,10 +23,10 @@ Subclass of QWebEngineView used to block js messages; Useful for public sites
 where we have no control on the code run in the webpage, and do not want to
 see the error messages.
 """
-from PySide6 import QtWebEngineWidgets, QtWebEngineCore
+from PyQt5 import QtWebEngineWidgets
 
 
-class WebEnginePage(QtWebEngineCore.QWebEnginePage):
+class WebEnginePage(QtWebEngineWidgets.QWebEnginePage):
     """
     A custom WebEngine page to capture Javascript console logging
     """

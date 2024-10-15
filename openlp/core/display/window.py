@@ -27,7 +27,7 @@ import os
 import copy
 import re
 
-from PySide6 import QtCore, QtWebChannel, QtWidgets
+from PyQt5 import QtCore, QtWebChannel, QtWidgets
 
 from openlp.core.common.enum import ServiceItemType
 from openlp.core.common.i18n import translate
@@ -49,7 +49,7 @@ class DisplayWatcher(QtCore.QObject):
     """
     This facilitates communication from the Display object in the browser back to the Python
     """
-    initialised = QtCore.Signal(bool)
+    initialised = QtCore.pyqtSignal(bool)
 
     def __init__(self, parent, window_title=None):
         super().__init__()
@@ -59,11 +59,11 @@ class DisplayWatcher(QtCore.QObject):
         self._event_counter = 0
         self._window_title = window_title
 
-    @QtCore.Slot(result=str)
+    @QtCore.pyqtSlot(result=str)
     def getWindowTitle(self):
         return self._window_title
 
-    @QtCore.Slot(bool)
+    @QtCore.pyqtSlot(bool)
     def setInitialised(self, is_initialised):
         """
         This method is called from the JS in the browser to set the _is_initialised attribute
@@ -71,15 +71,15 @@ class DisplayWatcher(QtCore.QObject):
         log.info('Display is initialised: {init}'.format(init=is_initialised))
         self.initialised.emit(is_initialised)
 
-    @QtCore.Slot()
+    @QtCore.pyqtSlot()
     def pleaseRepaint(self):
         """
         Called from the js in the webengine view when it's requesting a repaint by Qt
         """
         self._display_window.webview.update()
 
-    @QtCore.Slot(str, QtCore.QJsonValue)
-    def dispatchEvent(self, event_name: str, event_data: QtCore.QJsonValue):
+    @QtCore.pyqtSlot(str, 'QJsonObject')
+    def dispatchEvent(self, event_name, event_data):
         """
         Called from the js in the webengine view for event dispatches
         """
@@ -142,15 +142,14 @@ class DisplayWindow(QtWidgets.QWidget, RegistryProperties, LogMixin):
         super(DisplayWindow, self).__init__(parent)
         self.after_loaded_callback = after_loaded_callback
         # Gather all flags for the display window
-        flags = QtCore.Qt.WindowType.FramelessWindowHint | QtCore.Qt.WindowType.Tool |\
-            QtCore.Qt.WindowType.WindowStaysOnTopHint
+        flags = QtCore.Qt.FramelessWindowHint | QtCore.Qt.Tool | QtCore.Qt.WindowStaysOnTopHint
         if self.settings.value('advanced/x11 bypass wm'):
-            flags |= QtCore.Qt.WindowType.X11BypassWindowManagerHint
+            flags |= QtCore.Qt.X11BypassWindowManagerHint
         else:
             # This helps the window not being hidden by KDE's "Hide utility windows for inactive applications" option
             self.setAttribute(QtCore.Qt.WidgetAttribute.WA_X11NetWmWindowTypeDialog)
         if is_macosx():
-            self.setAttribute(QtCore.Qt.WidgetAttribute.WA_MacAlwaysShowToolWindow, True)
+            self.setAttribute(QtCore.Qt.WA_MacAlwaysShowToolWindow, True)
         self._is_initialised = False
         self._is_manual_close = False
         self._can_show_startup_screen = can_show_startup_screen
@@ -158,14 +157,14 @@ class DisplayWindow(QtWidgets.QWidget, RegistryProperties, LogMixin):
         self.window_title = window_title
         self.setWindowTitle(translate('OpenLP.DisplayWindow', 'Display Window'))
         self.setWindowFlags(flags)
-        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
         self.setAutoFillBackground(True)
-        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_DeleteOnClose)
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.layout = QtWidgets.QVBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.webview = self.init_webengine()
-        self.webview.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.webview.page().setBackgroundColor(QtCore.Qt.GlobalColor.transparent)
+        self.webview.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+        self.webview.page().setBackgroundColor(QtCore.Qt.transparent)
         self.webview.display_clicked = self.disable_display
         self.layout.addWidget(self.webview)
         self.webview.loadFinished.connect(self.after_loaded)
@@ -176,7 +175,6 @@ class DisplayWindow(QtWidgets.QWidget, RegistryProperties, LogMixin):
         self.channel.registerObject('displayWatcher', self.display_watcher)
         self.webview.page().setWebChannel(self.channel)
         self.display_watcher.initialised.connect(self.on_initialised)
-        self.display_watcher.register_event_listener("runJavascriptCallback", self.handle_javascript_result, False)
         self.openlp_splash_screen_path = 'openlp://display/openlp-splash-screen.png'
         # Using custom display if provided
         if Registry().has('display_custom_url') and Registry().get('display_custom_url') is not None:
@@ -203,7 +201,7 @@ class DisplayWindow(QtWidgets.QWidget, RegistryProperties, LogMixin):
             self.is_display = True
             # Only make visible on single monitor setup if setting enabled.
             if not start_hidden and (len(ScreenList()) > 1 or self.settings.value('core/display on monitor')):
-                self.auto_show(screen.custom_geometry is not None)
+                self.show()
 
     def closeEvent(self, event):
         """
@@ -262,18 +260,6 @@ class DisplayWindow(QtWidgets.QWidget, RegistryProperties, LogMixin):
         """
         self.setGeometry(screen.display_geometry)
         self.screen_number = screen.number
-
-    def auto_show(self, has_custom_geometry: bool):
-        """
-        Displays the window using the fullscreen function if using the whole screen (allows drawing over system UI)
-
-        :param bool has_custom_geometry: Whether the display a custom geometry
-        """
-
-        if has_custom_geometry:
-            self.show()
-        else:
-            self.showFullScreen()
 
     def set_background_image(self, image_path):
         image_uri = image_path.as_uri()
@@ -382,8 +368,15 @@ class DisplayWindow(QtWidgets.QWidget, RegistryProperties, LogMixin):
         if is_sync:
             self.__script_done = False
             self.__script_result = None
-            self.webview.page().runJavaScript(
-                "window.displayWatcher.dispatchEvent(\"runJavascriptCallback\", " + script + ")")
+
+            def handle_result(result):
+                """
+                Handle the result from the asynchronous call
+                """
+                self.__script_done = True
+                self.__script_result = result
+
+            self.webview.page().runJavaScript(script, handle_result)
             # Wait for script to finish
             if not wait_for(lambda: self.__script_done):
                 self.__script_done = True
@@ -391,14 +384,6 @@ class DisplayWindow(QtWidgets.QWidget, RegistryProperties, LogMixin):
         else:
             self.webview.page().runJavaScript(script)
         self.raise_()
-
-    @QtCore.Slot()
-    def handle_javascript_result(self, result):
-        """
-        Handle the result from the asynchronous call
-        """
-        self.__script_result = result
-        self.__script_done = True
 
     def go_to_slide(self, verse):
         """
@@ -564,7 +549,7 @@ class DisplayWindow(QtWidgets.QWidget, RegistryProperties, LogMixin):
         """
         self._run_javascript('Display.alert("{text}", {settings});'.format(text=text, settings=settings))
 
-    @QtCore.Slot(result='QPixmap')
+    @QtCore.pyqtSlot(result='QPixmap')
     def _grab_screenshot_safe_signal(self):
         return self.save_screenshot()
 

@@ -21,7 +21,7 @@
 """
 The :mod:`~openlp.plugins.planningcenter.forms.selectplandialog` module contains the user interface code for the dialog
 """
-from PySide6 import QtWidgets
+from PyQt5 import QtWidgets
 
 from openlp.core.common.i18n import translate
 

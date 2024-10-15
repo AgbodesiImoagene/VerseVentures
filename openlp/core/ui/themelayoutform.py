@@ -21,7 +21,7 @@
 """
 The form layout
 """
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from .themelayoutdialog import Ui_ThemeLayoutDialog
 
@@ -41,7 +41,7 @@ class ThemeLayoutForm(QtWidgets.QDialog, Ui_ThemeLayoutDialog):
         """
         Run the Dialog with correct heading.
         """
-        pixmap = image.scaledToHeight(400, QtCore.Qt.TransformationMode.SmoothTransformation)
+        pixmap = image.scaledToHeight(400, QtCore.Qt.SmoothTransformation)
         pixmap.setDevicePixelRatio(self.theme_display_label.devicePixelRatio())
         self.theme_display_label.setPixmap(pixmap)
         display_aspect_ratio = float(image.width()) / image.height()

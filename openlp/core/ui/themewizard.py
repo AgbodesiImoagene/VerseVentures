@@ -21,7 +21,7 @@
 """
 The Create/Edit theme wizard
 """
-from PySide6 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from openlp.core.common.i18n import translate
 from openlp.core.common.platform import is_macosx
@@ -90,8 +90,7 @@ class Ui_ThemeWizard(object):
         self.theme_name_label = QtWidgets.QLabel(self.preview_page)
         self.theme_name_label.setObjectName('theme_name_label')
         self.theme_name_edit = QtWidgets.QLineEdit(self.preview_page)
-        self.theme_name_edit.setValidator(
-            QtGui.QRegularExpressionValidator(QtCore.QRegularExpression(r'[^/\\?*|<>\[\]":<>+%]+'), self))
+        self.theme_name_edit.setValidator(QtGui.QRegExpValidator(QtCore.QRegExp(r'[^/\\?*|<>\[\]":<>+%]+'), self))
         self.theme_name_edit.setObjectName('ThemeNameEdit')
         self.theme_name_layout.addRow(self.theme_name_label, self.theme_name_edit)
         self.preview_layout.addLayout(self.theme_name_layout)

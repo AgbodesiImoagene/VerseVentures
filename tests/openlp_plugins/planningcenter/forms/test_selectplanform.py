@@ -27,7 +27,7 @@ from datetime import date, datetime
 from unittest.mock import patch, MagicMock
 
 import pytest
-from PySide6 import QtTest, QtCore
+from PyQt5 import QtTest, QtCore
 
 from openlp.core.common.registry import Registry
 from openlp.core.common.settings import Settings
@@ -63,7 +63,7 @@ def form(plugin: PlanningCenterPlugin) -> SelectPlanForm:
     yield form_
 
 
-@patch('PySide6.QtWidgets.QDialog.exec')
+@patch('PyQt5.QtWidgets.QDialog.exec')
 @patch('openlp.plugins.planningcenter.forms.selectplanform.date')
 def test_initial_defaults(mocked_date: MagicMock, mocked_exec: MagicMock, form: SelectPlanForm):
     """
@@ -89,8 +89,8 @@ def test_initial_defaults(mocked_date: MagicMock, mocked_exec: MagicMock, form: 
     assert form.slide_theme_selection_combo_box.count() == 0, 'Count of custom slide themes is incorrect'
 
 
-@patch('PySide6.QtWidgets.QDialog.exec')
-@patch('PySide6.QtWidgets.QMessageBox.warning')
+@patch('PyQt5.QtWidgets.QDialog.exec')
+@patch('PyQt5.QtWidgets.QMessageBox.warning')
 def test_warning_messagebox_shown_for_bad_credentials(mocked_warning: MagicMock, mocked_exec: MagicMock,
                                                       form: SelectPlanForm):
     """
@@ -105,7 +105,7 @@ def test_warning_messagebox_shown_for_bad_credentials(mocked_warning: MagicMock,
         mocked_warning.assert_called_once()
 
 
-@patch('PySide6.QtWidgets.QDialog.exec')
+@patch('PyQt5.QtWidgets.QDialog.exec')
 def test_disable_import_buttons(mocked_exec: MagicMock, form: SelectPlanForm):
     """
     Test that the import buttons are disabled when the "Select Plan Date" element in the
@@ -121,7 +121,7 @@ def test_disable_import_buttons(mocked_exec: MagicMock, form: SelectPlanForm):
     assert not form.update_existing_button.isEnabled(), '"Refresh Service" button should be disabled'
 
 
-@patch('PySide6.QtWidgets.QDialog.exec')
+@patch('PyQt5.QtWidgets.QDialog.exec')
 @patch('openlp.plugins.planningcenter.forms.selectplanform.date')
 def test_default_plan_date_is_next_sunday(mocked_date: MagicMock, mocked_exec: MagicMock, form: SelectPlanForm):
     """
@@ -140,7 +140,7 @@ def test_default_plan_date_is_next_sunday(mocked_date: MagicMock, mocked_exec: M
         'The next Sunday\'s Date is not selected in the plan_selection_combo_box'
 
 
-@patch('PySide6.QtWidgets.QDialog.exec')
+@patch('PyQt5.QtWidgets.QDialog.exec')
 def test_service_type_changed_called_when_service_type_combo_changed(mocked_exec: MagicMock, form: SelectPlanForm):
     """
     Test that the "on_service_type_combobox_changed" function is executed when the
@@ -155,7 +155,7 @@ def test_service_type_changed_called_when_service_type_combo_changed(mocked_exec
     assert form.plan_selection_combo_box.itemText(0) == 'Select Plan Date', 'Plan Combo Box has default text'
 
 
-@patch('PySide6.QtWidgets.QDialog.exec')
+@patch('PyQt5.QtWidgets.QDialog.exec')
 def test_plan_selection_changed_called_when_plan_selection_combo_changed(mocked_exec: MagicMock, form: SelectPlanForm):
     """
     Test that the "on_plan_selection_combobox_changed" function is executed when the
@@ -171,7 +171,7 @@ def test_plan_selection_changed_called_when_plan_selection_combo_changed(mocked_
     assert form.update_existing_button.isEnabled(), 'Update button should be enabled'
 
 
-@patch('PySide6.QtWidgets.QDialog.exec')
+@patch('PyQt5.QtWidgets.QDialog.exec')
 @patch('openlp.core.ui.settingsform.SettingsForm.exec')
 def test_settings_tab_displayed_when_edit_auth_button_clicked(mocked_settings_form_exec: MagicMock,
                                                               mocked_exec: MagicMock, form: SelectPlanForm):
@@ -182,11 +182,11 @@ def test_settings_tab_displayed_when_edit_auth_button_clicked(mocked_settings_fo
     SettingsForm()
     form.exec()
     # WHEN: the edit_auth_button is clicked
-    QtTest.QTest.mouseClick(form.edit_auth_button, QtCore.Qt.MouseButton.LeftButton)
+    QtTest.QTest.mouseClick(form.edit_auth_button, QtCore.Qt.LeftButton)
     mocked_settings_form_exec.assert_called_once()
 
 
-@patch('PySide6.QtWidgets.QDialog.exec')
+@patch('PyQt5.QtWidgets.QDialog.exec')
 @patch('openlp.plugins.planningcenter.forms.selectplanform.SelectPlanForm._do_import')
 def test_import_function_called_when_import_button_clicked(mocked_do_import: MagicMock, mocked_exec: MagicMock,
                                                            form: SelectPlanForm):
@@ -200,12 +200,12 @@ def test_import_function_called_when_import_button_clicked(mocked_do_import: Mag
     # to index 1 and the "Import New" button is clicked
     form.service_type_combo_box.setCurrentIndex(1)
     form.plan_selection_combo_box.setCurrentIndex(4)
-    QtTest.QTest.mouseClick(form.import_as_new_button, QtCore.Qt.MouseButton.LeftButton)
+    QtTest.QTest.mouseClick(form.import_as_new_button, QtCore.Qt.LeftButton)
     # THEN: The on_import_as_new_button_cliced function is called
     mocked_do_import.assert_called_with(update=False)
 
 
-@patch('PySide6.QtWidgets.QDialog.exec')
+@patch('PyQt5.QtWidgets.QDialog.exec')
 @patch('openlp.plugins.planningcenter.forms.selectplanform.warning_message_box')
 @patch('openlp.plugins.planningcenter.lib.songimport.PlanningCenterSongImport.finish')
 @patch('openlp.plugins.planningcenter.lib.customimport.CustomSlide')
@@ -234,7 +234,7 @@ def test_service_imported_when_import_button_clicked(mocked_date: MagicMock, moc
     # WHEN: The Service Type combo is set to index 1 and the Select Plan combo box is set to
     # index 1 and the "Import New" button is clicked
     form.service_type_combo_box.setCurrentIndex(1)
-    QtTest.QTest.mouseClick(form.import_as_new_button, QtCore.Qt.MouseButton.LeftButton)
+    QtTest.QTest.mouseClick(form.import_as_new_button, QtCore.Qt.LeftButton)
     # THEN: There should be 5 service items added, 1 song, 3 custom slides (one is a bible
     # title slide), and 1 bible verse
     mocked_finish.assert_called_once()
@@ -243,7 +243,7 @@ def test_service_imported_when_import_button_clicked(mocked_date: MagicMock, moc
     assert mocked_warning_box.call_count == 0, 'No warnings triggered'
 
 
-@patch('PySide6.QtWidgets.QDialog.exec')
+@patch('PyQt5.QtWidgets.QDialog.exec')
 @patch('openlp.plugins.planningcenter.forms.selectplanform.warning_message_box')
 @patch('openlp.plugins.planningcenter.lib.songimport.PlanningCenterSongImport.finish')
 @patch('openlp.plugins.planningcenter.lib.customimport.CustomSlide')
@@ -272,7 +272,7 @@ def test_service_refreshed_when_refresh_button_clicked(mocked_date: MagicMock, m
     # WHEN: The Service Type combo is set to index 1 and the Select Plan combo box is
     # set to index 1 and the "Update" button is clicked
     form.service_type_combo_box.setCurrentIndex(1)
-    QtTest.QTest.mouseClick(form.update_existing_button, QtCore.Qt.MouseButton.LeftButton)
+    QtTest.QTest.mouseClick(form.update_existing_button, QtCore.Qt.LeftButton)
     # THEN: There should be 5 service items added, 1 song, 3 custom slides (one is a bible
     # title slide), and 1 bible verse
     mocked_finish.assert_called_once()
@@ -281,7 +281,7 @@ def test_service_refreshed_when_refresh_button_clicked(mocked_date: MagicMock, m
     assert mocked_warning_box.call_count == 0, 'No warnings triggered'
 
 
-@patch('PySide6.QtWidgets.QDialog.exec')
+@patch('PyQt5.QtWidgets.QDialog.exec')
 @patch('openlp.plugins.planningcenter.forms.selectplanform.warning_message_box')
 @patch('openlp.plugins.planningcenter.lib.songimport.PlanningCenterSongImport.finish')
 @patch('openlp.plugins.planningcenter.lib.customimport.CustomSlide')
@@ -310,13 +310,13 @@ def test_other_bible_is_used_when_bible_gui_form_is_blank(mocked_date: MagicMock
     # WHEN: The Service Type combo is set to index 1 and the Select Plan combo box
     # is set to index 1 and the "Import New" button is clicked
     form.service_type_combo_box.setCurrentIndex(1)
-    QtTest.QTest.mouseClick(form.import_as_new_button, QtCore.Qt.MouseButton.LeftButton)
+    QtTest.QTest.mouseClick(form.import_as_new_button, QtCore.Qt.LeftButton)
     # THEN: There should be 2 bible verse parse attempts
     assert mocked_parse_reference.call_count == 2, '2 bible verses submitted for parsing'
     assert mocked_warning_box.call_count == 0, 'No warnings triggered'
 
 
-@patch('PySide6.QtWidgets.QDialog.exec')
+@patch('PyQt5.QtWidgets.QDialog.exec')
 @patch('openlp.plugins.planningcenter.forms.selectplanform.warning_message_box')
 @patch('openlp.plugins.planningcenter.lib.songimport.PlanningCenterSongImport.finish')
 @patch('openlp.plugins.planningcenter.lib.customimport.CustomSlide')
@@ -345,14 +345,14 @@ def test_warning_importing_bible_with_no_bible_available(mocked_date: MagicMock,
     # WHEN: The Service Type combo is set to index 1 and the Select Plan combo box
     # is set to index 1 and the "Import New" button is clicked
     form.service_type_combo_box.setCurrentIndex(1)
-    QtTest.QTest.mouseClick(form.import_as_new_button, QtCore.Qt.MouseButton.LeftButton)
+    QtTest.QTest.mouseClick(form.import_as_new_button, QtCore.Qt.LeftButton)
     # THEN: There should be 2 bible verse parse attempts
     assert mocked_parse_reference.call_count == 0, '0 bible verses submitted for parsing'
     assert mocked_warning_box.call_count == 2, '2 warnings should be triggered'
 
 
 @pytest.mark.skip('fails to run when executed with all other openlp tests.  awaiting pytest fixtures to enable again')
-@patch('PySide6.QtWidgets.QDialog.exec')
+@patch('PyQt5.QtWidgets.QDialog.exec')
 @patch('openlp.plugins.planningcenter.forms.selectplanform.date')
 def test_less_mocking_service_refreshed_when_refresh_button_clicked(mocked_date: MagicMock, mocked_exec: MagicMock,
                                                                     form: SelectPlanForm):
@@ -396,7 +396,7 @@ def test_less_mocking_service_refreshed_when_refresh_button_clicked(mocked_date:
     # WHEN:
     # The Service Type combo is set to index 1 and "Import New" button is clicked
     form.service_type_combo_box.setCurrentIndex(1)
-    QtTest.QTest.mouseClick(form.import_as_new_button, QtCore.Qt.MouseButton.LeftButton)
+    QtTest.QTest.mouseClick(form.import_as_new_button, QtCore.Qt.LeftButton)
     # make changes to the now imported service items
     # first, for serviceitem[0] update last_updated in xml_string and change "sweet" to "sublime"
     old_match = re.search('modifiedDate="(.+?)Z*"',
@@ -416,7 +416,7 @@ def test_less_mocking_service_refreshed_when_refresh_button_clicked(mocked_date:
     # last, draw the form again and request refresh
     form.exec()
     form.service_type_combo_box.setCurrentIndex(1)
-    QtTest.QTest.mouseClick(form.update_existing_button, QtCore.Qt.MouseButton.LeftButton)
+    QtTest.QTest.mouseClick(form.update_existing_button, QtCore.Qt.LeftButton)
     # THEN:
     # There should be 4 service items added
     assert len(service_manager.service_items) == 5, '5 items should be in the ServiceManager'

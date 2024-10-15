@@ -21,7 +21,7 @@
 """
 The :mod:`~openlp.core.widgets.widgets` module contains custom widgets used in OpenLP
 """
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import translate
 from openlp.core.common.registry import Registry
@@ -216,8 +216,8 @@ class ScreenSelectionWidget(QtWidgets.QWidget):
         self.setStyleSheet(SCREENS_LAYOUT_STYLE)
         self.layout = QtWidgets.QVBoxLayout(self)
         self.screen_frame = QtWidgets.QFrame(self)
-        self.screen_frame.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
-        self.screen_frame.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
+        self.screen_frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.screen_frame.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.screen_frame.setObjectName('screen_frame')
         self.screen_frame_layout = QtWidgets.QHBoxLayout(self.screen_frame)
         self.screen_frame_layout.setContentsMargins(16, 16, 16, 16)
@@ -280,8 +280,7 @@ class ScreenSelectionWidget(QtWidgets.QWidget):
         self.identify_button = QtWidgets.QPushButton(self)
         self.identify_button.setObjectName('identify_button')
         self.identify_layout.addWidget(
-            self.identify_button, stretch=1,
-            alignment=QtCore.Qt.AlignmentFlag.AlignRight | QtCore.Qt.AlignmentFlag.AlignTop)
+            self.identify_button, stretch=1, alignment=QtCore.Qt.AlignRight | QtCore.Qt.AlignTop)
         self.screen_button_group = QtWidgets.QButtonGroup(self.screen_frame)
         self.screen_button_group.setExclusive(True)
         self.screen_button_group.setObjectName('screen_button_group')
@@ -403,7 +402,7 @@ class ScreenSelectionWidget(QtWidgets.QWidget):
         self.use_screen_check_box.setVisible(True)
         self.display_group_box.setVisible(False)
 
-    @QtCore.Slot()
+    @QtCore.pyqtSlot()
     def _on_identify_timer_shot(self):
         for label in self.identify_labels:
             label.hide()
@@ -417,15 +416,13 @@ class ScreenSelectionWidget(QtWidgets.QWidget):
         """
         for screen in self.screens:
             label = QtWidgets.QLabel(None)
-            label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+            label.setAlignment(QtCore.Qt.AlignCenter)
             label.setText(str(screen))
             label.setStyleSheet('font-size: 24pt; font-weight: bold; '
                                 'background-color: #0C0; color: #000; border: 5px solid #000;')
             label.setGeometry(QtCore.QRect(screen.geometry.x(), screen.geometry.y(), screen.geometry.width(), 100))
-            label.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint |
-                                 QtCore.Qt.WindowType.Tool |
-                                 QtCore.Qt.WindowType.WindowStaysOnTopHint |
-                                 QtCore.Qt.WindowType.WindowDoesNotAcceptFocus)
+            label.setWindowFlags(QtCore.Qt.FramelessWindowHint | QtCore.Qt.Tool | QtCore.Qt.WindowStaysOnTopHint |
+                                 QtCore.Qt.WindowDoesNotAcceptFocus)
             label.show()
             self.identify_labels.append(label)
         self.timer.start()

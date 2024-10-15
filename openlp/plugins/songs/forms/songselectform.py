@@ -24,7 +24,7 @@ The :mod:`~openlp.plugins.songs.forms.songselectform` module contains the GUI fo
 import logging
 import re
 
-from PySide6 import QtCore, QtWidgets, QtWebEngineCore
+from PyQt5 import QtCore, QtWidgets, QtWebEngineWidgets
 from sqlalchemy.sql import and_
 from tempfile import TemporaryDirectory
 
@@ -67,9 +67,8 @@ class SongSelectForm(QtWidgets.QDialog, Ui_SongSelectDialog, RegistryProperties)
     """
 
     def __init__(self, parent=None, plugin=None, db_manager=None):
-        QtWidgets.QDialog.__init__(self, parent, QtCore.Qt.WindowType.WindowSystemMenuHint |
-                                   QtCore.Qt.WindowType.WindowTitleHint |
-                                   QtCore.Qt.WindowType.WindowCloseButtonHint)
+        QtWidgets.QDialog.__init__(self, parent, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint |
+                                   QtCore.Qt.WindowCloseButtonHint)
         self.plugin = plugin
         self.db_manager = db_manager
         self.setup_ui(self)
@@ -106,10 +105,10 @@ class SongSelectForm(QtWidgets.QDialog, Ui_SongSelectDialog, RegistryProperties)
         """
         Inject an implementation of string replaceAll which are missing in pre 5.15.3 QWebEngine
         """
-        script = QtWebEngineCore.QWebEngineScript()
-        script.setInjectionPoint(QtWebEngineCore.QWebEngineScript.InjectionPoint.DocumentCreation)
+        script = QtWebEngineWidgets.QWebEngineScript()
+        script.setInjectionPoint(QtWebEngineWidgets.QWebEngineScript.InjectionPoint.DocumentCreation)
         script.setSourceCode(REPLACE_ALL_JS)
-        script.setWorldId(QtWebEngineCore.QWebEngineScript.ScriptWorldId.MainWorld)
+        script.setWorldId(QtWebEngineWidgets.QWebEngineScript.ScriptWorldId.MainWorld)
         script.setRunsOnSubFrames(True)
         script.setName('string_replaceall')
         self.webview.page().scripts().insert(script)
@@ -122,8 +121,7 @@ class SongSelectForm(QtWidgets.QDialog, Ui_SongSelectDialog, RegistryProperties)
         Callback for when download has finished
         """
         if self.current_download_item:
-            if self.current_download_item.state() ==\
-                    QtWebEngineCore.QWebEngineDownloadRequest.DownloadState.DownloadCompleted:
+            if self.current_download_item.state() == QtWebEngineWidgets.QWebEngineDownloadItem.DownloadCompleted:
                 self.song_progress_bar.setValue(2)
                 song_filename = self.current_download_item.downloadDirectory() + '/' \
                     + self.current_download_item.downloadFileName()
@@ -150,7 +148,7 @@ class SongSelectForm(QtWidgets.QDialog, Ui_SongSelectDialog, RegistryProperties)
             self.url_bar.setVisible(True)
             self.webview.setEnabled(True)
 
-    @QtCore.Slot(QtWebEngineCore.QWebEngineDownloadRequest)
+    @QtCore.pyqtSlot(QtWebEngineWidgets.QWebEngineDownloadItem)
     def on_download_requested(self, download_item):
         """
         Called when download is started
@@ -219,8 +217,7 @@ class SongSelectForm(QtWidgets.QDialog, Ui_SongSelectDialog, RegistryProperties)
                 self, translate('SongsPlugin.SongSelectForm', 'Incomplete song'),
                 translate('SongsPlugin.SongSelectForm', 'This song is missing some information, like the lyrics, '
                                                         'and cannot be imported.'),
-                QtWidgets.QMessageBox.StandardButton(QtWidgets.QMessageBox.StandardButton.Ok),
-                QtWidgets.QMessageBox.StandardButton.Ok)
+                QtWidgets.QMessageBox.StandardButtons(QtWidgets.QMessageBox.Ok), QtWidgets.QMessageBox.Ok)
             return
         # Clear up the UI
         self.author_list_widget.clear()
@@ -235,8 +232,8 @@ class SongSelectForm(QtWidgets.QDialog, Ui_SongSelectDialog, RegistryProperties)
         for counter, verse in enumerate(self.song['verses']):
             self.lyrics_table_widget.setRowCount(self.lyrics_table_widget.rowCount() + 1)
             item = QtWidgets.QTableWidgetItem(verse['lyrics'])
-            item.setData(QtCore.Qt.ItemDataRole.UserRole, verse['label'])
-            item.setFlags(item.flags() ^ QtCore.Qt.ItemFlag.ItemIsEditable)
+            item.setData(QtCore.Qt.UserRole, verse['label'])
+            item.setFlags(item.flags() ^ QtCore.Qt.ItemIsEditable)
             self.lyrics_table_widget.setItem(counter, 0, item)
         self.lyrics_table_widget.setVerticalHeaderLabels([verse['label'] for verse in self.song['verses']])
         self.lyrics_table_widget.resizeRowsToContents()
@@ -280,7 +277,7 @@ class SongSelectForm(QtWidgets.QDialog, Ui_SongSelectDialog, RegistryProperties)
                                                                        'A song with the same CCLI number is already in '
                                                                        'your database.\n\n'
                                                                        'Are you sure you want to import this song?'),
-                                                             defaultButton=QtWidgets.QMessageBox.StandardButton.No)
-            if continue_import == QtWidgets.QMessageBox.StandardButton.No:
+                                                             defaultButton=QtWidgets.QMessageBox.No)
+            if continue_import == QtWidgets.QMessageBox.No:
                 return False
         return True

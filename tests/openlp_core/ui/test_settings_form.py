@@ -24,7 +24,7 @@ Package to test the openlp.core.lib.settingsform package.
 import pytest
 from unittest.mock import MagicMock, patch
 
-from PySide6 import QtCore, QtTest
+from PyQt5 import QtCore, QtTest
 
 from openlp.core.ui.settingsform import SettingsForm
 
@@ -47,9 +47,9 @@ def test_basic_cancel(form):
     # GIVEN: An initial form
 
     # WHEN displaying the UI and pressing cancel
-    with patch('PySide6.QtWidgets.QDialog.reject') as mocked_reject:
-        cancel_widget = form.button_box.button(form.button_box.StandardButton.Cancel)
-        QtTest.QTest.mouseClick(cancel_widget, QtCore.Qt.MouseButton.LeftButton)
+    with patch('PyQt5.QtWidgets.QDialog.reject') as mocked_reject:
+        cancel_widget = form.button_box.button(form.button_box.Cancel)
+        QtTest.QTest.mouseClick(cancel_widget, QtCore.Qt.LeftButton)
 
         # THEN the dialog reject should have been called
         assert mocked_reject.call_count == 1, 'The QDialog.reject should have been called'
@@ -62,9 +62,9 @@ def test_basic_accept(form):
     # GIVEN: An initial form
 
     # WHEN displaying the UI and pressing Ok
-    with patch('PySide6.QtWidgets.QDialog.accept') as mocked_accept:
-        ok_widget = form.button_box.button(form.button_box.StandardButton.Ok)
-        QtTest.QTest.mouseClick(ok_widget, QtCore.Qt.MouseButton.LeftButton)
+    with patch('PyQt5.QtWidgets.QDialog.accept') as mocked_accept:
+        ok_widget = form.button_box.button(form.button_box.Ok)
+        QtTest.QTest.mouseClick(ok_widget, QtCore.Qt.LeftButton)
 
         # THEN the dialog reject should have been called
         assert mocked_accept.call_count == 1, 'The QDialog.accept should have been called'
@@ -78,9 +78,9 @@ def test_basic_register(form):
     form.register_post_process('function1')
 
     # WHEN displaying the UI and pressing Ok
-    with patch('PySide6.QtWidgets.QDialog.accept'):
-        ok_widget = form.button_box.button(form.button_box.StandardButton.Ok)
-        QtTest.QTest.mouseClick(ok_widget, QtCore.Qt.MouseButton.LeftButton)
+    with patch('PyQt5.QtWidgets.QDialog.accept'):
+        ok_widget = form.button_box.button(form.button_box.Ok)
+        QtTest.QTest.mouseClick(ok_widget, QtCore.Qt.LeftButton)
 
         # THEN the processing stack should be empty
         assert len(form.processes) == 0, 'The one requested process should have been removed from the stack'

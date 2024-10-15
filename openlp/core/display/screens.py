@@ -26,7 +26,7 @@ import logging
 import copy
 from functools import cmp_to_key
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common import Singleton
 from openlp.core.common.i18n import translate
@@ -299,8 +299,7 @@ class ScreenList(metaclass=Singleton):
                                                         'There is a mismatch between screens and screen settings. '
                                                         'OpenLP will try to automatically select a display screen, but '
                                                         'you should consider updating the screen settings.'),
-                                              QtWidgets.QMessageBox.StandardButton(
-                                                  QtWidgets.QMessageBox.StandardButton.Ok))
+                                              QtWidgets.QMessageBox.StandardButtons(QtWidgets.QMessageBox.Ok))
                 self.find_new_display_screen()
         else:
             # if no settings we need to set a display

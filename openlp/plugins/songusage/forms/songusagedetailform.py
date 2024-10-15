@@ -20,7 +20,7 @@
 ##########################################################################
 import logging
 
-from PySide6 import QtCore, QtWidgets, QtGui
+from PyQt5 import QtCore, QtWidgets, QtGui
 from sqlalchemy.sql import and_
 
 from openlp.core.common.i18n import translate
@@ -45,10 +45,8 @@ class SongUsageDetailForm(QtWidgets.QDialog, Ui_SongUsageDetailDialog, RegistryP
         """
         Initialise the form
         """
-        super(SongUsageDetailForm, self).__init__(parent,
-                                                  QtCore.Qt.WindowType.WindowSystemMenuHint |
-                                                  QtCore.Qt.WindowType.WindowTitleHint |
-                                                  QtCore.Qt.WindowType.WindowCloseButtonHint)
+        super(SongUsageDetailForm, self).__init__(parent, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint |
+                                                  QtCore.Qt.WindowCloseButtonHint)
         self.plugin = plugin
         self.setup_ui(self)
 

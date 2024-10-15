@@ -19,7 +19,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 from flask import jsonify, Blueprint
-from PySide6 import QtCore
+from PyQt5 import QtCore
 
 from openlp.core.api.lib import old_auth, old_success_response
 from openlp.core.common.registry import Registry
@@ -57,7 +57,6 @@ def plugin_list():
 def main_image():
     live_controller = Registry().get('live_controller')
     img_data = live_controller.staticMetaObject.invokeMethod(
-        live_controller, 'grab_maindisplay', QtCore.Qt.ConnectionType.BlockingQueuedConnection,
-        QtCore.Q_RETURN_ARG(str))
+        live_controller, 'grab_maindisplay', QtCore.Qt.BlockingQueuedConnection, QtCore.Q_RETURN_ARG(str))
     img = 'data:image/jpeg;base64,{}'.format(img_data)
     return jsonify({'slide_image': img})

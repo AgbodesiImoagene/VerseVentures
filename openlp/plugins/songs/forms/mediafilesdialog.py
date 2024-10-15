@@ -19,7 +19,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import translate
 from openlp.core.lib.ui import create_button_box
@@ -36,7 +36,7 @@ class Ui_MediaFilesDialog(object):
         """
         media_files_dialog.setObjectName('media_files_dialog')
         media_files_dialog.setWindowIcon(UiIcons().main_icon)
-        media_files_dialog.setWindowModality(QtCore.Qt.WindowModality.ApplicationModal)
+        media_files_dialog.setWindowModality(QtCore.Qt.ApplicationModal)
         media_files_dialog.resize(400, 300)
         media_files_dialog.setModal(True)
         self.files_vertical_layout = QtWidgets.QVBoxLayout(media_files_dialog)

@@ -21,7 +21,7 @@
 """
 The UI widgets for the time dialog
 """
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import UiStrings, translate
 from openlp.core.lib.ui import create_button_box
@@ -43,15 +43,15 @@ class Ui_StartTimeDialog(object):
         self.dialog_layout.setObjectName('dialog_layout')
         self.start_label = QtWidgets.QLabel(StartTimeDialog)
         self.start_label.setObjectName('start_label')
-        self.start_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
+        self.start_label.setAlignment(QtCore.Qt.AlignHCenter)
         self.dialog_layout.addWidget(self.start_label, 0, 1, 1, 1)
         self.finish_label = QtWidgets.QLabel(StartTimeDialog)
         self.finish_label.setObjectName('finish_label')
-        self.finish_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
+        self.finish_label.setAlignment(QtCore.Qt.AlignHCenter)
         self.dialog_layout.addWidget(self.finish_label, 0, 2, 1, 1)
         self.length_label = QtWidgets.QLabel(StartTimeDialog)
         self.length_label.setObjectName('start_label')
-        self.length_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
+        self.length_label.setAlignment(QtCore.Qt.AlignHCenter)
         self.dialog_layout.addWidget(self.length_label, 0, 3, 1, 1)
         self.hour_label = QtWidgets.QLabel(StartTimeDialog)
         self.hour_label.setObjectName('hour_label')
@@ -68,7 +68,7 @@ class Ui_StartTimeDialog(object):
         self.dialog_layout.addWidget(self.hour_finish_spin_box, 1, 2, 1, 1)
         self.hour_finish_label = QtWidgets.QLabel(StartTimeDialog)
         self.hour_finish_label.setObjectName('hour_label')
-        self.hour_finish_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
+        self.hour_finish_label.setAlignment(QtCore.Qt.AlignRight)
         self.dialog_layout.addWidget(self.hour_finish_label, 1, 3, 1, 1)
         self.minute_label = QtWidgets.QLabel(StartTimeDialog)
         self.minute_label.setObjectName('minute_label')
@@ -85,7 +85,7 @@ class Ui_StartTimeDialog(object):
         self.dialog_layout.addWidget(self.minute_finish_spin_box, 2, 2, 1, 1)
         self.minute_finish_label = QtWidgets.QLabel(StartTimeDialog)
         self.minute_finish_label.setObjectName('minute_label')
-        self.minute_finish_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
+        self.minute_finish_label.setAlignment(QtCore.Qt.AlignRight)
         self.dialog_layout.addWidget(self.minute_finish_label, 2, 3, 1, 1)
         self.second_label = QtWidgets.QLabel(StartTimeDialog)
         self.second_label.setObjectName('second_label')
@@ -101,7 +101,7 @@ class Ui_StartTimeDialog(object):
         self.dialog_layout.addWidget(self.second_finish_spin_box, 3, 2, 1, 1)
         self.second_finish_label = QtWidgets.QLabel(StartTimeDialog)
         self.second_finish_label.setObjectName('second_label')
-        self.second_finish_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
+        self.second_finish_label.setAlignment(QtCore.Qt.AlignRight)
         self.dialog_layout.addWidget(self.second_finish_label, 3, 3, 1, 1)
         self.dialog_layout.addWidget(self.second_spin_box, 3, 1, 1, 1)
         self.button_box = create_button_box(StartTimeDialog, 'button_box', ['cancel', 'ok'])

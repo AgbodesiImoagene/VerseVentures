@@ -24,7 +24,7 @@ Package to test the openlp.plugins.planningcenter.lib.planningcentertab package.
 from unittest.mock import MagicMock, patch
 
 import pytest
-from PySide6 import QtCore, QtTest, QtWidgets
+from PyQt5 import QtCore, QtTest, QtWidgets
 
 from openlp.core.state import State
 from openlp.core.common.registry import Registry
@@ -63,7 +63,7 @@ def test_bad_authentication_credentials(mocked_warning: MagicMock, mocked_check_
     # GIVEN: A PlanningCenterTab Class with bad credentials
     # WHEN: The test button is clicked
     mocked_check_credentials.return_value = ''
-    QtTest.QTest.mouseClick(tab.test_credentials_button, QtCore.Qt.MouseButton.LeftButton)
+    QtTest.QTest.mouseClick(tab.test_credentials_button, QtCore.Qt.LeftButton)
     # THEN: The warning messagebox should be called
     mocked_warning.assert_called_once()
 
@@ -77,7 +77,7 @@ def test_empty_authentication_credentials(mocked_warning: MagicMock, tab: Planni
     # WHEN: The test button is clicked
     tab.application_id_line_edit.setText('')
     tab.secret_line_edit.setText('')
-    QtTest.QTest.mouseClick(tab.test_credentials_button, QtCore.Qt.MouseButton.LeftButton)
+    QtTest.QTest.mouseClick(tab.test_credentials_button, QtCore.Qt.LeftButton)
     # THEN: The warning messagebox should be called
     mocked_warning.assert_called_once()
 
@@ -92,7 +92,7 @@ def test_good_authentication_credentials(mocked_information: MagicMock, mocked_c
     # GIVEN: A PlanningCenterTab Class and good credentials
     # WHEN: The test button is clicked
     mocked_check_credentials.return_value = 'good'
-    QtTest.QTest.mouseClick(tab.test_credentials_button, QtCore.Qt.MouseButton.LeftButton)
+    QtTest.QTest.mouseClick(tab.test_credentials_button, QtCore.Qt.LeftButton)
     # THEN: The information messagebox should be called
     mocked_information.assert_called_once()
 

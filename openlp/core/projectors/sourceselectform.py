@@ -25,7 +25,7 @@ Provides the dialog window for selecting video source for projector.
 """
 import logging
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import translate
 from openlp.core.common.platform import is_macosx
@@ -191,9 +191,9 @@ class FingerTabBarWidget(QtWidgets.QTabBar):
             self.initStyleOption(option, index)
             tabRect = self.tabRect(index)
             tabRect.moveLeft(10)
-            painter.drawControl(QtWidgets.QStyle.ControlElement.CE_TabBarTabShape, option)
-            painter.drawText(tabRect, QtCore.Qt.AlignmentFlag.AlignVCenter |
-                             QtCore.Qt.TextFlag.TextDontClip,
+            painter.drawControl(QtWidgets.QStyle.CE_TabBarTabShape, option)
+            painter.drawText(tabRect, QtCore.Qt.AlignVCenter |
+                             QtCore.Qt.TextDontClip,
                              self.tabText(index))
         painter.end()
 
@@ -234,9 +234,8 @@ class SourceSelectTabs(QtWidgets.QDialog):
         :param projectordb: ProjectorDB session to use
         """
         log.debug('Initializing SourceSelectTabs()')
-        super(SourceSelectTabs, self).__init__(parent, QtCore.Qt.WindowType.WindowSystemMenuHint |
-                                               QtCore.Qt.WindowType.WindowTitleHint |
-                                               QtCore.Qt.WindowType.WindowCloseButtonHint)
+        super(SourceSelectTabs, self).__init__(parent, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint |
+                                               QtCore.Qt.WindowCloseButtonHint)
         self.setMinimumWidth(350)
         self.projectordb = projectordb
         self.edit = edit
@@ -309,7 +308,7 @@ class SourceSelectTabs(QtWidgets.QDialog):
         selected = super(SourceSelectTabs, self).exec()
         return selected
 
-    @QtCore.Slot(QtWidgets.QAbstractButton)
+    @QtCore.pyqtSlot(QtWidgets.QAbstractButton)
     def button_clicked(self, button):
         """
         Checks which button was clicked
@@ -320,13 +319,13 @@ class SourceSelectTabs(QtWidgets.QDialog):
                   Reset:   Reset all text to PJLink default text
                   Cancel:  Cancel text edit
         """
-        if self.button_box.standardButton(button) == self.button_box.StandardButton.Cancel:
+        if self.button_box.standardButton(button) == self.button_box.Cancel:
             self.done(0)
-        elif self.button_box.standardButton(button) == self.button_box.StandardButton.Reset:
+        elif self.button_box.standardButton(button) == self.button_box.Reset:
             self.done(100)
-        elif self.button_box.standardButton(button) == self.button_box.StandardButton.Discard:
+        elif self.button_box.standardButton(button) == self.button_box.Discard:
             self.delete_sources()
-        elif self.button_box.standardButton(button) == self.button_box.StandardButton.Ok:
+        elif self.button_box.standardButton(button) == self.button_box.Ok:
             return self.accept_me()
         else:
             return 100
@@ -340,10 +339,10 @@ class SourceSelectTabs(QtWidgets.QDialog):
         msg.setInformativeText(translate('OpenLP.SourceSelectForm',
                                          'Are you sure you want to delete ALL user-defined '
                                          'source input text for this projector?'))
-        msg.setStandardButtons(msg.StandardButton.Cancel | msg.StandardButton.Ok)
-        msg.setDefaultButton(msg.StandardButton.Cancel)
+        msg.setStandardButtons(msg.Cancel | msg.Ok)
+        msg.setDefaultButton(msg.Cancel)
         ans = msg.exec()
-        if ans == msg.StandardButton.Cancel:
+        if ans == msg.Cancel:
             return
         self.projectordb.delete_all_objects(ProjectorSource, ProjectorSource.projector_id == self.projector.db_item.id)
         self.done(100)
@@ -391,9 +390,8 @@ class SourceSelectSingle(QtWidgets.QDialog):
         """
         log.debug('Initializing SourceSelectSingle()')
         self.projectordb = projectordb
-        super(SourceSelectSingle, self).__init__(parent, QtCore.Qt.WindowType.WindowSystemMenuHint |
-                                                 QtCore.Qt.WindowType.WindowTitleHint |
-                                                 QtCore.Qt.WindowType.WindowCloseButtonHint)
+        super(SourceSelectSingle, self).__init__(parent, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint |
+                                                 QtCore.Qt.WindowCloseButtonHint)
         self.edit = edit
         if self.edit:
             self.title = translate('OpenLP.SourceSelectForm', 'Edit Projector Source Text')
@@ -456,7 +454,7 @@ class SourceSelectSingle(QtWidgets.QDialog):
         selected = super(SourceSelectSingle, self).exec()
         return selected
 
-    @QtCore.Slot(QtWidgets.QAbstractButton)
+    @QtCore.pyqtSlot(QtWidgets.QAbstractButton)
     def button_clicked(self, button):
         """
         Checks which button was clicked
@@ -467,13 +465,13 @@ class SourceSelectSingle(QtWidgets.QDialog):
                   Reset:   Reset all text to PJLink default text
                   Cancel:  Cancel text edit
         """
-        if self.button_box.standardButton(button) == self.button_box.StandardButton.Cancel:
+        if self.button_box.standardButton(button) == self.button_box.Cancel:
             self.done(0)
-        elif self.button_box.standardButton(button) == self.button_box.StandardButton.Reset:
+        elif self.button_box.standardButton(button) == self.button_box.Reset:
             self.done(100)
-        elif self.button_box.standardButton(button) == self.button_box.StandardButton.Discard:
+        elif self.button_box.standardButton(button) == self.button_box.Discard:
             self.delete_sources()
-        elif self.button_box.standardButton(button) == self.button_box.StandardButton.Ok:
+        elif self.button_box.standardButton(button) == self.button_box.Ok:
             return self.accept_me()
         else:
             return 100
@@ -484,15 +482,15 @@ class SourceSelectSingle(QtWidgets.QDialog):
         msg.setInformativeText(translate('OpenLP.SourceSelectForm',
                                          'Are you sure you want to delete ALL user-defined '
                                          'source input text for this projector?'))
-        msg.setStandardButtons(msg.StandardButton.Cancel | msg.StandardButton.Ok)
-        msg.setDefaultButton(msg.StandardButton.Cancel)
+        msg.setStandardButtons(msg.Cancel | msg.Ok)
+        msg.setDefaultButton(msg.Cancel)
         ans = msg.exec()
-        if ans == msg.StandardButton.Cancel:
+        if ans == msg.Cancel:
             return
         self.projectordb.delete_all_objects(ProjectorSource, ProjectorSource.projector_id == self.projector.db_item.id)
         self.done(100)
 
-    @QtCore.Slot()
+    @QtCore.pyqtSlot()
     def accept_me(self):
         """
         Slot to accept 'OK' button

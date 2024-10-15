@@ -26,7 +26,7 @@ Tests for the Projector Source Select form.
 import pytest
 from unittest.mock import patch
 
-from PySide6.QtWidgets import QDialog
+from PyQt5.QtWidgets import QDialog
 
 from openlp.core.projectors.constants import PJLINK_DEFAULT_CODES, PJLINK_DEFAULT_SOURCES
 from openlp.core.projectors.db import Projector, ProjectorDB

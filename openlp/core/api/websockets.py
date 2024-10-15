@@ -30,7 +30,7 @@ from dataclasses import asdict, dataclass
 from typing import Optional, Union
 
 import time
-from PySide6 import QtCore
+from PyQt5 import QtCore
 from websockets import serve
 
 from openlp.core.common.mixins import LogMixin, RegistryProperties
@@ -207,7 +207,7 @@ class WebSocketServer(RegistryBase, RegistryProperties, QtCore.QObject, LogMixin
     """
     Wrapper round a server instance
     """
-    _send_message_signal = QtCore.Signal(WebSocketMessage)
+    _send_message_signal = QtCore.pyqtSignal(WebSocketMessage)
 
     def __init__(self):
         """
@@ -231,7 +231,7 @@ class WebSocketServer(RegistryBase, RegistryProperties, QtCore.QObject, LogMixin
             # Only hooking poller signals after all UI is available
             Registry().register_function('bootstrap_completion', self.try_poller_hook_signals)
 
-    @QtCore.Slot()
+    @QtCore.pyqtSlot()
     def handle_poller_signal(self):
         if self.worker is not None:
             self.worker.add_state_to_queues(poller.get_state())

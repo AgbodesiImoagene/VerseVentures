@@ -24,7 +24,7 @@ Package to test the openlp.core.ui.shortcutform package.
 import pytest
 from unittest.mock import MagicMock, patch
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.ui.shortcutlistform import ShortcutListForm
 
@@ -46,7 +46,7 @@ def test_adjust_button(form):
     text = 'new!'
 
     # WHEN: Call the method.
-    with patch('PySide6.QtWidgets.QPushButton.setChecked') as mocked_check_method:
+    with patch('PyQt5.QtWidgets.QPushButton.setChecked') as mocked_check_method:
         form._adjust_button(button, checked, enabled, text)
 
         # THEN: The button should be changed.
@@ -61,7 +61,7 @@ def test_space_key_press_event(form):
     """
     # GIVEN: A key event that is a space
     mocked_event = MagicMock()
-    mocked_event.key.return_value = QtCore.Qt.Key.Key_Space
+    mocked_event.key.return_value = QtCore.Qt.Key_Space
 
     # WHEN: The event is handled
     with patch.object(form, 'keyReleaseEvent') as mocked_key_release_event:
@@ -114,7 +114,7 @@ def test_escape_key_press_event(form):
     """
     # GIVEN: A key event that is an escape
     mocked_event = MagicMock()
-    mocked_event.key.return_value = QtCore.Qt.Key.Key_Escape
+    mocked_event.key.return_value = QtCore.Qt.Key_Escape
 
     # WHEN: The event is handled
     with patch.object(form, 'close') as mocked_close:
@@ -167,9 +167,9 @@ def test_on_default_radio_button_clicked(form):
             patch.object(form, 'get_shortcut_string') as mocked_get_shortcut_string, \
             patch.object(form.primary_push_button, 'setText') as mocked_set_text:
         mocked_action = MagicMock()
-        mocked_action.default_shortcuts = [QtCore.Qt.Key.Key_Escape]
+        mocked_action.default_shortcuts = [QtCore.Qt.Key_Escape]
         mocked_current_item_action.return_value = mocked_action
-        mocked_action_shortcuts.return_value = [QtCore.Qt.Key.Key_Escape]
+        mocked_action_shortcuts.return_value = [QtCore.Qt.Key_Escape]
         mocked_get_shortcut_string.return_value = 'Esc'
 
         # WHEN: The default radio button is clicked
@@ -208,7 +208,7 @@ def test_on_custom_radio_button_clicked(form):
             patch.object(form.primary_push_button, 'setText') as mocked_set_text:
         mocked_action = MagicMock()
         mocked_current_item_action.return_value = mocked_action
-        mocked_action_shortcuts.return_value = [QtCore.Qt.Key.Key_Escape]
+        mocked_action_shortcuts.return_value = [QtCore.Qt.Key_Escape]
         mocked_get_shortcut_string.return_value = 'Esc'
 
         # WHEN: The custom radio button is clicked

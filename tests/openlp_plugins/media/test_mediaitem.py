@@ -25,8 +25,9 @@ import pytest
 from pathlib import Path
 from unittest.mock import MagicMock, call, patch
 
+from openlp.core.lib import MediaType
 from openlp.core.common.registry import Registry
-from openlp.core.ui.media import MediaType, get_supported_media_suffix
+from openlp.core.ui.media import AUDIO_EXT, VIDEO_EXT
 from openlp.plugins.media.lib.mediaitem import MediaMediaItem
 
 
@@ -89,8 +90,7 @@ def test_get_list_audio(MockItem, mocked_or, media_item):
     media_list = media_item.get_list(MediaType.Audio)
 
     # THEN: All the clauses should have been created, and the right extensions used
-    a_suffixes, _ = get_supported_media_suffix()
-    expected_extensions = [ext[1:] for ext in a_suffixes]
+    expected_extensions = [ext[1:] for ext in AUDIO_EXT]
     expected_calls = [call(ext) for ext in expected_extensions]
     MockItem.file_path.endswith.assert_has_calls(expected_calls)
     mocked_or.assert_called_once_with(*expected_extensions)
@@ -114,8 +114,7 @@ def test_get_list_video(MockItem, mocked_or, media_item):
     media_list = media_item.get_list(MediaType.Video)
 
     # THEN: All the clauses should have been created, and the right extensions used
-    _, v_suffixes = get_supported_media_suffix()
-    expected_extensions = [ext[1:] for ext in v_suffixes]
+    expected_extensions = [ext[1:] for ext in VIDEO_EXT]
     expected_calls = [call(ext) for ext in expected_extensions]
     MockItem.file_path.endswith.assert_has_calls(expected_calls)
     mocked_or.assert_called_once_with(*expected_extensions)

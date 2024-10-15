@@ -22,7 +22,7 @@
 The :mod:`~openlp.plugins.custom.lib.customtab` module contains the settings tab
 for the Custom Slides plugin, which is inserted into the configuration dialog.
 """
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import translate
 from openlp.core.lib.settingstab import SettingsTab
@@ -65,7 +65,7 @@ class CustomTab(SettingsTab):
         """
         self.display_footer = False
         # we have a set value convert to True/False
-        if check_state == QtCore.Qt.CheckState.Checked:
+        if check_state == QtCore.Qt.Checked:
             self.display_footer = True
 
     def on_add_from_service_check_box_changed(self, check_state):
@@ -74,7 +74,7 @@ class CustomTab(SettingsTab):
 
         :param check_state: The current check box state
         """
-        self.update_load = (check_state == QtCore.Qt.CheckState.Checked)
+        self.update_load = (check_state == QtCore.Qt.Checked)
 
     def load(self):
         """

@@ -28,7 +28,7 @@ import sqlite3
 from pathlib import Path
 from tempfile import gettempdir
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.state import State
 from openlp.core.common.actions import ActionList
@@ -239,7 +239,7 @@ class SongsPlugin(Plugin):
         progress_dialog = QtWidgets.QProgressDialog(
             translate('SongsPlugin', 'Reindexing songs...'), UiStrings().Cancel, 0, max_songs, self.main_window)
         progress_dialog.setWindowTitle(translate('SongsPlugin', 'Reindexing songs'))
-        progress_dialog.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
+        progress_dialog.setWindowModality(QtCore.Qt.WindowModal)
         songs = self.manager.get_all_objects(Song)
         for number, song in enumerate(songs):
             clean_song(self.manager, song)
@@ -362,7 +362,7 @@ class SongsPlugin(Plugin):
             return
         self.application.process_events()
         progress = QtWidgets.QProgressDialog(self.main_window)
-        progress.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
+        progress.setWindowModality(QtCore.Qt.WindowModal)
         progress.setWindowTitle(translate('SongsPlugin', 'Importing Songs'))
         progress.setLabelText(UiStrings().StartingImport)
         progress.setCancelButton(None)

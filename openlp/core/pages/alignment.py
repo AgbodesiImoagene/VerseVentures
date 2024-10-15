@@ -21,7 +21,7 @@
 """
 The :mod:`~openlp.core.pages.alignment` module contains the alignment page used in the theme wizard
 """
-from PySide6 import QtWidgets
+from PyQt5 import QtWidgets
 
 from openlp.core.common.i18n import translate
 from openlp.core.lib.theme import HorizontalType, VerticalType, TransitionType, TransitionSpeed, TransitionDirection
@@ -53,7 +53,7 @@ class AlignmentTransitionsPage(GridLayoutPage):
         self.layout.addWidget(self.vertical_combo_box, 1, 1, 1, 3)
         # Line
         self.line = QtWidgets.QFrame(self)
-        self.line.setFrameShape(QtWidgets.QFrame.Shape.HLine)
+        self.line.setFrameShape(QtWidgets.QFrame.HLine)
         self.line.setObjectName('line')
         self.layout.addWidget(self.line, 2, 0, 1, 4)
         # Transitions

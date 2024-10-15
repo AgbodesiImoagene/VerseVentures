@@ -21,7 +21,7 @@
 """
 The UI widgets of the print service dialog.
 """
-from PySide6 import QtCore, QtPrintSupport, QtWidgets
+from PyQt5 import QtCore, QtPrintSupport, QtWidgets
 
 from openlp.core.common.i18n import UiStrings, translate
 from openlp.core.ui.icons import UiIcons
@@ -57,11 +57,11 @@ class Ui_PrintServiceDialog(object):
         self.main_layout.setObjectName('main_layout')
         self.toolbar = QtWidgets.QToolBar(print_service_dialog)
         self.toolbar.setIconSize(QtCore.QSize(22, 22))
-        self.toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        self.toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         self.print_button = self.toolbar.addAction(UiIcons().print,
                                                    translate('OpenLP.PrintServiceForm', 'Print'))
         self.options_button = QtWidgets.QToolButton(self.toolbar)
-        self.options_button.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        self.options_button.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         self.options_button.setIcon(UiIcons().settings)
         self.options_button.setCheckable(True)
         self.toolbar.addWidget(self.options_button)

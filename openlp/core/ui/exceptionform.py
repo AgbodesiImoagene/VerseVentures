@@ -26,7 +26,7 @@ import os
 import platform
 import re
 
-from PySide6 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from openlp.core.common.i18n import UiStrings, translate
 from openlp.core.common.mixins import RegistryProperties
@@ -47,9 +47,7 @@ class ExceptionForm(QtWidgets.QDialog, Ui_ExceptionDialog, RegistryProperties):
         """
         Constructor.
         """
-        super(ExceptionForm, self).__init__(None,
-                                            QtCore.Qt.WindowType.WindowSystemMenuHint |
-                                            QtCore.Qt.WindowType.WindowTitleHint)
+        super(ExceptionForm, self).__init__(None, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint)
         self.setup_ui(self)
         self.settings_section = 'crashreport'
         self.report_text = '**OpenLP Bug Report**\n' \

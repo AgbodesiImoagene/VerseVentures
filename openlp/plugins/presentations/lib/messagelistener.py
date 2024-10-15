@@ -22,7 +22,7 @@ import copy
 import logging
 from pathlib import Path
 
-from PySide6 import QtCore
+from PyQt5 import QtCore
 
 from openlp.core.common.registry import Registry
 from openlp.core.lib import ServiceItemContext

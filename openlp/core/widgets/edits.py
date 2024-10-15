@@ -25,7 +25,7 @@ import logging
 import re
 from pathlib import Path
 
-from PySide6 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from openlp.core.common import CONTROL_CHARS
 from openlp.core.common.i18n import UiStrings, translate
@@ -53,8 +53,8 @@ class SearchEdit(QtWidgets.QLineEdit):
     """
     This is a specialised QLineEdit with a "clear" button inside for searches.
     """
-    searchTypeChanged = QtCore.Signal(int)
-    cleared = QtCore.Signal()
+    searchTypeChanged = QtCore.pyqtSignal(QtCore.QVariant)
+    cleared = QtCore.pyqtSignal()
 
     def __init__(self, parent, settings_section):
         """
@@ -65,7 +65,7 @@ class SearchEdit(QtWidgets.QLineEdit):
         self._current_search_type = -1
         self.clear_button = QtWidgets.QToolButton(self)
         self.clear_button.setIcon(UiIcons().backspace)
-        self.clear_button.setCursor(QtCore.Qt.CursorShape.ArrowCursor)
+        self.clear_button.setCursor(QtCore.Qt.ArrowCursor)
         self.clear_button.setStyleSheet('QToolButton { border: none; padding: 0px; }')
         self.clear_button.resize(18, 18)
         self.clear_button.hide()
@@ -79,7 +79,7 @@ class SearchEdit(QtWidgets.QLineEdit):
         """
         Internal method to update the stylesheet depending on which widgets are available and visible.
         """
-        frame_width = self.style().pixelMetric(QtWidgets.QStyle.PixelMetric.PM_DefaultFrameWidth)
+        frame_width = self.style().pixelMetric(QtWidgets.QStyle.PM_DefaultFrameWidth)
         right_padding = self.clear_button.width() + frame_width
         if hasattr(self, 'menu_button'):
             left_padding = self.menu_button.width()
@@ -99,7 +99,7 @@ class SearchEdit(QtWidgets.QLineEdit):
         :param event: The event that happened.
         """
         size = self.clear_button.size()
-        frame_width = self.style().pixelMetric(QtWidgets.QStyle.PixelMetric.PM_DefaultFrameWidth)
+        frame_width = self.style().pixelMetric(QtWidgets.QStyle.PM_DefaultFrameWidth)
         self.clear_button.move(self.rect().right() - frame_width - size.width(),
                                (self.rect().bottom() + 1 - size.height()) // 2)
         if hasattr(self, 'menu_button'):
@@ -155,7 +155,7 @@ class SearchEdit(QtWidgets.QLineEdit):
         if not hasattr(self, 'menu_button'):
             self.menu_button = QtWidgets.QToolButton(self)
             self.menu_button.setIcon(UiIcons().shortcuts)
-            self.menu_button.setCursor(QtCore.Qt.CursorShape.ArrowCursor)
+            self.menu_button.setCursor(QtCore.Qt.ArrowCursor)
             self.menu_button.setPopupMode(QtWidgets.QToolButton.ToolButtonPopupMode.InstantPopup)
             self.menu_button.setStyleSheet('QToolButton { border: none; padding: 0px 10px 0px 0px; }')
             self.menu_button.resize(QtCore.QSize(28, 18))
@@ -170,7 +170,7 @@ class SearchEdit(QtWidgets.QLineEdit):
         Internally implemented slot to react to when the text in the line edit has changed so that we can show or hide
         the clear button.
 
-        :param text: A :class:`~PySide6.QtCore.QString` instance which represents the text in the line edit.
+        :param text: A :class:`~PyQt5.QtCore.QString` instance which represents the text in the line edit.
         """
         self.clear_button.setVisible(bool(text))
 
@@ -200,7 +200,7 @@ class PathEdit(QtWidgets.QWidget):
     The :class:`~openlp.core.widgets.edits.PathEdit` class subclasses QWidget to create a custom widget for use when
     a file or directory needs to be selected.
     """
-    pathChanged = QtCore.Signal(Path)
+    pathChanged = QtCore.pyqtSignal(Path)
 
     def __init__(self, parent=None, path_type=PathEditType.Files, default_path=None, dialog_caption=None,
                  show_revert=True):
@@ -246,7 +246,7 @@ class PathEdit(QtWidgets.QWidget):
         self.line_edit.editingFinished.connect(self.on_line_edit_editing_finished)
         self.update_button_tool_tips()
 
-    @QtCore.Property(Path)
+    @QtCore.pyqtProperty('QVariant')
     def path(self):
         """
         A property getter method to return the selected path.
@@ -270,7 +270,7 @@ class PathEdit(QtWidgets.QWidget):
             self.line_edit.setText(text)
             self.line_edit.setToolTip(text)
 
-    @QtCore.Property(PathEditType)
+    @property
     def path_type(self):
         """
         A property getter method to return the path_type. Path type allows you to sepecify if the user is restricted to
@@ -294,7 +294,7 @@ class PathEdit(QtWidgets.QWidget):
 
     def update_button_tool_tips(self):
         """
-        Called to update the tooltips on the buttons. This is changing path types, and when the widget is initialised
+        Called to update the tooltips on the buttons. This is changing path types, and when the widget is initalised
 
         :rtype: None
         """
@@ -318,7 +318,7 @@ class PathEdit(QtWidgets.QWidget):
         if self._path_type == PathEditType.Directories:
             if not caption:
                 caption = translate('OpenLP.PathEdit', 'Select Directory')
-            path = FileDialog.getExistingDirectory(self, caption, self._path, FileDialog.Option.ShowDirsOnly)
+            path = FileDialog.getExistingDirectory(self, caption, self._path, FileDialog.ShowDirsOnly)
         elif self._path_type == PathEditType.Files:
             if not caption:
                 caption = self.dialog_caption = translate('OpenLP.PathEdit', 'Select File')
@@ -386,13 +386,10 @@ class SpellTextEdit(QtWidgets.QPlainTextEdit):
         """
         Handle mouse clicks within the text edit region.
         """
-        if event.button() == QtCore.Qt.MouseButton.RightButton:
+        if event.button() == QtCore.Qt.RightButton:
             # Rewrite the mouse event to a left button event so the cursor is moved to the location of the pointer.
-            event = QtGui.QMouseEvent(QtCore.QEvent.Type.MouseButtonPress,
-                                      event.pos(),
-                                      QtCore.Qt.MouseButton.LeftButton,
-                                      QtCore.Qt.MouseButton.LeftButton,
-                                      QtCore.Qt.KeyboardModifier.NoModifier)
+            event = QtGui.QMouseEvent(QtCore.QEvent.MouseButtonPress,
+                                      event.pos(), QtCore.Qt.LeftButton, QtCore.Qt.LeftButton, QtCore.Qt.NoModifier)
         QtWidgets.QPlainTextEdit.mousePressEvent(self, event)
 
     def contextMenuEvent(self, event):
@@ -512,18 +509,18 @@ class Highlighter(QtGui.QSyntaxHighlighter):
             return
         text = str(text)
         char_format = QtGui.QTextCharFormat()
-        char_format.setUnderlineColor(QtCore.Qt.GlobalColor.red)
+        char_format.setUnderlineColor(QtCore.Qt.red)
         char_format.setUnderlineStyle(QtGui.QTextCharFormat.UnderlineStyle.SpellCheckUnderline)
         for word_object in re.finditer(self.WORDS, text):
             if not self.spelling_dictionary.check(word_object.group()):
                 self.setFormat(word_object.start(), word_object.end() - word_object.start(), char_format)
 
 
-class SpellAction(QtGui.QAction):
+class SpellAction(QtWidgets.QAction):
     """
     A special QAction that returns the text in a signal.
     """
-    correct = QtCore.Signal(str)
+    correct = QtCore.pyqtSignal(str)
 
     def __init__(self, *args):
         """
@@ -539,7 +536,7 @@ class HistoryComboBox(QtWidgets.QComboBox):
     signal for when the :kbd:`Enter` or :kbd:`Return` keys are pressed, and saves anything that is typed into the edit
     box into its list.
     """
-    returnPressed = QtCore.Signal()
+    returnPressed = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
         """
@@ -561,7 +558,7 @@ class HistoryComboBox(QtWidgets.QComboBox):
         :param event: The keyboard event
         """
         # Handle Enter and Return ourselves
-        if event.key() == QtCore.Qt.Key.Key_Enter or event.key() == QtCore.Qt.Key.Key_Return:
+        if event.key() == QtCore.Qt.Key_Enter or event.key() == QtCore.Qt.Key_Return:
             # Emit the returnPressed signal
             self.returnPressed.emit()
             # Save the current text to the dropdown list

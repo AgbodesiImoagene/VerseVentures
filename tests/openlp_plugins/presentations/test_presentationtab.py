@@ -23,15 +23,15 @@ This module contains tests for the settings tab for the Presentations plugin.
 """
 from unittest.mock import MagicMock
 
-from PySide6 import QtCore, QtTest
+from PyQt5 import QtCore, QtTest
 
 from openlp.core.common.registry import Registry
 from openlp.plugins.presentations.lib.presentationtab import PresentationTab
 
 __default_settings__ = {
-    'presentations/powerpoint slide click advance': QtCore.Qt.CheckState.Unchecked,
-    'presentations/powerpoint control window': QtCore.Qt.CheckState.Unchecked,
-    'presentations/impress use display setting': QtCore.Qt.CheckState.Unchecked
+    'presentations/powerpoint slide click advance': QtCore.Qt.Unchecked,
+    'presentations/powerpoint control window': QtCore.Qt.Unchecked,
+    'presentations/impress use display setting': QtCore.Qt.Unchecked
 }
 
 
@@ -57,15 +57,15 @@ def test_check_boxes(settings):
     form = PresentationTab(None, 'Presentations', None, Mocked_Controllers(True, True), None)
 
     # WHEN: The presentations tab checkboxes are checked and the form saved
-    QtTest.QTest.mouseClick(form.ppt_slide_click_check_box, QtCore.Qt.MouseButton.LeftButton)
-    QtTest.QTest.mouseClick(form.ppt_window_check_box, QtCore.Qt.MouseButton.LeftButton)
-    QtTest.QTest.mouseClick(form.odp_display_check_box, QtCore.Qt.MouseButton.LeftButton)
+    QtTest.QTest.mouseClick(form.ppt_slide_click_check_box, QtCore.Qt.LeftButton)
+    QtTest.QTest.mouseClick(form.ppt_window_check_box, QtCore.Qt.LeftButton)
+    QtTest.QTest.mouseClick(form.odp_display_check_box, QtCore.Qt.LeftButton)
     form.activated = True
     form.save()
     # THEN: The updated values should be stored in the settings
-    assert form.settings.value('presentations/powerpoint slide click advance') == QtCore.Qt.CheckState.Checked
-    assert form.settings.value('presentations/powerpoint control window') == QtCore.Qt.CheckState.Checked
-    assert form.settings.value('presentations/impress use display setting') == QtCore.Qt.CheckState.Checked
+    assert form.settings.value('presentations/powerpoint slide click advance') == QtCore.Qt.Checked
+    assert form.settings.value('presentations/powerpoint control window') == QtCore.Qt.Checked
+    assert form.settings.value('presentations/impress use display setting') == QtCore.Qt.Checked
 
 
 def test_check_boxes_when_controllers_unavailable(settings):
@@ -78,12 +78,12 @@ def test_check_boxes_when_controllers_unavailable(settings):
     form = PresentationTab(None, 'Presentations', None, Mocked_Controllers(False, False), None)
 
     # WHEN: The presentations tab checkboxes are checked and the form saved
-    QtTest.QTest.mouseClick(form.ppt_slide_click_check_box, QtCore.Qt.MouseButton.LeftButton)
-    QtTest.QTest.mouseClick(form.ppt_window_check_box, QtCore.Qt.MouseButton.LeftButton)
-    QtTest.QTest.mouseClick(form.odp_display_check_box, QtCore.Qt.MouseButton.LeftButton)
+    QtTest.QTest.mouseClick(form.ppt_slide_click_check_box, QtCore.Qt.LeftButton)
+    QtTest.QTest.mouseClick(form.ppt_window_check_box, QtCore.Qt.LeftButton)
+    QtTest.QTest.mouseClick(form.odp_display_check_box, QtCore.Qt.LeftButton)
     form.activated = True
     form.save()
     # THEN: The updated values should be unchanged
-    assert form.settings.value('presentations/powerpoint slide click advance') == QtCore.Qt.CheckState.Unchecked
-    assert form.settings.value('presentations/powerpoint control window') == QtCore.Qt.CheckState.Unchecked
-    assert form.settings.value('presentations/impress use display setting') == QtCore.Qt.CheckState.Unchecked
+    assert form.settings.value('presentations/powerpoint slide click advance') == QtCore.Qt.Unchecked
+    assert form.settings.value('presentations/powerpoint control window') == QtCore.Qt.Unchecked
+    assert form.settings.value('presentations/impress use display setting') == QtCore.Qt.Unchecked

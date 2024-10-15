@@ -21,7 +21,7 @@
 """
 The layout of the theme
 """
-from PySide6 import QtWidgets
+from PyQt5 import QtWidgets
 
 from openlp.core.common.i18n import translate
 from openlp.core.lib.ui import create_button_box
@@ -48,7 +48,7 @@ class Ui_ThemeLayoutDialog(object):
         self.preview_area_layout.setRowStretch(0, 1)
         self.preview_area_layout.setObjectName('preview_area_layout')
         self.theme_display_label = QtWidgets.QLabel(self.preview_area)
-        self.theme_display_label.setFrameShape(QtWidgets.QFrame.Shape.Box)
+        self.theme_display_label.setFrameShape(QtWidgets.QFrame.Box)
         self.theme_display_label.setScaledContents(True)
         self.theme_display_label.setObjectName('theme_display_label')
         self.preview_area_layout.addWidget(self.theme_display_label)

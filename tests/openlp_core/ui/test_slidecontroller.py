@@ -27,7 +27,7 @@ from time import perf_counter
 
 from unittest.mock import MagicMock, patch, sentinel
 
-from PySide6 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui
 from pytest import mark
 
 from openlp.core.state import State
@@ -1520,7 +1520,7 @@ def test_update_preview_image(settings: Settings):
     assert 0 == slide_controller.display_maindisplay.call_count, 'display_maindisplay() should NOT have been called'
 
 
-@patch('openlp.core.ui.slidecontroller.image_to_byte')
+@patch(u'openlp.core.ui.slidecontroller.image_to_byte')
 def test_display_maindisplay(mocked_image_to_byte: MagicMock, registry: Registry):
     """
     Test the display_maindisplay method
@@ -1581,10 +1581,10 @@ def _init__capture_maindisplay_mocks(geometry: list, mocked_screenlist: MagicMoc
                                         mocked_screenlist_instance=mocked_screenlist_instance)
 
 
-@patch('openlp.core.ui.slidecontroller.image_to_byte')
-@patch('openlp.core.ui.slidecontroller.ScreenList')
-@patch('openlp.core.ui.slidecontroller.QtWidgets.QApplication')
-@patch('openlp.core.ui.slidecontroller.is_wayland_compositor')
+@patch(u'openlp.core.ui.slidecontroller.image_to_byte')
+@patch(u'openlp.core.ui.slidecontroller.ScreenList')
+@patch(u'openlp.core.ui.slidecontroller.QtWidgets.QApplication')
+@patch(u'openlp.core.ui.slidecontroller.is_wayland_compositor')
 @mark.parametrize('geometry', [[[34, 67, 77, 42], [0, 0, 800, 600]]])
 def test__capture_maindisplay(mocked_is_wayland_compositor: MagicMock, mocked_application: MagicMock,
                               mocked_screenlist: MagicMock, mocked_image_to_byte: MagicMock, geometry: list,
@@ -1603,10 +1603,10 @@ def test__capture_maindisplay(mocked_is_wayland_compositor: MagicMock, mocked_ap
     mocks.mocked_screenlist_instance.current.try_grab_screen_part.assert_called_once()
 
 
-@patch('openlp.core.ui.slidecontroller.image_to_byte')
-@patch('openlp.core.ui.slidecontroller.ScreenList')
-@patch('openlp.core.ui.slidecontroller.QtWidgets.QApplication')
-@patch('openlp.core.ui.slidecontroller.is_wayland_compositor')
+@patch(u'openlp.core.ui.slidecontroller.image_to_byte')
+@patch(u'openlp.core.ui.slidecontroller.ScreenList')
+@patch(u'openlp.core.ui.slidecontroller.QtWidgets.QApplication')
+@patch(u'openlp.core.ui.slidecontroller.is_wayland_compositor')
 @mark.parametrize('geometry', [[[34, 67, 77, 42], [0, 0, 800, 600]]])
 def test__capture_maindisplay_wayland_fallbacks_to_windowed(mocked_is_wayland_compositor: MagicMock,
                                                             mocked_application: MagicMock,
@@ -1629,10 +1629,10 @@ def test__capture_maindisplay_wayland_fallbacks_to_windowed(mocked_is_wayland_co
     mocks.mocked_primary_screen.grabWindow.assert_not_called()
 
 
-@patch('openlp.core.ui.slidecontroller.image_to_byte')
-@patch('openlp.core.ui.slidecontroller.ScreenList')
-@patch('openlp.core.ui.slidecontroller.QtWidgets.QApplication')
-@patch('openlp.core.ui.slidecontroller.is_wayland_compositor')
+@patch(u'openlp.core.ui.slidecontroller.image_to_byte')
+@patch(u'openlp.core.ui.slidecontroller.ScreenList')
+@patch(u'openlp.core.ui.slidecontroller.QtWidgets.QApplication')
+@patch(u'openlp.core.ui.slidecontroller.is_wayland_compositor')
 @mark.parametrize('geometry', [[[400, 400, 800, 600], [0, 0, 800, 600]], [[510, 0, 800, 600], [0, 0, 800, 600]],
                                [[0, 320, 800, 600], [0, 0, 800, 600]], [[-200, -100, 800, 600], [0, 0, 800, 600]],
                                [[-120, 0, 800, 600], [0, 0, 800, 600]], [[0, -140, 800, 600], [0, 0, 800, 600]],
@@ -1660,9 +1660,9 @@ def test__capture_maindisplay_offscreen_fallbacks_to_windowed(mocked_is_wayland_
     mocks.mocked_primary_screen.grabWindow.assert_not_called()
 
 
-@patch('openlp.core.ui.slidecontroller.ScreenList')
-@patch('openlp.core.ui.slidecontroller.QtWidgets.QApplication')
-@patch('openlp.core.ui.slidecontroller.is_wayland_compositor')
+@patch(u'openlp.core.ui.slidecontroller.ScreenList')
+@patch(u'openlp.core.ui.slidecontroller.QtWidgets.QApplication')
+@patch(u'openlp.core.ui.slidecontroller.is_wayland_compositor')
 @mark.parametrize('geometry', [[[34, 67, 77, 42], [0, 0, 800, 600]]])
 def test__capture_maindisplay_offscreen_command_screenshot(mocked_is_wayland_compositor: MagicMock,
                                                            mocked_application: MagicMock,
@@ -1694,9 +1694,9 @@ def test__capture_maindisplay_offscreen_command_screenshot(mocked_is_wayland_com
     assert photo == pixmap
 
 
-@patch('openlp.core.ui.slidecontroller.ScreenList')
-@patch('openlp.core.ui.slidecontroller.QtWidgets.QApplication')
-@patch('openlp.core.ui.slidecontroller.is_wayland_compositor')
+@patch(u'openlp.core.ui.slidecontroller.ScreenList')
+@patch(u'openlp.core.ui.slidecontroller.QtWidgets.QApplication')
+@patch(u'openlp.core.ui.slidecontroller.is_wayland_compositor')
 @mark.parametrize('geometry', [[[-800, -600, 800, 600], [0, 0, 800, 600]]])
 @mark.parametrize('hide_mode', [HideMode.Screen, HideMode.Blank])
 def test__capture_maindisplay_window_fakes_black_screen(mocked_is_wayland_compositor: MagicMock,
@@ -1729,7 +1729,7 @@ def test__capture_maindisplay_window_fakes_black_screen(mocked_is_wayland_compos
     assert image.pixelColor(int(geometry[1][2] / 2), int(geometry[1][3] / 2)) == QtGui.QColorConstants.Black
 
 
-@patch('openlp.core.ui.slidecontroller.image_to_byte')
+@patch(u'openlp.core.ui.slidecontroller.image_to_byte')
 def test_grab_maindisplay(mocked_image_to_byte: MagicMock, registry: Registry):
     """
     Test the grab_maindisplay method
@@ -1753,7 +1753,7 @@ def test_grab_maindisplay(mocked_image_to_byte: MagicMock, registry: Registry):
     assert grabbed_stuff == 'placeholder bytified'
 
 
-@patch('openlp.core.ui.slidecontroller.image_to_byte')
+@patch(u'openlp.core.ui.slidecontroller.image_to_byte')
 def test_grab_maindisplay_cached(mocked_image_to_byte: MagicMock, registry: Registry):
     """
     Test the grab_maindisplay method with pre-cached screenshot
@@ -1802,8 +1802,7 @@ def test_paint_event_text_fits():
 
         # THEN: The text should be drawn left with the complete test_string
         mocked_qpainter().drawText.assert_called_once_with(mocked_rect(),
-                                                           QtCore.Qt.AlignmentFlag.AlignLeft |
-                                                           QtCore.Qt.AlignmentFlag.AlignVCenter, test_string)
+                                                           QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter, test_string)
 
 
 def test_paint_event_text_doesnt_fit():
@@ -1833,10 +1832,9 @@ def test_paint_event_text_doesnt_fit():
         info_label.paintEvent(MagicMock())
 
         # THEN: The text should be drawn aligned left with an elided test_string
-        elided_test_string = metrics.elidedText(test_string, QtCore.Qt.TextElideMode.ElideRight, label_width)
+        elided_test_string = metrics.elidedText(test_string, QtCore.Qt.ElideRight, label_width)
         mocked_qpainter().drawText.assert_called_once_with(mocked_rect(),
-                                                           QtCore.Qt.AlignmentFlag.AlignLeft |
-                                                           QtCore.Qt.AlignmentFlag.AlignVCenter,
+                                                           QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter,
                                                            elided_test_string)
 
 

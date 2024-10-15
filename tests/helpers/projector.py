@@ -23,7 +23,7 @@ Help classes/functions for PJLink Projector tests
 """
 
 from unittest.mock import MagicMock
-from PySide6 import QtNetwork
+from PyQt5 import QtNetwork
 
 from openlp.core.projectors.constants import S_NOT_CONNECTED, S_OFF, S_OK
 from openlp.core.projectors.db import Projector

@@ -26,7 +26,7 @@ import pytest
 import re
 from unittest.mock import MagicMock, patch
 
-from PySide6 import QtWidgets
+from PyQt5 import QtWidgets
 
 from openlp.core.api.tab import ApiTab
 from openlp.core.common import get_network_interfaces

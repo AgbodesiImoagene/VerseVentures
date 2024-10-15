@@ -21,7 +21,7 @@
 """
 The Themes configuration tab
 """
-from PySide6 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from openlp.core.common import ThemeLevel
 from openlp.core.common.i18n import UiStrings, translate
@@ -54,8 +54,7 @@ class ThemesTab(SettingsTab):
         self.global_group_box_layout = QtWidgets.QVBoxLayout(self.global_group_box)
         self.global_group_box_layout.setObjectName('global_group_box_layout')
         self.default_combo_box = QtWidgets.QComboBox(self.global_group_box)
-        self.default_combo_box.setSizeAdjustPolicy(
-            QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
+        self.default_combo_box.setSizeAdjustPolicy(QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLength)
         self.default_combo_box.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed)
         self.default_combo_box.setObjectName('default_combo_box')
         self.global_group_box_layout.addWidget(self.default_combo_box)
@@ -78,8 +77,8 @@ class ThemesTab(SettingsTab):
         self.level_group_box = QtWidgets.QGroupBox(self.right_column)
         self.level_group_box.setObjectName('level_group_box')
         self.level_layout = QtWidgets.QFormLayout(self.level_group_box)
-        self.level_layout.setLabelAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignTop)
-        self.level_layout.setFormAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignTop)
+        self.level_layout.setLabelAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+        self.level_layout.setFormAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
         self.level_layout.setObjectName('level_layout')
         self.song_level_radio_button = QtWidgets.QRadioButton(self.level_group_box)
         self.song_level_radio_button.setObjectName('song_level_radio_button')
@@ -221,6 +220,5 @@ class ThemesTab(SettingsTab):
         image_path = self.theme_manager.theme_path / '{file_name}.png'.format(file_name=self.global_theme)
         preview = QtGui.QPixmap(str(image_path))
         if not preview.isNull():
-            preview = preview.scaled(300, 255, QtCore.Qt.AspectRatioMode.KeepAspectRatio,
-                                     QtCore.Qt.TransformationMode.SmoothTransformation)
+            preview = preview.scaled(300, 255, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation)
         self.default_list_view.setPixmap(preview)

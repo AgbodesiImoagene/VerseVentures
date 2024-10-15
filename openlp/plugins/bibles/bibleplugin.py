@@ -57,7 +57,7 @@ class BiblePlugin(Plugin):
         log.info('bibles Initialising')
         super(BiblePlugin, self).initialise()
         self.import_bible_item.setVisible(True)
-        self.import_model_item.setVisible(True)
+        self.import_model_item.setVisible(True)        
         action_list = ActionList.get_instance()
         action_list.add_action(self.import_bible_item, translate('BiblesPlugin', 'Import Bibles'))
         action_list.add_action(self.import_model_item, translate('BiblesPlugin', 'Import Models'))
@@ -83,6 +83,7 @@ class BiblePlugin(Plugin):
 
         :param import_menu: The menu to insert the menu item into.
         """
+        
         self.import_bible_item = create_action(import_menu, 'importBibleItem',
                                                text=translate('BiblesPlugin', '&Bible'), visible=False,
                                                triggers=self.on_bible_import_click)
@@ -115,6 +116,7 @@ class BiblePlugin(Plugin):
         """
         if self.media_item:
             self.media_item.on_model_import_click()
+
 
     @staticmethod
     def about():

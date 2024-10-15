@@ -20,6 +20,7 @@
 ##########################################################################
 
 import logging
+import re
 
 from openlp.plugins.media.forms.streamselectordialog import Ui_StreamSelector
 from openlp.core.ui.media import parse_stream_path
@@ -41,13 +42,29 @@ class StreamSelectorForm(StreamSelectorFormBase, Ui_StreamSelector):
         super(StreamSelectorForm, self).__init__(parent, callback, theme_stream)
         self.type = 'devicestream'
         self.setup_ui(self)
-        # setup callback
-        self.capture_widget.set_callback(self.update_mrl_from_form)
+        # setup callbacks
+        for i in range(self.stacked_modes_layout.count()):
+            self.stacked_modes_layout.widget(i).set_callback(self.update_mrl_options)
+        self.stacked_modes_layout.currentWidget().update_mrl()
+
+    def on_capture_mode_combo_box(self):
+        self.stacked_modes_layout.setCurrentIndex(self.capture_mode_combo_box.currentIndex())
+        self.stacked_modes_layout.currentWidget().update_mrl()
 
     def set_mrl(self, device_stream_str):
         """
         Setup the stream widgets based on the saved devicestream. This is best effort as the string is
         editable for the user.
         """
-        (_, _, self.mrl, options) = parse_stream_path(device_stream_str)
-        self.capture_widget.set_mrl(self.mrl, options)
+        (name, mrl, options) = parse_stream_path(device_stream_str)
+        for i in range(self.stacked_modes_layout.count()):
+            if self.stacked_modes_layout.widget(i).has_support_for_mrl(mrl, options):
+                self.stacked_modes_layout.setCurrentIndex(i)
+                self.capture_mode_combo_box.setCurrentIndex(i)
+                self.stacked_modes_layout.widget(i).set_mrl(mrl, options)
+                break
+        cache = re.search(r'live-caching=(\d+)', options)
+        if cache:
+            self.more_options_group.caching.setValue(int(cache.group(1)))
+        self.more_options_group.mrl_lineedit.setText(mrl)
+        self.more_options_group.vlc_options_lineedit.setText(options)

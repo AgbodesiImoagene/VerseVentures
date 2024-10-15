@@ -22,7 +22,7 @@
 The splash screen
 """
 
-from PySide6 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 
 class SplashScreen(QtWidgets.QSplashScreen):
@@ -41,7 +41,7 @@ class SplashScreen(QtWidgets.QSplashScreen):
         Set up the UI
         """
         self.setObjectName('splashScreen')
-        self.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.PreventContextMenu)
+        self.setContextMenuPolicy(QtCore.Qt.PreventContextMenu)
         splash_image = QtGui.QPixmap(':/graphics/openlp-splash-screen.png')
         splash_image.setDevicePixelRatio(self.devicePixelRatioF())
         self.setPixmap(splash_image)

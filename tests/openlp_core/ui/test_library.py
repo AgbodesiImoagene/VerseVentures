@@ -22,7 +22,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.platform import is_win
 from openlp.core.ui.library import FolderLibraryItem
@@ -114,7 +114,7 @@ def test_folderlibrary_create_item_from_id_path(folder_library_item):
 
     # THEN: The result should be a QTreeWidgetItem with a mocked object as data
     assert isinstance(result, QtWidgets.QTreeWidgetItem)
-    assert result.data(0, QtCore.Qt.ItemDataRole.UserRole) is mocked_item
+    assert result.data(0, QtCore.Qt.UserRole) is mocked_item
 
 
 def test_folderlibrary_create_item_from_id_object(folder_library_item):
@@ -128,7 +128,7 @@ def test_folderlibrary_create_item_from_id_object(folder_library_item):
 
     # THEN: The result should be a QTreeWidgetItem with a mocked object as data
     assert isinstance(result, QtWidgets.QTreeWidgetItem)
-    assert result.data(0, QtCore.Qt.ItemDataRole.UserRole) is mocked_item
+    assert result.data(0, QtCore.Qt.UserRole) is mocked_item
 
 
 def test_folderlibrary_current_folder(folder_library_item):

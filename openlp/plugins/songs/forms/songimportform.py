@@ -23,7 +23,7 @@ The song import functions for OpenLP.
 """
 import logging
 
-from PySide6 import QtCore, QtWidgets, QtGui
+from PyQt5 import QtCore, QtWidgets, QtGui
 
 from openlp.core.common.handlers import handle_permission_error
 from openlp.core.common.i18n import UiStrings, translate
@@ -44,7 +44,7 @@ class SongImportForm(OpenLPWizard, RegistryProperties):
     This is the Song Import Wizard, which allows easy importing of Songs
     into OpenLP from other formats like OpenLyrics, OpenSong and CCLI.
     """
-    completeChanged = QtCore.Signal()
+    completeChanged = QtCore.pyqtSignal()
     log.info('SongImportForm loaded')
 
     def __init__(self, parent, plugin):
@@ -237,7 +237,7 @@ class SongImportForm(OpenLPWizard, RegistryProperties):
             self.settings.value('songs/last directory import'), filters)
         for file_path in file_paths:
             list_item = QtWidgets.QListWidgetItem(str(file_path))
-            list_item.setData(QtCore.Qt.ItemDataRole.UserRole, file_path)
+            list_item.setData(QtCore.Qt.UserRole, file_path)
             listbox.addItem(list_item)
         if file_paths:
             self.settings.setValue('songs/last directory import', file_paths[0].parent)
@@ -248,7 +248,7 @@ class SongImportForm(OpenLPWizard, RegistryProperties):
 
         :param list_box: The source list box
         """
-        return [list_box.item(i).data(QtCore.Qt.ItemDataRole.UserRole) for i in range(list_box.count())]
+        return [list_box.item(i).data(QtCore.Qt.UserRole) for i in range(list_box.count())]
 
     def remove_selected_items(self, list_box):
         """

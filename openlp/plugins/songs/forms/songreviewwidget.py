@@ -21,7 +21,7 @@
 """
 A widget representing a song in the duplicate song removal wizard review page.
 """
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.ui.icons import UiIcons
 from openlp.plugins.songs.lib import VerseType
@@ -46,7 +46,7 @@ class SongReviewWidget(QtWidgets.QWidget):
     # connect calls.
     # That's why we cheat a little and use QWidget instead of SongReviewWidget as parameter.
     # While not being entirely correct, it does work.
-    song_remove_button_clicked = QtCore.Signal(QtWidgets.QWidget)
+    song_remove_button_clicked = QtCore.pyqtSignal(QtWidgets.QWidget)
 
     def __init__(self, parent, song):
         """
@@ -163,9 +163,9 @@ class SongReviewWidget(QtWidgets.QWidget):
         self.song_info_verse_list_widget.horizontalHeader().setVisible(False)
         self.song_info_verse_list_widget.setObjectName('song_info_verse_list_widget')
         self.song_info_verse_list_widget.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.NoSelection)
-        self.song_info_verse_list_widget.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.song_info_verse_list_widget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.song_info_verse_list_widget.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.song_info_verse_list_widget.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.song_info_verse_list_widget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.song_info_verse_list_widget.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.song_info_verse_list_widget.setAlternatingRowColors(True)
         song_xml = SongXML()
         verses = song_xml.get_verses(self.song.lyrics)
@@ -206,7 +206,7 @@ class SongReviewWidget(QtWidgets.QWidget):
         self.song_remove_button.setObjectName('song_remove_button')
         self.song_remove_button.setIcon(UiIcons().delete)
         self.song_remove_button.setSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
-        self.song_vertical_layout.addWidget(self.song_remove_button, alignment=QtCore.Qt.AlignmentFlag.AlignHCenter)
+        self.song_vertical_layout.addWidget(self.song_remove_button, alignment=QtCore.Qt.AlignHCenter)
 
     def retranslate_ui(self):
         self.song_remove_button.setText('Remove')

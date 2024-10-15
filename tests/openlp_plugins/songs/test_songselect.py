@@ -29,7 +29,7 @@ re-downloading the HTML pages and changing the code to use the new layout.
 from unittest.mock import MagicMock, patch, sentinel
 
 import pytest
-from PySide6 import QtCore
+from PyQt5 import QtCore
 
 from openlp.core.common.registry import Registry
 from openlp.core.common.settings import Settings

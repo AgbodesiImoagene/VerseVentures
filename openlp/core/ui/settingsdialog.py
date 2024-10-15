@@ -21,7 +21,7 @@
 """
 The UI widgets of the settings dialog.
 """
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import translate
 from openlp.core.lib.ui import create_button_box
@@ -45,7 +45,7 @@ class Ui_SettingsDialog(object):
         self.setting_list_widget = QtWidgets.QListWidget(settings_dialog)
         self.setting_list_widget.setUniformItemSizes(True)
         self.setting_list_widget.setMinimumSize(QtCore.QSize(150, 0))
-        self.setting_list_widget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setting_list_widget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setting_list_widget.setObjectName('setting_list_widget')
         self.dialog_layout.addWidget(self.setting_list_widget, 0, 0, 1, 1)
         self.stacked_layout = QtWidgets.QStackedLayout()

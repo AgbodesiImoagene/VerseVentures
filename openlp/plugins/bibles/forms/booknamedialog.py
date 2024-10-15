@@ -19,7 +19,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import translate
 from openlp.core.lib.ui import create_button_box
@@ -64,15 +64,15 @@ class Ui_BookNameDialog(object):
         self.options_layout.setObjectName('options_layout')
         self.old_testament_check_box = QtWidgets.QCheckBox(self.options_group_box)
         self.old_testament_check_box.setObjectName('old_testament_check_box')
-        self.old_testament_check_box.setCheckState(QtCore.Qt.CheckState.Checked)
+        self.old_testament_check_box.setCheckState(QtCore.Qt.Checked)
         self.options_layout.addWidget(self.old_testament_check_box)
         self.new_testament_check_box = QtWidgets.QCheckBox(self.options_group_box)
         self.new_testament_check_box.setObjectName('new_testament_check_box')
-        self.new_testament_check_box.setCheckState(QtCore.Qt.CheckState.Checked)
+        self.new_testament_check_box.setCheckState(QtCore.Qt.Checked)
         self.options_layout.addWidget(self.new_testament_check_box)
         self.apocrypha_check_box = QtWidgets.QCheckBox(self.options_group_box)
         self.apocrypha_check_box.setObjectName('apocrypha_check_box')
-        self.apocrypha_check_box.setCheckState(QtCore.Qt.CheckState.Checked)
+        self.apocrypha_check_box.setCheckState(QtCore.Qt.Checked)
         self.options_layout.addWidget(self.apocrypha_check_box)
         self.book_name_layout.addWidget(self.options_group_box)
         self.button_box = create_button_box(book_name_dialog, 'button_box', ['cancel', 'ok'])

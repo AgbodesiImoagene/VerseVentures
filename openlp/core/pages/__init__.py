@@ -21,7 +21,7 @@
 """
 The :mod:`~openlp.core.pages` module contains wizard pages used in OpenLP
 """
-from PySide6 import QtWidgets
+from PyQt5 import QtWidgets
 
 
 class GridLayoutPage(QtWidgets.QWizardPage):

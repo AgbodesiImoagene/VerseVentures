@@ -19,7 +19,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.plugins.images.forms.choosegroupdialog import Ui_ChooseGroupDialog
 
@@ -32,10 +32,8 @@ class ChooseGroupForm(QtWidgets.QDialog, Ui_ChooseGroupDialog):
         """
         Constructor
         """
-        super(ChooseGroupForm, self).__init__(parent,
-                                              QtCore.Qt.WindowType.WindowSystemMenuHint |
-                                              QtCore.Qt.WindowType.WindowTitleHint |
-                                              QtCore.Qt.WindowType.WindowCloseButtonHint)
+        super(ChooseGroupForm, self).__init__(parent, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint |
+                                              QtCore.Qt.WindowCloseButtonHint)
         self.setup_ui(self)
 
     def exec(self, selected_group=None):

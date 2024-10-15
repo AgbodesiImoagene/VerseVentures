@@ -23,7 +23,7 @@ The :mod:`formattingtagform` provides an Tag Edit facility. The Base set are pro
 Custom tags can be defined and saved. The Custom Tag arrays are saved in a json string so QSettings works on them.
 Base Tags cannot be changed.
 """
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import translate
 from openlp.core.lib.formattingtags import FormattingTags
@@ -50,10 +50,8 @@ class FormattingTagForm(QtWidgets.QDialog, Ui_FormattingTagDialog, FormattingTag
         """
         Constructor
         """
-        super(FormattingTagForm, self).__init__(parent,
-                                                QtCore.Qt.WindowType.WindowSystemMenuHint |
-                                                QtCore.Qt.WindowType.WindowTitleHint |
-                                                QtCore.Qt.WindowType.WindowCloseButtonHint)
+        super(FormattingTagForm, self).__init__(parent, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint |
+                                                QtCore.Qt.WindowCloseButtonHint)
         self.setup_ui(self)
         self._setup()
 
@@ -103,10 +101,10 @@ class FormattingTagForm(QtWidgets.QDialog, Ui_FormattingTagDialog, FormattingTag
         hiddencheckbox = QtWidgets.QCheckBox()
         hiddenlayout = QtWidgets.QHBoxLayout()
         hiddenlayout.addWidget(hiddencheckbox)
-        hiddenlayout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        hiddenlayout.setAlignment(QtCore.Qt.AlignCenter)
         hiddenlayout.setContentsMargins(0, 0, 0, 0)
         hiddenwidget.setLayout(hiddenlayout)
-        hiddencheckbox.setCheckState(QtCore.Qt.CheckState.Unchecked)
+        hiddencheckbox.setCheckState(QtCore.Qt.Unchecked)
         self.tag_table_widget.setCellWidget(new_row, 4, hiddenwidget)
         self.tag_table_widget.resizeRowsToContents()
         self.tag_table_widget.scrollToBottom()
@@ -173,11 +171,10 @@ class FormattingTagForm(QtWidgets.QDialog, Ui_FormattingTagDialog, FormattingTag
                 hiddencheckbox = QtWidgets.QCheckBox()
                 hiddenlayout = QtWidgets.QHBoxLayout()
                 hiddenlayout.addWidget(hiddencheckbox)
-                hiddenlayout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+                hiddenlayout.setAlignment(QtCore.Qt.AlignCenter)
                 hiddenlayout.setContentsMargins(0, 0, 0, 0)
                 hiddenwidget.setLayout(hiddenlayout)
-                hiddencheckbox.setCheckState(QtCore.Qt.CheckState.Checked if html['hidden']
-                                             else QtCore.Qt.CheckState.Unchecked)
+                hiddencheckbox.setCheckState(QtCore.Qt.Checked if html['hidden'] else QtCore.Qt.Unchecked)
                 self.tag_table_widget.setCellWidget(line, 4, hiddenwidget)
                 self.tag_table_widget.resizeRowsToContents()
                 # Permanent (persistent) tags do not have this key

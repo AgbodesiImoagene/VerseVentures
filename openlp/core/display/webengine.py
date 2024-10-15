@@ -25,7 +25,7 @@ Heavily inspired by https://stackoverflow.com/questions/33467776/qt-qwebengine-r
 import logging
 import os.path
 
-from PySide6 import QtCore, QtWebEngineCore, QtWebEngineWidgets, QtWidgets
+from PyQt5 import QtCore, QtWebEngineWidgets, QtWidgets, QtWebEngineCore
 from typing import Tuple
 
 from openlp.core.common import Singleton
@@ -35,16 +35,16 @@ from openlp.core.common.platform import is_win
 
 
 LOG_LEVELS = {
-    QtWebEngineCore.QWebEnginePage.JavaScriptConsoleMessageLevel.InfoMessageLevel: logging.INFO,
-    QtWebEngineCore.QWebEnginePage.JavaScriptConsoleMessageLevel.WarningMessageLevel: logging.WARNING,
-    QtWebEngineCore.QWebEnginePage.JavaScriptConsoleMessageLevel.ErrorMessageLevel: logging.ERROR
+    QtWebEngineWidgets.QWebEnginePage.InfoMessageLevel: logging.INFO,
+    QtWebEngineWidgets.QWebEnginePage.WarningMessageLevel: logging.WARNING,
+    QtWebEngineWidgets.QWebEnginePage.ErrorMessageLevel: logging.ERROR
 }
 
 
 log = logging.getLogger(__name__)
 
 
-class WebEnginePage(QtWebEngineCore.QWebEnginePage):
+class WebEnginePage(QtWebEngineWidgets.QWebEnginePage):
     """
     A custom WebEngine page to capture Javascript console logging
     """
@@ -68,7 +68,7 @@ class WebEngineView(QtWebEngineWidgets.QWebEngineView):
     and set some attributtes.
     """
     _child = None  # QtWidgets.QOpenGLWidget or QWidget?
-    delegatePaint = QtCore.Signal()
+    delegatePaint = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
         """
@@ -76,26 +76,22 @@ class WebEngineView(QtWebEngineWidgets.QWebEngineView):
         """
         super(WebEngineView, self).__init__(parent)
         self.setPage(WebEnginePage(self))
-        self.settings().setAttribute(QtWebEngineCore.QWebEngineSettings.WebAttribute.LocalStorageEnabled, True)
-        self.settings().setAttribute(
-            QtWebEngineCore.QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
-        self.settings().setAttribute(
-            QtWebEngineCore.QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
-        self.page().settings().setAttribute(QtWebEngineCore.QWebEngineSettings.WebAttribute.LocalStorageEnabled, True)
-        self.page().settings().setAttribute(
-            QtWebEngineCore.QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
-        self.page().settings().setAttribute(
-            QtWebEngineCore.QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
-        self.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.PreventContextMenu)
+        self.settings().setAttribute(QtWebEngineWidgets.QWebEngineSettings.LocalStorageEnabled, True)
+        self.settings().setAttribute(QtWebEngineWidgets.QWebEngineSettings.LocalContentCanAccessFileUrls, True)
+        self.settings().setAttribute(QtWebEngineWidgets.QWebEngineSettings.LocalContentCanAccessRemoteUrls, True)
+        self.page().settings().setAttribute(QtWebEngineWidgets.QWebEngineSettings.LocalStorageEnabled, True)
+        self.page().settings().setAttribute(QtWebEngineWidgets.QWebEngineSettings.LocalContentCanAccessFileUrls, True)
+        self.page().settings().setAttribute(QtWebEngineWidgets.QWebEngineSettings.LocalContentCanAccessRemoteUrls, True)
+        self.setContextMenuPolicy(QtCore.Qt.PreventContextMenu)
 
     def eventFilter(self, obj, ev):
         """
         Emit delegatePaint on paint event of the last added QOpenGLWidget child
         """
         if obj == self._child:
-            if ev.type() == QtCore.QEvent.Type.MouseButtonPress or ev.type() == QtCore.QEvent.Type.TouchBegin:
+            if ev.type() == QtCore.QEvent.MouseButtonPress or ev.type() == QtCore.QEvent.TouchBegin:
                 self.display_clicked()
-            if ev.type() == QtCore.QEvent.Type.Paint:
+            if ev.type() == QtCore.QEvent.Paint:
                 self.delegatePaint.emit()
         return super(WebEngineView, self).eventFilter(obj, ev)
 
@@ -109,7 +105,7 @@ class WebEngineView(QtWebEngineWidgets.QWebEngineView):
         """
         Handle events
         """
-        if ev.type() == QtCore.QEvent.Type.ChildAdded:
+        if ev.type() == QtCore.QEvent.ChildAdded:
             # Only use QWidget child (used to be QOpenGLWidget)
             w = ev.child()
             if w and isinstance(w, QtWidgets.QWidget):
@@ -221,7 +217,7 @@ class WebViewCustomScheme(QtCore.QObject):
 
     def init_handler(self, profile=None):
         if profile is None:
-            profile = QtWebEngineCore.QWebEngineProfile.defaultProfile()
+            profile = QtWebEngineWidgets.QWebEngineProfile.defaultProfile()
         handler = profile.urlSchemeHandler(self.scheme_name)
         if handler is not None:
             profile.removeUrlSchemeHandler(handler)

@@ -21,7 +21,7 @@
 """
 The UI widgets for the formatting tags window.
 """
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import UiStrings, translate
 from openlp.core.lib.ui import create_button_box
@@ -45,8 +45,8 @@ class Ui_FormattingTagDialog(object):
         self.tag_table_widget_read_label = QtWidgets.QLabel()
         self.list_data_grid_layout.addWidget(self.tag_table_widget_read_label)
         self.tag_table_widget_read = QtWidgets.QTableWidget(formatting_tag_dialog)
-        self.tag_table_widget_read.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.tag_table_widget_read.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.tag_table_widget_read.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.tag_table_widget_read.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.tag_table_widget_read.setAlternatingRowColors(True)
         self.tag_table_widget_read.setCornerButtonEnabled(False)
         self.tag_table_widget_read.setObjectName('tag_table_widget_read')
@@ -65,8 +65,8 @@ class Ui_FormattingTagDialog(object):
         self.tag_table_widget_label = QtWidgets.QLabel()
         self.list_data_grid_layout.addWidget(self.tag_table_widget_label)
         self.tag_table_widget = QtWidgets.QTableWidget(formatting_tag_dialog)
-        self.tag_table_widget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.tag_table_widget.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.AllEditTriggers)
+        self.tag_table_widget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.tag_table_widget.setEditTriggers(QtWidgets.QAbstractItemView.AllEditTriggers)
         self.tag_table_widget.setAlternatingRowColors(True)
         self.tag_table_widget.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
         self.tag_table_widget.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)

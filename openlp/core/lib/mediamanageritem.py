@@ -23,7 +23,7 @@ Provides the generic functions for interfacing plugins with the Media Manager.
 """
 import re
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import UiStrings, translate
 from openlp.core.common.mixins import LogMixin, RegistryProperties
@@ -346,11 +346,11 @@ class MediaManagerItem(QtWidgets.QWidget, RegistryProperties, LogMixin):
         """
         Add a file to the list widget to make it available for showing
         """
-        file_paths, _ = FileDialog.getOpenFileNames(
+        file_paths, selected_filter = FileDialog.getOpenFileNames(
             self, self.on_new_prompt,
             self.settings.value(self.settings_section + '/last directory'),
             self.on_new_file_masks)
-        self.log_info(f'New file(s) {file_paths}')
+        self.log_info('New file(s) {file_paths}'.format(file_paths=file_paths))
         if file_paths:
             self.application.set_busy_cursor()
             self.validate_and_load(file_paths)
@@ -399,7 +399,7 @@ class MediaManagerItem(QtWidgets.QWidget, RegistryProperties, LogMixin):
         """
         full_list = []
         for count in range(self.list_view.count()):
-            full_list.append(self.list_view.item(count).data(QtCore.Qt.ItemDataRole.UserRole))
+            full_list.append(self.list_view.item(count).data(QtCore.Qt.UserRole))
         duplicates_found = False
         files_added = False
         for file_path in file_paths:
@@ -441,7 +441,7 @@ class MediaManagerItem(QtWidgets.QWidget, RegistryProperties, LogMixin):
         file_paths = []
         for index in range(self.list_view.count()):
             list_item = self.list_view.item(index)
-            file_path = list_item.data(0, QtCore.Qt.ItemDataRole.UserRole)
+            file_path = list_item.data(0, QtCore.Qt.UserRole)
             file_paths.append(file_path)
         return file_paths
 
@@ -578,7 +578,7 @@ class MediaManagerItem(QtWidgets.QWidget, RegistryProperties, LogMixin):
         :param item_id: Id to make live
         """
         item = QtWidgets.QListWidgetItem()
-        item.setData(QtCore.Qt.ItemDataRole.UserRole, item_id)
+        item.setData(QtCore.Qt.UserRole, item_id)
         return item
 
     def on_add_click(self):
@@ -683,11 +683,11 @@ class MediaManagerItem(QtWidgets.QWidget, RegistryProperties, LogMixin):
                 item = self.list_view.currentItem()
                 if item is None:
                     return False
-                item_id = item.data(QtCore.Qt.ItemDataRole.UserRole)
+                item_id = item.data(QtCore.Qt.UserRole)
             else:
                 item_id = remote_item
         else:
-            item_id = item.data(QtCore.Qt.ItemDataRole.UserRole)
+            item_id = item.data(QtCore.Qt.UserRole)
         return item_id
 
     def save_auto_select_id(self):
@@ -698,7 +698,7 @@ class MediaManagerItem(QtWidgets.QWidget, RegistryProperties, LogMixin):
         if self.auto_select_id == -1:
             item = self.list_view.currentItem()
             if item:
-                self.auto_select_id = item.data(QtCore.Qt.ItemDataRole.UserRole)
+                self.auto_select_id = item.data(QtCore.Qt.UserRole)
 
     def search_options(self, option=None):
         """

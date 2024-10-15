@@ -21,7 +21,7 @@
 
 import logging
 
-from PySide6 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from openlp.core.common.enum import DisplayStyle, LanguageSelection, LayoutStyle
 from openlp.core.common.i18n import UiStrings, translate
@@ -78,7 +78,7 @@ class BiblesTab(SettingsTab):
         self.bible_theme_label.setObjectName('BibleTheme_label')
         self.bible_theme_combo_box = QtWidgets.QComboBox(self.verse_display_group_box)
         self.bible_theme_combo_box.setSizeAdjustPolicy(
-            QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
+            QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLength)
         self.bible_theme_combo_box.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding,
                                                  QtWidgets.QSizePolicy.Policy.Fixed)
         self.bible_theme_combo_box.addItem('')
@@ -115,8 +115,8 @@ class BiblesTab(SettingsTab):
         self.scripture_reference_layout.addWidget(self.end_separator_check_box, 3, 0)
         self.end_separator_line_edit = QtWidgets.QLineEdit(self.scripture_reference_group_box)
         self.end_separator_line_edit.setObjectName('end_separator_line_edit')
-        self.end_separator_line_edit.setValidator(
-            QtGui.QRegularExpressionValidator(QtCore.QRegularExpression(r'[^0-9]*'), self.end_separator_line_edit))
+        self.end_separator_line_edit.setValidator(QtGui.QRegExpValidator(QtCore.QRegExp(r'[^0-9]*'),
+                                                  self.end_separator_line_edit))
         self.scripture_reference_layout.addWidget(self.end_separator_line_edit, 3, 1)
         self.left_layout.addWidget(self.scripture_reference_group_box)
         self.right_column.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Preferred)
@@ -246,19 +246,19 @@ class BiblesTab(SettingsTab):
         """
         Event handler for the 'verse number visible' check box
         """
-        self.is_verse_number_visible = (check_state == QtCore.Qt.CheckState.Checked)
+        self.is_verse_number_visible = (check_state == QtCore.Qt.Checked)
         self.check_is_verse_number_visible()
 
     def on_new_chapters_check_box_changed(self, check_state):
         self.show_new_chapters = False
         # We have a set value convert to True/False.
-        if check_state == QtCore.Qt.CheckState.Checked:
+        if check_state == QtCore.Qt.Checked:
             self.show_new_chapters = True
 
     def on_bible_second_check_box(self, check_state):
         self.second_bibles = False
         # We have a set value convert to True/False.
-        if check_state == QtCore.Qt.CheckState.Checked:
+        if check_state == QtCore.Qt.Checked:
             self.second_bibles = True
 
     def on_verse_separator_check_box_clicked(self, checked):
@@ -341,19 +341,19 @@ class BiblesTab(SettingsTab):
         """
         Event handler for the 'hide_combined_quick_error' check box
         """
-        self.reset_to_combined_quick_search = (check_state == QtCore.Qt.CheckState.Checked)
+        self.reset_to_combined_quick_search = (check_state == QtCore.Qt.Checked)
 
     def on_hide_combined_quick_error_check_box_changed(self, check_state):
         """
         Event handler for the 'hide_combined_quick_error' check box
         """
-        self.hide_combined_quick_error = (check_state == QtCore.Qt.CheckState.Checked)
+        self.hide_combined_quick_error = (check_state == QtCore.Qt.Checked)
 
     def on_bible_search_while_typing_check_box_changed(self, check_state):
         """
         Event handler for the 'hide_combined_quick_error' check box
         """
-        self.bible_search_while_typing = (check_state == QtCore.Qt.CheckState.Checked)
+        self.bible_search_while_typing = (check_state == QtCore.Qt.Checked)
 
     def load(self):
         self.is_verse_number_visible = self.settings.value('bibles/is verse number visible')

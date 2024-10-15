@@ -19,7 +19,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import translate
 from openlp.core.common.enum import SongFirstSlideMode
@@ -241,31 +241,31 @@ class SongsTab(SettingsTab):
         self.footer_reset_button.setText(translate('SongsPlugin.SongsTab', 'Reset Template'))
 
     def on_search_as_type_check_box_changed(self, check_state):
-        self.song_search = (check_state == QtCore.Qt.CheckState.Checked)
+        self.song_search = (check_state == QtCore.Qt.Checked)
 
     def on_tool_bar_active_check_box_changed(self, check_state):
-        self.tool_bar = (check_state == QtCore.Qt.CheckState.Checked)
+        self.tool_bar = (check_state == QtCore.Qt.Checked)
 
     def on_update_on_edit_check_box_changed(self, check_state):
-        self.update_edit = (check_state == QtCore.Qt.CheckState.Checked)
+        self.update_edit = (check_state == QtCore.Qt.Checked)
 
     def on_add_from_service_check_box_changed(self, check_state):
-        self.update_load = (check_state == QtCore.Qt.CheckState.Checked)
+        self.update_load = (check_state == QtCore.Qt.Checked)
 
     def on_first_slide_mode_combo_box_changed(self, index):
         self.first_slide_mode = SongFirstSlideMode(index)
 
     def on_auto_play_check_box_changed(self, check_state):
-        self.auto_play = (check_state == QtCore.Qt.CheckState.Checked)
+        self.auto_play = (check_state == QtCore.Qt.Checked)
 
     def on_uppercase_check_box_changed(self, check_state):
         self.uppercase = (check_state == QtCore.Qt.Checked)
 
     def on_disable_chords_import_check_box_changed(self, check_state):
-        self.disable_chords_import = (check_state == QtCore.Qt.CheckState.Checked)
+        self.disable_chords_import = (check_state == QtCore.Qt.Checked)
 
     def on_song_key_warning_check_box_changed(self, check_state):
-        self.song_key_warning = (check_state == QtCore.Qt.CheckState.Checked)
+        self.song_key_warning = (check_state == QtCore.Qt.Checked)
 
     def on_english_notation_button_clicked(self):
         self.chord_notation = 'english'
@@ -336,8 +336,8 @@ class SongsTab(SettingsTab):
                 translate('SongsPlugin.SongsTab', 'WARNING: Saving your SongSelect password is INSECURE, '
                                                   'your password is stored in PLAIN TEXT. Click Yes to save '
                                                   'your password or No to cancel this.'),
-                defaultButton=QtWidgets.QMessageBox.StandardButton.No)
-            if answer == QtWidgets.QMessageBox.StandardButton.Yes:
+                defaultButton=QtWidgets.QMessageBox.No)
+            if answer == QtWidgets.QMessageBox.Yes:
                 self.settings.setValue('songs/songselect password', self.ccli_password.text())
         # Only save footer template if it has been changed. This allows future updates
         if self.footer_edit_box.toPlainText() != self.settings.value('songs/footer template'):

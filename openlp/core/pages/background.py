@@ -21,17 +21,19 @@
 """
 The :mod:`~openlp.core.pages.background` module contains the background page used in the theme wizard
 """
-from PySide6 import QtWidgets
+from PyQt5 import QtWidgets
 
 from openlp.core.common import get_images_filter
 from openlp.core.common.i18n import UiStrings, translate
 from openlp.core.lib.theme import BackgroundGradientType, BackgroundType
+from openlp.core.lib.ui import critical_error_message_box
 from openlp.core.pages import GridLayoutPage
 from openlp.core.ui.icons import UiIcons
-from openlp.core.ui.media import get_supported_media_suffix
+from openlp.core.ui.media import VIDEO_EXT
 from openlp.core.widgets.buttons import ColorButton
 from openlp.core.widgets.edits import PathEdit
 from openlp.core.widgets.labels import FormLabel
+from openlp.core.ui.media.vlcplayer import get_vlc
 
 
 class BackgroundPage(GridLayoutPage):
@@ -190,8 +192,10 @@ class BackgroundPage(GridLayoutPage):
         self.stream_label.setText('{text}:'.format(text=UiStrings().LiveStream))
         self.image_path_edit.filters = \
             '{name};;{text} (*)'.format(name=get_images_filter(), text=UiStrings().AllFiles)
-        _, video = get_supported_media_suffix()
-        video_filter = '{trans} ({visible})'.format(trans=translate('OpenLP', 'Video Files'), visible=' '.join(video))
+        visible_formats = '({name})'.format(name='; '.join(VIDEO_EXT))
+        actual_formats = '({name})'.format(name=' '.join(VIDEO_EXT))
+        video_filter = '{trans} {visible} {actual}'.format(trans=translate('OpenLP', 'Video Files'),
+                                                           visible=visible_formats, actual=actual_formats)
         self.video_path_edit.filters = '{video};;{ui} (*)'.format(video=video_filter, ui=UiStrings().AllFiles)
 
     def _on_background_type_index_changed(self, index):
@@ -211,26 +215,37 @@ class BackgroundPage(GridLayoutPage):
         """
         Open the Stream selection form.
         """
-        from openlp.plugins.media.forms.streamselectorform import StreamSelectorForm
+        if get_vlc():
+            # Only import this form if VLC is available.
+            from openlp.plugins.media.forms.streamselectorform import StreamSelectorForm
 
-        stream_selector_form = StreamSelectorForm(self, self.set_stream, True)
-        # prefill in the form any device stream already defined
-        if self.stream_lineedit.text() and self.stream_lineedit.text().startswith('devicestream'):
-            stream_selector_form.set_mrl(self.stream_lineedit.text())
-        stream_selector_form.exec()
-        del stream_selector_form
+            stream_selector_form = StreamSelectorForm(self, self.set_stream, True)
+            # prefill in the form any device stream already defined
+            if self.stream_lineedit.text() and self.stream_lineedit.text().startswith('devicestream'):
+                stream_selector_form.set_mrl(self.stream_lineedit.text())
+            stream_selector_form.exec()
+            del stream_selector_form
+        else:
+            critical_error_message_box(translate('MediaPlugin.MediaItem', 'VLC is not available'),
+                                       translate('MediaPlugin.MediaItem', 'Device streaming support requires VLC.'))
 
     def _on_network_stream_select_button_triggered(self):
         """
         Open the Stream selection form.
         """
-        from openlp.plugins.media.forms.networkstreamselectorform import NetworkStreamSelectorForm
-        stream_selector_form = NetworkStreamSelectorForm(self, self.set_stream, True)
-        # prefill in the form any network stream already defined
-        if self.stream_lineedit.text() and self.stream_lineedit.text().startswith('networkstream'):
-            stream_selector_form.set_mrl(self.stream_lineedit.text())
-        stream_selector_form.exec()
-        del stream_selector_form
+        if get_vlc():
+            # Only import this form is VLC is available
+            from openlp.plugins.media.forms.networkstreamselectorform import NetworkStreamSelectorForm
+
+            stream_selector_form = NetworkStreamSelectorForm(self, self.set_stream, True)
+            # prefill in the form any network stream already defined
+            if self.stream_lineedit.text() and self.stream_lineedit.text().startswith('networkstream'):
+                stream_selector_form.set_mrl(self.stream_lineedit.text())
+            stream_selector_form.exec()
+            del stream_selector_form
+        else:
+            critical_error_message_box(translate('MediaPlugin.MediaItem', 'VLC is not available'),
+                                       translate('MediaPlugin.MediaItem', 'Network streaming support requires VLC.'))
 
     def set_stream(self, stream_str):
         """

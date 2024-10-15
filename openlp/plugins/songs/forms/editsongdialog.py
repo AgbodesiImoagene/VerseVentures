@@ -19,7 +19,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 
-from PySide6 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from openlp.core.common.i18n import UiStrings, translate
 from openlp.core.lib.ui import create_button, create_button_box
@@ -66,12 +66,12 @@ class Ui_EditSongDialog(object):
         self.lyrics_label = QtWidgets.QLabel(self.lyrics_tab)
         self.lyrics_label.setFixedHeight(self.title_edit.sizeHint().height())
         self.lyrics_label.setObjectName('lyrics_label')
-        self.lyrics_tab_layout.addWidget(self.lyrics_label, 2, 0, QtCore.Qt.AlignmentFlag.AlignTop)
+        self.lyrics_tab_layout.addWidget(self.lyrics_label, 2, 0, QtCore.Qt.AlignTop)
         self.verse_list_widget = SingleColumnTableWidget(self.lyrics_tab)
         self.verse_list_widget.setAlternatingRowColors(True)
         self.verse_list_widget.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
         self.verse_list_widget.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
-        self.verse_list_widget.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.verse_list_widget.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.verse_list_widget.setObjectName('verse_list_widget')
         self.lyrics_label.setBuddy(self.verse_list_widget)
         self.lyrics_tab_layout.addWidget(self.verse_list_widget, 2, 1)
@@ -350,7 +350,7 @@ def create_combo_box(parent, name, editable=True):
     :param name: The object name
     """
     combo_box = QtWidgets.QComboBox(parent)
-    combo_box.setSizeAdjustPolicy(QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
+    combo_box.setSizeAdjustPolicy(QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLength)
     combo_box.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed)
     combo_box.setEditable(editable)
     combo_box.setInsertPolicy(QtWidgets.QComboBox.InsertPolicy.NoInsert)

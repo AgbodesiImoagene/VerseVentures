@@ -27,7 +27,7 @@ import logging
 import re
 from collections import namedtuple
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common import Singleton
 from openlp.core.common.applocation import AppLocation
@@ -40,7 +40,7 @@ log = logging.getLogger(__name__)
 # Due to dependency issues, this HAS to be at the top of the file
 def translate(context, text, comment=None, qt_translate=QtCore.QCoreApplication.translate):
     """
-    A special shortcut method to wrap around the Qt6 translation functions. This abstracts the translation procedure so
+    A special shortcut method to wrap around the Qt5 translation functions. This abstracts the translation procedure so
     that we can change it if at a later date if necessary, without having to redo the whole of OpenLP.
 
     :param context: The translation context, used to give each string a context or a namespace.
@@ -231,8 +231,8 @@ class LanguageManager(object):
         log.info(f"Language: '{language}' loaded.")
         # A translator for buttons and other default strings provided by Qt.
         if not is_win() and not is_macosx():
-            lang_path = QtCore.QLibraryInfo.location(QtCore.QLibraryInfo.LibraryPath.TranslationsPath)
-        # As of Qt6, the core translations come in 2 files per language
+            lang_path = QtCore.QLibraryInfo.location(QtCore.QLibraryInfo.TranslationsPath)
+        # As of Qt5, the core translations come in 2 files per language
         default_translator = QtCore.QTranslator()
         default_translator.load('qt_%s' % language, lang_path)
         base_translator = QtCore.QTranslator()
@@ -246,7 +246,7 @@ class LanguageManager(object):
         """
         log.debug('Translation files: {files}'.format(files=AppLocation.get_directory(AppLocation.LanguageDir)))
         trans_dir = QtCore.QDir(str(AppLocation.get_directory(AppLocation.LanguageDir)))
-        file_names = trans_dir.entryList(['*.qm'], QtCore.QDir.Filter.Files, QtCore.QDir.SortFlag.Name)
+        file_names = trans_dir.entryList(['*.qm'], QtCore.QDir.Filter.Files, QtCore.QDir.Name)
         # Remove qm files from the list which start with "qt".
         file_names = [file_ for file_ in file_names if not file_.startswith('qt')]
         return list(map(trans_dir.filePath, file_names))
@@ -310,10 +310,9 @@ class LanguageManager(object):
         LanguageManager.__qm_list__ = {}
         qm_files = LanguageManager.find_qm_files()
         for counter, qmf in enumerate(qm_files):
-            reg_ex = QtCore.QRegularExpression("^.*i18n/(.*).qm")
-            match = reg_ex.match(qmf)
-            if match.hasMatch():
-                name = '{regex}'.format(regex=match.captured(1))
+            reg_ex = QtCore.QRegExp("^.*i18n/(.*).qm")
+            if reg_ex.exactMatch(qmf):
+                name = '{regex}'.format(regex=reg_ex.cap(1))
                 LanguageManager.__qm_list__[
                     '{count:>2d} {name}'.format(count=counter + 1, name=LanguageManager.language_name(qmf))] = name
 

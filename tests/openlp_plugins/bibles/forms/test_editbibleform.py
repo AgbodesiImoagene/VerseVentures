@@ -23,7 +23,7 @@ Package to test the openlp.plugins.bibles.forms.editbibleform package.
 """
 from unittest.mock import MagicMock, patch
 
-from PySide6 import QtWidgets, QtTest, QtCore
+from PyQt5 import QtWidgets, QtTest, QtCore
 
 from openlp.plugins.bibles.forms.editbibleform import EditBibleForm
 
@@ -39,7 +39,7 @@ def test_help(mocked_help, settings):
 
     # WHEN: The Help button is clicked
     QtTest.QTest.mouseClick(edit_bible_form.button_box.button(QtWidgets.QDialogButtonBox.StandardButton.Help),
-                            QtCore.Qt.MouseButton.LeftButton)
+                            QtCore.Qt.LeftButton)
 
     # THEN: The Help function should be called
     mocked_help.assert_called_once()

@@ -27,12 +27,10 @@ import logging
 from openlp.core.common import trace_error_handler
 from openlp.core.common.platform import is_win
 from openlp.core.common.registry import Registry
-from openlp.core.common.settings import Settings
 
 
 DO_NOT_TRACE_EVENTS = ['timerEvent', 'paintEvent', 'drag_enter_event', 'drop_event', 'on_controller_size_changed',
-                       'preview_size_changed', 'resizeEvent', 'eventFilter', 'tick', 'resize', 'update_ui',
-                       'get_time']
+                       'preview_size_changed', 'resizeEvent', 'eventFilter', 'tick', 'resize', 'update_ui']
 
 
 class LogMixin(object):
@@ -242,7 +240,7 @@ class RegistryProperties(object):
         return self._projector_manager
 
     @property
-    def settings(self) -> Settings:
+    def settings(self):
         """
         Adds the settings object to the class dynamically
         """

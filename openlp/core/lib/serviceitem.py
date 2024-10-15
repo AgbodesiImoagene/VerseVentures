@@ -30,7 +30,7 @@ from copy import deepcopy
 from pathlib import Path
 from shutil import copytree, copy, move
 
-from PySide6 import QtGui
+from PyQt5 import QtGui
 
 from openlp.core.common import ThemeLevel, sha256_file_hash
 from openlp.core.common.applocation import AppLocation
@@ -893,6 +893,7 @@ class ServiceItem(RegistryProperties):
         """
         Validates a service item to make sure it is valid
 
+        :param set[str] suffixes: A set of valid suffixes
         """
         self.is_valid = True
         for slide in self.slides:
@@ -907,13 +908,12 @@ class ServiceItem(RegistryProperties):
                 elif self.is_capable(ItemCapabilities.HasBackgroundAudio) and not State().check_preconditions('media'):
                     self.is_valid = False
                     break
-                # is not sup[ported but can arrive in old service file
-                # TODO remove in 4.1
-                elif self.is_capable(ItemCapabilities.IsOptical):
-                    self.is_valid = False
-                    break
+                elif self.is_capable(ItemCapabilities.IsOptical) and State().check_preconditions('media'):
+                    if not os.path.exists(slide['title']):
+                        self.is_valid = False
+                        break
                 elif self.is_capable(ItemCapabilities.CanStream):
-                    (_, name, mrl, options) = parse_stream_path(slide['path'])
+                    (name, mrl, options) = parse_stream_path(slide['path'])
                     if not name or not mrl or not options:
                         self.is_valid = False
                         break
@@ -926,7 +926,7 @@ class ServiceItem(RegistryProperties):
                         self.is_valid = False
                         break
                     if suffixes and not self.is_text():
-                        file_suffix = "{suffx}".format(suffx=slide['title'].split('.')[-1])
+                        file_suffix = "*.{suffx}".format(suffx=slide['title'].split('.')[-1])
                         if file_suffix.lower() not in suffixes:
                             self.is_valid = False
                             break

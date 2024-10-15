@@ -19,7 +19,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 
-from PySide6 import QtGui, QtWidgets
+from PyQt5 import QtGui, QtWidgets
 
 from openlp.core.ui.icons import UiIcons
 
@@ -54,7 +54,7 @@ class Ui_ConfirmationDialog():
         self.listview = QtWidgets.QListView(self)
         self.listview.setObjectName("confirmation listview")
         # make the entries read-only
-        self.listview.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.listview.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.confirmation_layout.addWidget(self.listview)
 
         # add the items to the listview model

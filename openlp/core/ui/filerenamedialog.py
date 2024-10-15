@@ -21,7 +21,7 @@
 """
 The UI widgets for the rename dialog
 """
-from PySide6 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from openlp.core.common.i18n import translate
 from openlp.core.lib.ui import create_button_box
@@ -45,8 +45,7 @@ class Ui_FileRenameDialog(object):
         self.file_name_label.setObjectName('file_name_label')
         self.dialog_layout.addWidget(self.file_name_label, 0, 0)
         self.file_name_edit = QtWidgets.QLineEdit(file_rename_dialog)
-        self.file_name_edit.setValidator(
-            QtGui.QRegularExpressionValidator(QtCore.QRegularExpression(r'[^/\\?*|<>\[\]":+%]+'), self))
+        self.file_name_edit.setValidator(QtGui.QRegExpValidator(QtCore.QRegExp(r'[^/\\?*|<>\[\]":+%]+'), self))
         self.file_name_edit.setObjectName('file_name_edit')
         self.dialog_layout.addWidget(self.file_name_edit, 0, 1)
         self.button_box = create_button_box(file_rename_dialog, 'button_box', ['cancel', 'ok'])

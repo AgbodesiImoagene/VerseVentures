@@ -24,7 +24,7 @@ Package to test the openlp.core.ui package.
 import pytest
 from unittest.mock import MagicMock, patch
 
-from PySide6 import QtCore, QtTest
+from PyQt5 import QtCore, QtTest
 
 from openlp.core.common.registry import Registry
 from openlp.core.ui.starttimeform import StartTimeForm
@@ -73,10 +73,10 @@ def test_time_display(form: StartTimeForm):
 
     # WHEN displaying the UI and pressing enter
     form.item = {'service_item': mocked_serviceitem}
-    with patch('PySide6.QtWidgets.QDialog.exec'):
+    with patch('PyQt5.QtWidgets.QDialog.exec'):
         form.exec()
-    ok_widget = form.button_box.button(form.button_box.StandardButton.Ok)
-    QtTest.QTest.mouseClick(ok_widget, QtCore.Qt.MouseButton.LeftButton)
+    ok_widget = form.button_box.button(form.button_box.Ok)
+    QtTest.QTest.mouseClick(ok_widget, QtCore.Qt.LeftButton)
 
     # THEN the following input values are returned
     assert form.hour_spin_box.value() == 0
@@ -86,12 +86,12 @@ def test_time_display(form: StartTimeForm):
 
     # WHEN displaying the UI, changing the time to 2min 3secs and pressing enter
     form.item = {'service_item': mocked_serviceitem}
-    with patch('PySide6.QtWidgets.QDialog.exec'):
+    with patch('PyQt5.QtWidgets.QDialog.exec'):
         form.exec()
     form.minute_spin_box.setValue(2)
     form.second_spin_box.setValue(3)
-    ok_widget = form.button_box.button(form.button_box.StandardButton.Ok)
-    QtTest.QTest.mouseClick(ok_widget, QtCore.Qt.MouseButton.LeftButton)
+    ok_widget = form.button_box.button(form.button_box.Ok)
+    QtTest.QTest.mouseClick(ok_widget, QtCore.Qt.LeftButton)
 
     # THEN the following values are returned
     assert form.hour_spin_box.value() == 0

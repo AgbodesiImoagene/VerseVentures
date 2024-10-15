@@ -24,7 +24,7 @@ The services tab of the configuration dialog.
 import logging
 from datetime import datetime, timedelta
 
-from PySide6 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from openlp.core.common import SlideLimits
 from openlp.core.common.i18n import UiStrings, format_time, translate
@@ -79,8 +79,7 @@ class ServiceTab(SettingsTab):
         self.service_name_label.setObjectName('service_name_label')
         self.service_name_edit = QtWidgets.QLineEdit(self.service_name_group_box)
         self.service_name_edit.setObjectName('service_name_edit')
-        self.service_name_edit.setValidator(
-            QtGui.QRegularExpressionValidator(QtCore.QRegularExpression(r'[^/\\?*|<>\[\]":+]+'), self))
+        self.service_name_edit.setValidator(QtGui.QRegExpValidator(QtCore.QRegExp(r'[^/\\?*|<>\[\]":+]+'), self))
         self.service_name_revert_button = QtWidgets.QToolButton(self.service_name_group_box)
         self.service_name_revert_button.setObjectName('service_name_revert_button')
         self.service_name_revert_button.setIcon(UiIcons().undo)

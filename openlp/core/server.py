@@ -21,7 +21,7 @@
 from pathlib import Path
 from typing import Optional
 
-from PySide6 import QtCore, QtNetwork
+from PyQt5 import QtCore, QtNetwork
 
 from openlp.core.common.mixins import LogMixin
 from openlp.core.common.registry import Registry
@@ -96,7 +96,7 @@ class Server(QtCore.QObject, LogMixin):
         self.in_stream.setCodec('UTF-8')
         self.in_socket.readyRead.connect(self._on_ready_read)
 
-    @QtCore.Slot()
+    @QtCore.pyqtSlot()
     def _on_ready_read(self):
         """
         Read a record passed to the server and pass to the service manager to handle

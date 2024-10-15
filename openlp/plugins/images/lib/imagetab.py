@@ -19,7 +19,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 
-from PySide6 import QtWidgets
+from PyQt5 import QtWidgets
 
 from openlp.core.common.i18n import translate
 from openlp.core.common.registry import Registry
@@ -51,8 +51,7 @@ class ImageTab(SettingsTab):
                                                     self.custom_theme_radio)
         # Theme selection
         self.theme_combo_box = QtWidgets.QComboBox(self.image_theme_group_box)
-        self.theme_combo_box.setSizeAdjustPolicy(
-            QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
+        self.theme_combo_box.setSizeAdjustPolicy(QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLength)
         self.theme_combo_box.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed)
         self.theme_combo_box.setObjectName('theme_combo_box')
         self.image_theme_label = QtWidgets.QLabel(self.theme_combo_box)

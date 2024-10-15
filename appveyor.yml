@@ -31,7 +31,7 @@ install:
   # Update pip
   - python -m pip install --upgrade pip
   # Install generic dependencies from pypi.
-  - python -m pip install sqlalchemy alembic platformdirs chardet beautifulsoup4 lxml Mako mysql-connector-python pytest mock psycopg2-binary websockets waitress six requests QtAwesome PySide6 PyMuPDF QDarkStyle python-vlc flask-cors pytest-qt pyenchant pysword qrcode flask packaging
+  - python -m pip install sqlalchemy alembic platformdirs chardet beautifulsoup4 lxml Mako mysql-connector-python pytest mock psycopg2-binary websockets waitress six requests QtAwesome PyQt5 PyQtWebEngine pymediainfo PyMuPDF QDarkStyle python-vlc flask-cors pytest-qt pyenchant pysword qrcode flask packaging
   # Install Windows only dependencies
   - cmd: python -m pip install pyodbc pypiwin32
   - cmd: choco install vlc %CHOCO_VLC_ARG% --no-progress --limit-output

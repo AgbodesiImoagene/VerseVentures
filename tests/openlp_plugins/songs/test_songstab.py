@@ -24,7 +24,7 @@ This module contains tests for the lib submodule of the Songs plugin.
 import pytest
 from unittest.mock import MagicMock, patch
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 from openlp.core.common.enum import SongFirstSlideMode
 
 from openlp.core.common.registry import Registry
@@ -86,13 +86,13 @@ def test_save_check_box_settings(form):
     Test check box options are correctly saved
     """
     # GIVEN: A arrangement of enabled/disabled check boxes
-    form.on_search_as_type_check_box_changed(QtCore.Qt.CheckState.Unchecked)
-    form.on_tool_bar_active_check_box_changed(QtCore.Qt.CheckState.Checked)
-    form.on_update_on_edit_check_box_changed(QtCore.Qt.CheckState.Unchecked)
-    form.on_add_from_service_check_box_changed(QtCore.Qt.CheckState.Checked)
-    form.on_disable_chords_import_check_box_changed(QtCore.Qt.CheckState.Unchecked)
-    form.on_auto_play_check_box_changed(QtCore.Qt.CheckState.Checked)
-    form.on_uppercase_check_box_changed(QtCore.Qt.CheckState.Checked)
+    form.on_search_as_type_check_box_changed(QtCore.Qt.Unchecked)
+    form.on_tool_bar_active_check_box_changed(QtCore.Qt.Checked)
+    form.on_update_on_edit_check_box_changed(QtCore.Qt.Unchecked)
+    form.on_add_from_service_check_box_changed(QtCore.Qt.Checked)
+    form.on_disable_chords_import_check_box_changed(QtCore.Qt.Unchecked)
+    form.on_auto_play_check_box_changed(QtCore.Qt.Checked)
+    form.on_uppercase_check_box_changed(QtCore.Qt.Checked)
     # WHEN: Save is invoked
     form.save()
     # THEN: The correct values should be stored in the settings
@@ -146,7 +146,7 @@ def test_password_change(mocked_settings_set_val, mocked_question, form):
     """
     # GIVEN: Warning is accepted and new password set
     form.ccli_password.setText('new_password')
-    mocked_question.return_value = QtWidgets.QMessageBox.StandardButton.Yes
+    mocked_question.return_value = QtWidgets.QMessageBox.Yes
     # WHEN: save is invoked
     form.save()
     # THEN: footer should not have been saved (one less call than the change test below)
@@ -162,7 +162,7 @@ def test_password_change_cancelled(mocked_settings_set_val, mocked_question, for
     """
     # GIVEN: Warning is not accepted and new password set
     form.ccli_password.setText('new_password')
-    mocked_question.return_value = QtWidgets.QMessageBox.StandardButton.No
+    mocked_question.return_value = QtWidgets.QMessageBox.No
     # WHEN: save is invoked
     form.save()
     # THEN: footer should not have been saved (one less call than the change test below)

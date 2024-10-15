@@ -21,7 +21,7 @@
 """
 The UI widgets of the plugin view dialog
 #"""
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import UiStrings, translate
 from openlp.core.lib.ui import create_button_box
@@ -38,7 +38,7 @@ class Ui_PluginViewDialog(object):
         """
         plugin_view_dialog.setObjectName('plugin_view_dialog')
         plugin_view_dialog.setWindowIcon(UiIcons().main_icon)
-        plugin_view_dialog.setWindowModality(QtCore.Qt.WindowModality.ApplicationModal)
+        plugin_view_dialog.setWindowModality(QtCore.Qt.ApplicationModal)
         self.plugin_layout = QtWidgets.QVBoxLayout(plugin_view_dialog)
         self.plugin_layout.setObjectName('plugin_layout')
         self.list_layout = QtWidgets.QHBoxLayout()
@@ -58,7 +58,7 @@ class Ui_PluginViewDialog(object):
         self.about_label = QtWidgets.QLabel(self.plugin_info_group_box)
         self.about_label.setObjectName('about_label')
         self.about_text_browser = QtWidgets.QTextBrowser(self.plugin_info_group_box)
-        self.about_text_browser.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.LinksAccessibleByMouse)
+        self.about_text_browser.setTextInteractionFlags(QtCore.Qt.LinksAccessibleByMouse)
         self.about_text_browser.setObjectName('aboutTextBrowser')
         self.plugin_info_layout.addRow(self.about_label, self.about_text_browser)
         self.list_layout.addWidget(self.plugin_info_group_box)

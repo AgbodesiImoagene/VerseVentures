@@ -22,7 +22,7 @@
 The :mod:`~openlp.plugins.songs.forms.songselectdialog` module contains the user interface code for the dialog
 """
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import translate
 from openlp.core.ui import SingleColumnTableWidget
@@ -87,9 +87,7 @@ class Ui_SongSelectDialog(object):
         self.ccli_edit.setObjectName('ccli_edit')
         self.song_layout.addWidget(self.ccli_edit, 2, 1, 1, 1)
         self.lyrics_label = QtWidgets.QLabel(self.song_page)
-        self.lyrics_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeading |
-                                       QtCore.Qt.AlignmentFlag.AlignLeft |
-                                       QtCore.Qt.AlignmentFlag.AlignTop)
+        self.lyrics_label.setAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
         self.lyrics_label.setObjectName('lyrics_label')
         self.song_layout.addWidget(self.lyrics_label, 3, 0, 1, 1)
         self.lyrics_table_widget = SingleColumnTableWidget(self.song_page)

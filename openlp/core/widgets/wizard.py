@@ -23,7 +23,7 @@ The :mod:``wizard`` module provides generic wizard tools for OpenLP.
 """
 import logging
 
-from PySide6 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from openlp.core.common.i18n import translate
 from openlp.core.common.mixins import RegistryProperties
@@ -95,13 +95,10 @@ class OpenLPWizard(QtWidgets.QWizard, RegistryProperties):
         """
         Constructor
         """
-        # QtCore.Qt.WindowType.WindowSystemMenuHint | QtCore.Qt.WindowType.WindowTitleHint
-        # remove the "?" buttons from windows,
-        # QtCore.Qt.WindowType.WindowCloseButtonHint enables the "x" button to close these windows.
-        super(OpenLPWizard, self).__init__(parent,
-                                           QtCore.Qt.WindowType.WindowSystemMenuHint |
-                                           QtCore.Qt.WindowType.WindowTitleHint |
-                                           QtCore.Qt.WindowType.WindowCloseButtonHint)
+        # QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint  remove the "?" buttons from windows,
+        # QtCore.Qt.WindowCloseButtonHint enables the "x" button to close these windows.
+        super(OpenLPWizard, self).__init__(parent, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint |
+                                           QtCore.Qt.WindowCloseButtonHint)
         self.plugin = plugin
         self.with_progress_page = add_progress_page
         self.setFixedWidth(640)
@@ -224,7 +221,7 @@ class OpenLPWizard(QtWidgets.QWizard, RegistryProperties):
         log.debug('Wizard cancelled by user.')
         if self.with_progress_page and self.currentPage() == self.progress_page:
             Registry().execute('openlp_stop_wizard')
-        self.done(QtWidgets.QDialog.DialogCode.Rejected)
+        self.done(QtWidgets.QDialog.Rejected)
 
     def on_current_id_changed(self, page_id):
         """

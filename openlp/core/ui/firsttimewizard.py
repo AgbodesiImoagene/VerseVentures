@@ -21,7 +21,7 @@
 """
 The UI widgets for the first time wizard.
 """
-from PySide6 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from openlp.core.common import clean_button_text
 from openlp.core.common.platform import is_macosx
@@ -99,9 +99,9 @@ class ThemeListWidget(QtWidgets.QListWidget):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         self.setVerticalScrollMode(QtWidgets.QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.MultiSelection)
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
@@ -278,8 +278,7 @@ class UiFirstTimeWizard(object):
         self.select_buttons_layout = QtWidgets.QHBoxLayout()
         self.themes_select_all_button = QtWidgets.QToolButton(self.themes_page)
         self.themes_select_all_button.setIcon(UiIcons().select_all)
-        self.select_buttons_layout.addWidget(self.themes_select_all_button, stretch=1,
-                                             alignment=QtCore.Qt.AlignmentFlag.AlignRight)
+        self.select_buttons_layout.addWidget(self.themes_select_all_button, stretch=1, alignment=QtCore.Qt.AlignRight)
         self.themes_deselect_all_button = QtWidgets.QToolButton(self.themes_page)
         self.themes_deselect_all_button.setIcon(UiIcons().select_none)
         self.select_buttons_layout.addWidget(self.themes_deselect_all_button)

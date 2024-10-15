@@ -23,7 +23,7 @@ The :mod:`~openlp.core.widgets.docks` module contains a customised base dock wid
 """
 import logging
 
-from PySide6 import QtWidgets
+from PyQt5 import QtWidgets
 
 from openlp.core.display.screens import ScreenList
 from openlp.core.lib import build_icon

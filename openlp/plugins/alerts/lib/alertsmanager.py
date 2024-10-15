@@ -24,7 +24,7 @@ displaying of alerts.
 """
 import json
 
-from PySide6 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui
 
 from openlp.core.common.mixins import LogMixin, RegistryProperties
 from openlp.core.common.registry import Registry, RegistryBase
@@ -35,7 +35,7 @@ class AlertsManager(QtCore.QObject, RegistryBase, LogMixin, RegistryProperties):
     """
     AlertsManager manages the settings of Alerts.
     """
-    alerts_text = QtCore.Signal(list)
+    alerts_text = QtCore.pyqtSignal(list)
 
     def __init__(self, parent):
         super(AlertsManager, self).__init__()

@@ -23,7 +23,7 @@ Package to test the openlp.plugins.alerts.forms.alertform package.
 """
 from unittest.mock import MagicMock, patch
 
-from PySide6 import QtWidgets, QtTest, QtCore
+from PyQt5 import QtWidgets, QtTest, QtCore
 
 from openlp.core.common.registry import Registry
 from openlp.core.common.settings import Settings
@@ -41,7 +41,7 @@ def test_help(mocked_help: MagicMock, settings: Settings, registry: Registry):
 
     # WHEN: The Help button is clicked
     QtTest.QTest.mouseClick(alert_form.button_box.button(QtWidgets.QDialogButtonBox.StandardButton.Help),
-                            QtCore.Qt.MouseButton.LeftButton)
+                            QtCore.Qt.LeftButton)
 
     # THEN: The Help function should be called
     mocked_help.assert_called_once()

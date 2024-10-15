@@ -21,7 +21,7 @@
 """
 The :mod:`~openlp.core.widgets.labels` module contains specialised labels
 """
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 
 class FormLabel(QtWidgets.QLabel):
@@ -30,4 +30,4 @@ class FormLabel(QtWidgets.QLabel):
     """
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight | QtCore.Qt.AlignmentFlag.AlignVCenter)
+        self.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)

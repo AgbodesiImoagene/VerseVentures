@@ -23,7 +23,7 @@ The :mod:`advancedtab` provides an advanced settings facility.
 """
 import logging
 
-from PySide6 import QtWidgets
+from PyQt5 import QtWidgets
 
 from openlp.core.common.applocation import AppLocation
 from openlp.core.common.i18n import UiStrings, translate
@@ -248,8 +248,8 @@ class AdvancedTab(SettingsTab):
                                                              '\n\nThe data directory will be changed when OpenLP is '
                                                              'closed.').format(path=new_path)
         answer = QtWidgets.QMessageBox.question(self, translate('OpenLP.AdvancedTab', 'Confirm Data Directory Change'),
-                                                warning_string, defaultButton=QtWidgets.QMessageBox.StandardButton.No)
-        if answer != QtWidgets.QMessageBox.StandardButton.Yes:
+                                                warning_string, defaultButton=QtWidgets.QMessageBox.No)
+        if answer != QtWidgets.QMessageBox.Yes:
             self.data_directory_path_edit.path = AppLocation.get_data_path()
             self.new_data_directory_has_files_label.hide()
             return
@@ -284,12 +284,11 @@ class AdvancedTab(SettingsTab):
                                                              '\n\nappears to contain OpenLP data files. Do you wish to '
                                                              'replace these files with the current data '
                                                              'files?').format(path=data_path),
-                                                   QtWidgets.QMessageBox.StandardButton(
-                                                       QtWidgets.QMessageBox.StandardButton.Yes |
-                                                       QtWidgets.QMessageBox.StandardButton.No),
-                                                   QtWidgets.QMessageBox.StandardButton.No)
+                                                   QtWidgets.QMessageBox.StandardButtons(QtWidgets.QMessageBox.Yes |
+                                                                                         QtWidgets.QMessageBox.No),
+                                                   QtWidgets.QMessageBox.No)
             self.data_directory_copy_check_box.show()
-            if answer == QtWidgets.QMessageBox.StandardButton.Yes:
+            if answer == QtWidgets.QMessageBox.Yes:
                 self.data_directory_copy_check_box.setChecked(True)
                 self.new_data_directory_has_files_label.show()
             else:

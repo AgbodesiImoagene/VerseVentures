@@ -21,7 +21,7 @@
 """
 The :mod:`~openlp.core.widgets.layouts` module contains customised layout classes
 """
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 
 class AspectRatioLayout(QtWidgets.QLayout):
@@ -30,7 +30,7 @@ class AspectRatioLayout(QtWidgets.QLayout):
 
     This is based on the C++ example here: https://gist.github.com/pavel-perina/1324ff064aedede0e01311aab315f83d
     """
-    resize = QtCore.Signal(QtCore.QSize)
+    resize = QtCore.pyqtSignal(QtCore.QSize)
 
     def __init__(self, parent=None, aspect_ratio=None):
         """
@@ -123,7 +123,7 @@ class AspectRatioLayout(QtWidgets.QLayout):
         """
         Overridden Qt method
         """
-        return QtCore.Qt.Orientation.Horizontal | QtCore.Qt.Orientation.Vertical
+        return QtCore.Qt.Horizontal | QtCore.Qt.Vertical
 
     def hasHeightForWidth(self):
         """
@@ -152,17 +152,17 @@ class AspectRatioLayout(QtWidgets.QLayout):
             if width > available_width:
                 width = available_width
                 height = width / self._aspect_ratio
-                if self._item.alignment() & QtCore.Qt.AlignmentFlag.AlignTop:
+                if self._item.alignment() & QtCore.Qt.AlignTop:
                     y = self.margin
-                elif self._item.alignment() & QtCore.Qt.AlignmentFlag.AlignBottom:
+                elif self._item.alignment() & QtCore.Qt.AlignBottom:
                     y = rect.height() - self.margin - height
                 else:
                     y = self.margin + (available_height - height) / 2
                 widget.setGeometry(int(rect.x() + self.margin), int(rect.y() + y), int(width), int(height))
             else:
-                if self._item.alignment() & QtCore.Qt.AlignmentFlag.AlignLeft:
+                if self._item.alignment() & QtCore.Qt.AlignLeft:
                     x = self.margin
-                elif self._item.alignment() & QtCore.Qt.AlignmentFlag.AlignRight:
+                elif self._item.alignment() & QtCore.Qt.AlignRight:
                     x = rect.width() - self.margin - width
                 else:
                     x = self.margin + (available_width - width) / 2

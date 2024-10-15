@@ -21,7 +21,7 @@
 """
 The actual start time form.
 """
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import UiStrings, translate
 from openlp.core.common.mixins import RegistryProperties
@@ -38,10 +38,8 @@ class StartTimeForm(QtWidgets.QDialog, Ui_StartTimeDialog, RegistryProperties):
         """
         Constructor
         """
-        super(StartTimeForm, self).__init__(Registry().get('main_window'),
-                                            QtCore.Qt.WindowType.WindowSystemMenuHint |
-                                            QtCore.Qt.WindowType.WindowTitleHint |
-                                            QtCore.Qt.WindowType.WindowCloseButtonHint)
+        super(StartTimeForm, self).__init__(Registry().get('main_window'), QtCore.Qt.WindowSystemMenuHint |
+                                            QtCore.Qt.WindowTitleHint | QtCore.Qt.WindowCloseButtonHint)
         self.setup_ui(self)
 
     def exec(self):

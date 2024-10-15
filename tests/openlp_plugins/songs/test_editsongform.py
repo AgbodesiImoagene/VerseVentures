@@ -24,7 +24,7 @@ This module contains tests for the lib submodule of the Songs plugin.
 import logging
 import pytest
 from unittest.mock import MagicMock, patch
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.registry import Registry
 from openlp.core.common.settings import Settings
@@ -33,17 +33,15 @@ from openlp.plugins.songs.lib import VerseType
 from openlp.plugins.songs.lib.db import Author
 
 
-@pytest.fixture
-def edit_song_form(settings: Settings):
-    Registry().register("service_list", MagicMock())
+@pytest.fixture()
+def edit_song_form():
     with patch('openlp.plugins.songs.forms.editsongform.EditSongForm.__init__', return_value=None):
         return EditSongForm(None, MagicMock(), MagicMock())
 
 
-@pytest.fixture
+@pytest.fixture()
 def edit_song_form_with_ui(settings: Settings) -> EditSongForm:
     main_window = QtWidgets.QMainWindow()
-    Registry().register('service_list', MagicMock())
     Registry().register('main_window', main_window)
     Registry().register('theme_manager', MagicMock())
     form = EditSongForm(None, main_window, MagicMock())
@@ -173,7 +171,6 @@ def test_validate_song_multiple_audio(edit_song_form_with_ui: EditSongForm):
     assert song_valid is False
 
 
-# w d@pytest.mark.skip('Broken edit_song_form')
 def test_validate_song_one_audio(edit_song_form_with_ui: EditSongForm):
     """
     Test that a form with one Linked Audio item passes validation

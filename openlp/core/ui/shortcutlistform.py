@@ -24,7 +24,7 @@ The :mod:`~openlp.core.ui.shortcutlistform` module contains the form class
 import logging
 import re
 
-from PySide6 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from openlp.core.common.actions import ActionList
 from openlp.core.common.i18n import translate
@@ -46,10 +46,8 @@ class ShortcutListForm(QtWidgets.QDialog, Ui_ShortcutListDialog, RegistryPropert
         """
         Constructor
         """
-        super(ShortcutListForm, self).__init__(parent,
-                                               QtCore.Qt.WindowType.WindowSystemMenuHint |
-                                               QtCore.Qt.WindowType.WindowTitleHint |
-                                               QtCore.Qt.WindowType.WindowCloseButtonHint)
+        super(ShortcutListForm, self).__init__(parent, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint |
+                                               QtCore.Qt.WindowCloseButtonHint)
         self.setup_ui(self)
         self.changed_actions = {}
         self.action_list = ActionList.get_instance()
@@ -68,11 +66,11 @@ class ShortcutListForm(QtWidgets.QDialog, Ui_ShortcutListDialog, RegistryPropert
         """
         Respond to certain key presses
         """
-        if event.key() == QtCore.Qt.Key.Key_Space:
+        if event.key() == QtCore.Qt.Key_Space:
             self.keyReleaseEvent(event)
         elif self.primary_push_button.isChecked() or self.alternate_push_button.isChecked():
             self.keyReleaseEvent(event)
-        elif event.key() == QtCore.Qt.Key.Key_Escape:
+        elif event.key() == QtCore.Qt.Key_Escape:
             event.accept()
             self.close()
 
@@ -83,21 +81,20 @@ class ShortcutListForm(QtWidgets.QDialog, Ui_ShortcutListDialog, RegistryPropert
         if not self.primary_push_button.isChecked() and not self.alternate_push_button.isChecked():
             return
         # Do not continue, as the event is for the dialog (close it).
-        if self.dialog_was_shown and event.key() in (QtCore.Qt.Key.Key_Escape, QtCore.Qt.Key.Key_Enter,
-                                                     QtCore.Qt.Key.Key_Return):
+        if self.dialog_was_shown and event.key() in (QtCore.Qt.Key_Escape, QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
             self.dialog_was_shown = False
             return
         key = event.key()
-        if key in (QtCore.Qt.Key.Key_Shift, QtCore.Qt.Key.Key_Control, QtCore.Qt.Key.Key_Meta, QtCore.Qt.Key.Key_Alt):
+        if key in (QtCore.Qt.Key_Shift, QtCore.Qt.Key_Control, QtCore.Qt.Key_Meta, QtCore.Qt.Key_Alt):
             return
         key_string = QtGui.QKeySequence(key).toString()
-        if event.modifiers() & QtCore.Qt.KeyboardModifier.ControlModifier == QtCore.Qt.KeyboardModifier.ControlModifier:
+        if event.modifiers() & QtCore.Qt.ControlModifier == QtCore.Qt.ControlModifier:
             key_string = 'Ctrl+' + key_string
-        if event.modifiers() & QtCore.Qt.KeyboardModifier.AltModifier == QtCore.Qt.KeyboardModifier.AltModifier:
+        if event.modifiers() & QtCore.Qt.AltModifier == QtCore.Qt.AltModifier:
             key_string = 'Alt+' + key_string
-        if event.modifiers() & QtCore.Qt.KeyboardModifier.ShiftModifier == QtCore.Qt.KeyboardModifier.ShiftModifier:
+        if event.modifiers() & QtCore.Qt.ShiftModifier == QtCore.Qt.ShiftModifier:
             key_string = 'Shift+' + key_string
-        if event.modifiers() & QtCore.Qt.KeyboardModifier.MetaModifier == QtCore.Qt.KeyboardModifier.MetaModifier:
+        if event.modifiers() & QtCore.Qt.MetaModifier == QtCore.Qt.MetaModifier:
             key_string = 'Meta+' + key_string
         key_sequence = QtGui.QKeySequence(key_string)
         if self._validiate_shortcut(self._current_item_action(), key_sequence):
@@ -132,7 +129,7 @@ class ShortcutListForm(QtWidgets.QDialog, Ui_ShortcutListDialog, RegistryPropert
                 action_text = REMOVE_AMPERSAND.sub('', action.text())
                 action_item = QtWidgets.QTreeWidgetItem([action_text])
                 action_item.setIcon(0, action.icon())
-                action_item.setData(0, QtCore.Qt.ItemDataRole.UserRole, action)
+                action_item.setData(0, QtCore.Qt.UserRole, action)
                 tool_tip_text = action.toolTip()
                 # Only display tool tips if they are helpful.
                 if tool_tip_text != action_text:
@@ -286,7 +283,7 @@ class ShortcutListForm(QtWidgets.QDialog, Ui_ShortcutListDialog, RegistryPropert
         if QtWidgets.QMessageBox.question(self, translate('OpenLP.ShortcutListDialog', 'Restore Default Shortcuts'),
                                           translate('OpenLP.ShortcutListDialog', 'Do you want to restore all '
                                                     'shortcuts to their defaults?')
-                                          ) == QtWidgets.QMessageBox.StandardButton.No:
+                                          ) == QtWidgets.QMessageBox.No:
             return
         self._adjust_button(self.primary_push_button, False, text='')
         self._adjust_button(self.alternate_push_button, False, text='')
@@ -428,11 +425,9 @@ class ShortcutListForm(QtWidgets.QDialog, Ui_ShortcutListDialog, RegistryPropert
                     is_valid = False
                 # The new shortcut is already assigned, but if both shortcuts are only valid in a different widget the
                 # new shortcut is valid, because they will not interfere.
-                if action.shortcutContext() in [QtCore.Qt.ShortcutContext.WindowShortcut,
-                                                QtCore.Qt.ShortcutContext.ApplicationShortcut]:
+                if action.shortcutContext() in [QtCore.Qt.WindowShortcut, QtCore.Qt.ApplicationShortcut]:
                     is_valid = False
-                if changing_action.shortcutContext() in [QtCore.Qt.ShortcutContext.WindowShortcut,
-                                                         QtCore.Qt.ShortcutContext.ApplicationShortcut]:
+                if changing_action.shortcutContext() in [QtCore.Qt.WindowShortcut, QtCore.Qt.ApplicationShortcut]:
                     is_valid = False
         if not is_valid:
             text = translate('OpenLP.ShortcutListDialog',
@@ -462,7 +457,7 @@ class ShortcutListForm(QtWidgets.QDialog, Ui_ShortcutListDialog, RegistryPropert
             item = self.tree_widget.currentItem()
             if item is None:
                 return
-        return item.data(0, QtCore.Qt.ItemDataRole.UserRole)
+        return item.data(0, QtCore.Qt.UserRole)
 
     def _adjust_button(self, button, checked=None, enabled=None, text=None):
         """

@@ -26,7 +26,7 @@ import logging
 import re
 from shutil import copyfile
 
-from PySide6 import QtCore, QtWidgets, QtGui
+from PyQt5 import QtCore, QtWidgets, QtGui
 
 from openlp.core.common import sha256_file_hash
 from openlp.core.common.applocation import AppLocation
@@ -34,11 +34,10 @@ from openlp.core.common.i18n import UiStrings, get_natural_key, translate
 from openlp.core.common.mixins import RegistryProperties
 from openlp.core.common.path import create_paths
 from openlp.core.common.registry import Registry
-from openlp.core.lib import create_separated_list
+from openlp.core.lib import MediaType, create_separated_list
 from openlp.core.lib.formattingtags import FormattingTags
 from openlp.core.lib.plugin import PluginStatus
 from openlp.core.lib.ui import critical_error_message_box, find_and_set_in_combo_box, set_case_insensitive_completer
-from openlp.core.ui.media import MediaType
 from openlp.core.state import State
 from openlp.core.widgets.dialogs import FileDialog
 from openlp.plugins.songs.forms.editsongdialog import Ui_EditSongDialog
@@ -63,8 +62,8 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
         """
         Constructor
         """
-        super().__init__(parent, QtCore.Qt.WindowType.WindowSystemMenuHint | QtCore.Qt.WindowType.WindowTitleHint |
-                         QtCore.Qt.WindowType.WindowCloseButtonHint)
+        super().__init__(parent, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint |
+                         QtCore.Qt.WindowCloseButtonHint)
         self.media_item = media_item
         self.song = None
         # can this be automated?
@@ -140,12 +139,12 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
         Add an author to the author list.
         """
         author_item = QtWidgets.QListWidgetItem(author.get_display_name(author_type))
-        author_item.setData(QtCore.Qt.ItemDataRole.UserRole, (author.id, author_type))
+        author_item.setData(QtCore.Qt.UserRole, (author.id, author_type))
         self.authors_list_view.addItem(author_item)
 
     def add_songbook_entry_to_list(self, songbook_id, songbook_name, entry):
         songbook_entry_item = QtWidgets.QListWidgetItem(SongBookEntry.get_display_name(songbook_name, entry))
-        songbook_entry_item.setData(QtCore.Qt.ItemDataRole.UserRole, (songbook_id, entry))
+        songbook_entry_item.setData(QtCore.Qt.UserRole, (songbook_id, entry))
         self.songbooks_list_view.addItem(songbook_entry_item)
 
     def _extract_verse_order(self, verse_order):
@@ -191,7 +190,7 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
         order = self._extract_verse_order(verse_order)
         for index in range(verse_count):
             verse = self.verse_list_widget.item(index, 0)
-            verse = verse.data(QtCore.Qt.ItemDataRole.UserRole)
+            verse = verse.data(QtCore.Qt.UserRole)
             if verse not in verse_names:
                 verses.append(verse)
                 verse_names.append('{verse1}{verse2}'.format(verse1=VerseType.translated_tag(verse[0]),
@@ -255,7 +254,7 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
             r = re.compile(r'\[(.*?)\]')
             for match in r.finditer(stripped_text):
                 chords += match[1]
-            field = item.data(QtCore.Qt.ItemDataRole.UserRole)
+            field = item.data(QtCore.Qt.UserRole)
             verse_tags.append(field)
             if not self._validate_tags(tags):
                 misplaced_tags.append('{field1} {field2}'.format(field1=VerseType.translated_name(field[0]),
@@ -331,7 +330,7 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
             multiple = []
             for i in range(self.verse_list_widget.rowCount()):
                 item = self.verse_list_widget.item(i, 0)
-                verse_id = item.data(QtCore.Qt.ItemDataRole.UserRole)
+                verse_id = item.data(QtCore.Qt.UserRole)
                 verse_tag = verse_id[0]
                 verse_num = verse_id[1:]
                 sxml.add_verse_to_lyrics(verse_tag, verse_num, item.text())
@@ -352,7 +351,7 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
 
         :param event: A QtWidgets.QKeyEvent event.
         """
-        if event.key() in (QtCore.Qt.Key.Key_Enter, QtCore.Qt.Key.Key_Return):
+        if event.key() in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
             if self.authors_combo_box.hasFocus() and self.authors_combo_box.currentText():
                 self.on_author_add_button_clicked()
                 return
@@ -526,7 +525,7 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
                     verse[0]['label'] = '1'
                 verse_def = '{verse}{label}'.format(verse=verse[0]['type'], label=verse[0]['label'])
                 item = QtWidgets.QTableWidgetItem(verse[1])
-                item.setData(QtCore.Qt.ItemDataRole.UserRole, verse_def)
+                item.setData(QtCore.Qt.UserRole, verse_def)
                 self.verse_list_widget.setItem(count, 0, item)
         else:
             verses = self.song.lyrics.split('\n\n')
@@ -534,7 +533,7 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
                 self.verse_list_widget.setRowCount(self.verse_list_widget.rowCount() + 1)
                 item = QtWidgets.QTableWidgetItem(verse)
                 verse_def = '{verse}{count:d}'.format(verse=VerseType.tags[VerseType.Verse], count=(count + 1))
-                item.setData(QtCore.Qt.ItemDataRole.UserRole, verse_def)
+                item.setData(QtCore.Qt.UserRole, verse_def)
                 self.verse_list_widget.setItem(count, 0, item)
         if self.song.verse_order:
             # we translate verse order
@@ -559,7 +558,7 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
         self.topics_list_view.clear()
         for topic in self.song.topics:
             topic_name = QtWidgets.QListWidgetItem(str(topic.name))
-            topic_name.setData(QtCore.Qt.ItemDataRole.UserRole, topic.id)
+            topic_name.setData(QtCore.Qt.UserRole, topic.id)
             self.topics_list_view.addItem(topic_name)
         self.songbooks_list_view.clear()
         self.songbook_entry_edit.clear()
@@ -569,7 +568,7 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
         self.audio_list_widget.clear()
         for media in self.song.media_files:
             item = QtWidgets.QListWidgetItem(media.file_path.name)
-            item.setData(QtCore.Qt.ItemDataRole.UserRole, media.file_path)
+            item.setData(QtCore.Qt.UserRole, media.file_path)
             self.audio_list_widget.addItem(item)
         self.title_edit.setFocus()
         # Hide or show the preview button.
@@ -584,7 +583,7 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
         row_label = []
         for row in range(self.verse_list_widget.rowCount()):
             item = self.verse_list_widget.item(row, 0)
-            verse_def = item.data(QtCore.Qt.ItemDataRole.UserRole)
+            verse_def = item.data(QtCore.Qt.UserRole)
             verse_tag = VerseType.translated_tag(verse_def[0])
             row_def = '{tag}{verse}'.format(tag=verse_tag, verse=verse_def[1:])
             row_label.append(row_def)
@@ -604,7 +603,7 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
                     self,
                     translate('SongsPlugin.EditSongForm', 'Add Author'),
                     translate('SongsPlugin.EditSongForm', 'This author does not exist, do you want to add them?'),
-                    defaultButton=QtWidgets.QMessageBox.StandardButton.Yes) == QtWidgets.QMessageBox.StandardButton.Yes:
+                    defaultButton=QtWidgets.QMessageBox.Yes) == QtWidgets.QMessageBox.Yes:
                 if text.find(' ') == -1:
                     author = Author(first_name='', last_name='', display_name=text)
                 else:
@@ -620,7 +619,7 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
         elif item >= 0:
             item_id = (self.authors_combo_box.itemData(item))
             author = self.manager.get_object(Author, item_id)
-            if self.authors_list_view.findItems(author.get_display_name(author_type), QtCore.Qt.MatchFlag.MatchExactly):
+            if self.authors_list_view.findItems(author.get_display_name(author_type), QtCore.Qt.MatchExactly):
                 critical_error_message_box(
                     message=translate('SongsPlugin.EditSongForm', 'This author is already in the list.'))
             else:
@@ -651,7 +650,7 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
         """
         self.author_edit_button.setEnabled(False)
         item = self.authors_list_view.currentItem()
-        author_id, author_type = item.data(QtCore.Qt.ItemDataRole.UserRole)
+        author_id, author_type = item.data(QtCore.Qt.UserRole)
         choice, ok = QtWidgets.QInputDialog.getItem(self, translate('SongsPlugin.EditSongForm', 'Edit Author Type'),
                                                     translate('SongsPlugin.EditSongForm',
                                                               'Choose type for this author'),
@@ -662,7 +661,7 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
             return
         author = self.manager.get_object(Author, author_id)
         author_type = AuthorType.from_translated_text(choice)
-        item.setData(QtCore.Qt.ItemDataRole.UserRole, (author_id, author_type))
+        item.setData(QtCore.Qt.UserRole, (author_id, author_type))
         item.setText(author.get_display_name(author_type))
 
     def on_author_remove_button_clicked(self):
@@ -682,11 +681,11 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
             if QtWidgets.QMessageBox.question(
                     self, translate('SongsPlugin.EditSongForm', 'Add Topic'),
                     translate('SongsPlugin.EditSongForm', 'This topic does not exist, do you want to add it?'),
-                    defaultButton=QtWidgets.QMessageBox.StandardButton.Yes) == QtWidgets.QMessageBox.StandardButton.Yes:
+                    defaultButton=QtWidgets.QMessageBox.Yes) == QtWidgets.QMessageBox.Yes:
                 topic = Topic(name=text)
                 self.manager.save_object(topic)
                 topic_item = QtWidgets.QListWidgetItem(str(topic.name))
-                topic_item.setData(QtCore.Qt.ItemDataRole.UserRole, topic.id)
+                topic_item.setData(QtCore.Qt.UserRole, topic.id)
                 self.topics_list_view.addItem(topic_item)
                 self.load_topics()
                 self.topics_combo_box.setCurrentIndex(-1)
@@ -696,12 +695,12 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
         elif item >= 0:
             item_id = (self.topics_combo_box.itemData(item))
             topic = self.manager.get_object(Topic, item_id)
-            if self.topics_list_view.findItems(str(topic.name), QtCore.Qt.MatchFlag.MatchExactly):
+            if self.topics_list_view.findItems(str(topic.name), QtCore.Qt.MatchExactly):
                 critical_error_message_box(
                     message=translate('SongsPlugin.EditSongForm', 'This topic is already in the list.'))
             else:
                 topic_item = QtWidgets.QListWidgetItem(str(topic.name))
-                topic_item.setData(QtCore.Qt.ItemDataRole.UserRole, topic.id)
+                topic_item.setData(QtCore.Qt.UserRole, topic.id)
                 self.topics_list_view.addItem(topic_item)
             self.topics_combo_box.setCurrentIndex(-1)
             self.topics_combo_box.setCurrentText('')
@@ -728,7 +727,7 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
             if QtWidgets.QMessageBox.question(
                     self, translate('SongsPlugin.EditSongForm', 'Add Songbook'),
                     translate('SongsPlugin.EditSongForm', 'This Songbook does not exist, do you want to add it?'),
-                    defaultButton=QtWidgets.QMessageBox.StandardButton.Yes) == QtWidgets.QMessageBox.StandardButton.Yes:
+                    defaultButton=QtWidgets.QMessageBox.Yes) == QtWidgets.QMessageBox.Yes:
                 songbook = SongBook(name=text)
                 self.manager.save_object(songbook)
                 self.add_songbook_entry_to_list(songbook.id, songbook.name, self.songbook_entry_edit.text())
@@ -741,7 +740,7 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
         elif item >= 0:
             item_id = (self.songbooks_combo_box.itemData(item))
             songbook = self.manager.get_object(SongBook, item_id)
-            if self.songbooks_list_view.findItems(str(songbook.name), QtCore.Qt.MatchFlag.MatchExactly):
+            if self.songbooks_list_view.findItems(str(songbook.name), QtCore.Qt.MatchExactly):
                 critical_error_message_box(
                     message=translate('SongsPlugin.EditSongForm', 'This Songbook is already in the list.'))
             else:
@@ -774,7 +773,7 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
             after_text, verse_tag, verse_num = self.verse_form.get_verse()
             verse_def = '{tag}{number}'.format(tag=verse_tag, number=verse_num)
             item = QtWidgets.QTableWidgetItem(after_text)
-            item.setData(QtCore.Qt.ItemDataRole.UserRole, verse_def)
+            item.setData(QtCore.Qt.UserRole, verse_def)
             item.setText(after_text)
             self.verse_list_widget.setRowCount(self.verse_list_widget.rowCount() + 1)
             self.verse_list_widget.setItem(self.verse_list_widget.rowCount() - 1, 0, item)
@@ -786,12 +785,12 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
         item = self.verse_list_widget.currentItem()
         if item:
             temp_text = item.text()
-            verse_id = item.data(QtCore.Qt.ItemDataRole.UserRole)
+            verse_id = item.data(QtCore.Qt.UserRole)
             self.verse_form.set_verse(temp_text, True, verse_id)
             if self.verse_form.exec():
                 after_text, verse_tag, verse_num = self.verse_form.get_verse()
                 verse_def = '{tag}{number}'.format(tag=verse_tag, number=verse_num)
-                item.setData(QtCore.Qt.ItemDataRole.UserRole, verse_def)
+                item.setData(QtCore.Qt.UserRole, verse_def)
                 item.setText(after_text)
                 # number of lines has changed, repaint the list moving the data
                 if len(temp_text.split('\n')) != len(after_text.split('\n')):
@@ -800,11 +799,11 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
                     for row in range(self.verse_list_widget.rowCount()):
                         item = self.verse_list_widget.item(row, 0)
                         temp_list.append(item.text())
-                        temp_ids.append(item.data(QtCore.Qt.ItemDataRole.UserRole))
+                        temp_ids.append(item.data(QtCore.Qt.UserRole))
                     self.verse_list_widget.clear()
                     for row, entry in enumerate(temp_list):
                         item = QtWidgets.QTableWidgetItem(entry, 0)
-                        item.setData(QtCore.Qt.ItemDataRole.UserRole, temp_ids[row])
+                        item.setData(QtCore.Qt.UserRole, temp_ids[row])
                         self.verse_list_widget.setItem(row, 0, item)
         self.tag_rows()
         # Check if all verse tags are used.
@@ -820,7 +819,7 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
         if self.verse_list_widget.rowCount() > 0:
             for row in range(self.verse_list_widget.rowCount()):
                 item = self.verse_list_widget.item(row, 0)
-                field = item.data(QtCore.Qt.ItemDataRole.UserRole)
+                field = item.data(QtCore.Qt.UserRole)
                 verse_tag = VerseType.translated_name(field[0])
                 verse_num = field[1:]
                 verse_list += '---[{tag}:{number}]---\n'.format(tag=verse_tag, number=verse_num)
@@ -863,7 +862,7 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
                         if parts.endswith('\n'):
                             parts = parts.rstrip('\n')
                         item = QtWidgets.QTableWidgetItem(parts)
-                        item.setData(QtCore.Qt.ItemDataRole.UserRole, verse_def)
+                        item.setData(QtCore.Qt.UserRole, verse_def)
                         self.verse_list_widget.setRowCount(self.verse_list_widget.rowCount() + 1)
                         self.verse_list_widget.setItem(self.verse_list_widget.rowCount() - 1, 0, item)
         self.tag_rows()
@@ -899,7 +898,7 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
         verses_not_used = []
         for index in range(self.verse_list_widget.rowCount()):
             verse = self.verse_list_widget.item(index, 0)
-            verse = verse.data(QtCore.Qt.ItemDataRole.UserRole)
+            verse = verse.data(QtCore.Qt.UserRole)
             if verse not in verses_in_order:
                 verses_not_used.append(verse)
         # Set the label text.
@@ -958,7 +957,7 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
             parent=self, caption=translate('SongsPlugin.EditSongForm', 'Open File(s)'), filter=filters)
         for file_path in file_paths:
             item = QtWidgets.QListWidgetItem(file_path.name)
-            item.setData(QtCore.Qt.ItemDataRole.UserRole, file_path)
+            item.setData(QtCore.Qt.UserRole, file_path)
             self.audio_list_widget.addItem(item)
 
     def on_audio_add_from_media_button_clicked(self):
@@ -972,7 +971,7 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
         if self.media_form.exec():
             for file_path in self.media_form.get_selected_files():
                 item = QtWidgets.QListWidgetItem(file_path.name)
-                item.setData(QtCore.Qt.ItemDataRole.UserRole, file_path)
+                item.setData(QtCore.Qt.UserRole, file_path)
                 self.audio_list_widget.addItem(item)
 
     def on_audio_remove_button_clicked(self):
@@ -1077,21 +1076,21 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
         self.song.authors_songs = []
         for row in range(self.authors_list_view.count()):
             item = self.authors_list_view.item(row)
-            self.song.add_author(self.manager.get_object(Author, item.data(QtCore.Qt.ItemDataRole.UserRole)[0]),
-                                 item.data(QtCore.Qt.ItemDataRole.UserRole)[1])
+            self.song.add_author(self.manager.get_object(Author, item.data(QtCore.Qt.UserRole)[0]),
+                                 item.data(QtCore.Qt.UserRole)[1])
         self.song.topics = []
         for row in range(self.topics_list_view.count()):
             item = self.topics_list_view.item(row)
-            topic_id = (item.data(QtCore.Qt.ItemDataRole.UserRole))
+            topic_id = (item.data(QtCore.Qt.UserRole))
             topic = self.manager.get_object(Topic, topic_id)
             if topic is not None:
                 self.song.topics.append(topic)
         self.song.songbook_entries = []
         for row in range(self.songbooks_list_view.count()):
             item = self.songbooks_list_view.item(row)
-            songbook_id = item.data(QtCore.Qt.ItemDataRole.UserRole)[0]
+            songbook_id = item.data(QtCore.Qt.UserRole)[0]
             songbook = self.manager.get_object(SongBook, songbook_id)
-            entry = item.data(QtCore.Qt.ItemDataRole.UserRole)[1]
+            entry = item.data(QtCore.Qt.UserRole)[1]
             self.song.add_songbook_entry(songbook, entry)
         # Save the song here because we need a valid id for the audio files.
         clean_song(self.manager, self.song)
@@ -1104,7 +1103,7 @@ class EditSongForm(QtWidgets.QDialog, Ui_EditSongDialog, RegistryProperties):
         file_paths = []
         for row in range(self.audio_list_widget.count()):
             item = self.audio_list_widget.item(row)
-            file_path = item.data(QtCore.Qt.ItemDataRole.UserRole)
+            file_path = item.data(QtCore.Qt.UserRole)
             if file_path.is_file():
                 if save_path not in file_path.parents:
                     old_file_path, file_path = file_path, save_path / file_path.name

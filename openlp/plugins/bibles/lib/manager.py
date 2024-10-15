@@ -123,10 +123,10 @@ class BibleManager(LogMixin, RegistryProperties):
         self.web = 'Web'
         self.db_cache = None
         self.path = AppLocation.get_section_data_path('bibles')
+        self.suffix = '.sqlite'
         self.model_path = AppLocation.get_section_data_path('models')
         self.encoder_model = None
-        self.transcriber_model = None
-        self.suffix = '.sqlite'
+        self.transcriber_model = None        
         self.import_wizard = None
         self.model_manager = DBManager('models', init_schema)
         self.reload_bibles()
@@ -191,7 +191,7 @@ class BibleManager(LogMixin, RegistryProperties):
     def import_model(self, model, **kwargs):
         model.register(self.import_wizard)
         model.download()
-        self.save_model(model)
+        self.save_model(model)        
 
     def delete_bible(self, name):
         """
@@ -446,7 +446,7 @@ class BibleManager(LogMixin, RegistryProperties):
         db_model = self.model_manager.get_object_filtered(Model, Model.name == model_name)
         if db_model is None:
             return None
-        
+
 
     def exists(self, name):
         """

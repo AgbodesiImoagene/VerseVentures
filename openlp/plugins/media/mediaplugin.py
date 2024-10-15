@@ -32,7 +32,7 @@ from openlp.core.db.manager import DBManager
 from openlp.core.lib.plugin import Plugin, StringContent
 from openlp.core.state import State
 from openlp.core.ui.icons import UiIcons
-from openlp.core.ui.media import parse_stream_path
+from openlp.core.ui.media import parse_optical_path, parse_stream_path
 
 from openlp.plugins.media.lib.db import Item, init_schema
 from openlp.plugins.media.lib.mediaitem import MediaMediaItem
@@ -72,7 +72,9 @@ class MediaPlugin(Plugin):
                 name = filename.name
                 filename = str(filename)
             elif filename.startswith('devicestream:') or filename.startswith('networkstream:'):
-                _, name, _, _ = parse_stream_path(filename)
+                name, _, _ = parse_stream_path(filename)
+            elif filename.startswith('optical:'):
+                _, _, _, _, _, _, name = parse_optical_path(filename)
             else:
                 name = os.path.basename(filename)
             item = Item(name=name, file_path=filename)

@@ -19,7 +19,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.enum import LanguageSelection
 from openlp.core.common.i18n import translate
@@ -100,7 +100,7 @@ class Ui_EditBibleDialog(object):
         self.scroll_area = QtWidgets.QScrollArea(self.book_name_tab)
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setObjectName('scroll_area')
-        self.scroll_area.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.scroll_area.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.book_name_widget = QtWidgets.QWidget(self.scroll_area)
         self.book_name_widget.setObjectName('book_name_widget')
         self.book_name_widget_layout = QtWidgets.QFormLayout(self.book_name_widget)

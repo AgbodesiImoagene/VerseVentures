@@ -22,7 +22,7 @@
 import logging
 import re
 
-from PySide6 import QtCore, QtWidgets, QtGui
+from PyQt5 import QtCore, QtWidgets, QtGui
 
 from openlp.core.common.i18n import UiStrings, translate
 from openlp.core.common.mixins import RegistryProperties
@@ -46,10 +46,8 @@ class EditBibleForm(QtWidgets.QDialog, Ui_EditBibleDialog, RegistryProperties):
         """
         Constructor
         """
-        super(EditBibleForm, self).__init__(parent,
-                                            QtCore.Qt.WindowType.WindowSystemMenuHint |
-                                            QtCore.Qt.WindowType.WindowTitleHint |
-                                            QtCore.Qt.WindowType.WindowCloseButtonHint)
+        super(EditBibleForm, self).__init__(parent, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint |
+                                            QtCore.Qt.WindowCloseButtonHint)
         self.media_item = media_item
         self.book_names = BibleStrings().BookNames
         self.setup_ui(self)

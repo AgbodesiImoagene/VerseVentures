@@ -25,7 +25,7 @@ import logging
 import urllib.error
 
 from lxml import etree
-from PySide6 import QtWidgets, QtGui, QtCore
+from PyQt5 import QtWidgets, QtGui, QtCore
 
 try:
     from pysword import modules
@@ -470,7 +470,7 @@ class BibleImportForm(OpenLPWizard):
                         UiStrings().NFSs,
                         translate('BiblesPlugin.ImportWizardForm', 'You need to specify a file of Bible verses to '
                                                                    'import.'))
-                    self.csv_verses_path_edit.setFocus()
+                    self.csv_verses_pathedit.setFocus()
                     return False
             elif self.field('source_format') == BibleFormat.OpenSong:
                 if not self.field('opensong_file'):
@@ -653,23 +653,16 @@ class BibleImportForm(OpenLPWizard):
         Register the bible import wizard fields.
         """
         self.select_page.registerField('source_format', self.format_combo_box)
-        self.select_page.registerField('osis_location', self.osis_path_edit, 'path', self.osis_path_edit.pathChanged)
-        self.select_page.registerField('csv_booksfile', self.csv_books_path_edit, 'path',
-                                       self.csv_books_path_edit.pathChanged)
-        self.select_page.registerField('csv_versefile', self.csv_verses_path_edit, 'path',
-                                       self.csv_verses_path_edit.pathChanged)
-        self.select_page.registerField('opensong_file', self.open_song_path_edit, 'path',
-                                       self.open_song_path_edit.pathChanged)
-        self.select_page.registerField('zefania_file', self.zefania_path_edit, 'path',
-                                       self.zefania_path_edit.pathChanged)
-        self.select_page.registerField('wordproject_file', self.wordproject_path_edit, 'path',
-                                       self.wordproject_path_edit.pathChanged)
+        self.select_page.registerField('osis_location', self.osis_path_edit, 'path', PathEdit.pathChanged)
+        self.select_page.registerField('csv_booksfile', self.csv_books_path_edit, 'path', PathEdit.pathChanged)
+        self.select_page.registerField('csv_versefile', self.csv_verses_path_edit, 'path', PathEdit.pathChanged)
+        self.select_page.registerField('opensong_file', self.open_song_path_edit, 'path', PathEdit.pathChanged)
+        self.select_page.registerField('zefania_file', self.zefania_path_edit, 'path', PathEdit.pathChanged)
+        self.select_page.registerField('wordproject_file', self.wordproject_path_edit, 'path', PathEdit.pathChanged)
         self.select_page.registerField('web_location', self.web_source_combo_box)
         self.select_page.registerField('web_biblename', self.web_translation_combo_box)
-        self.select_page.registerField('sword_folder_path', self.sword_folder_path_edit, 'path',
-                                       self.sword_folder_path_edit.pathChanged)
-        self.select_page.registerField('sword_zip_path', self.sword_zipfile_path_edit, 'path',
-                                       self.sword_zipfile_path_edit.pathChanged)
+        self.select_page.registerField('sword_folder_path', self.sword_folder_path_edit, 'path', PathEdit.pathChanged)
+        self.select_page.registerField('sword_zip_path', self.sword_zipfile_path_edit, 'path', PathEdit.pathChanged)
         self.license_details_page.registerField('license_version', self.version_name_edit)
         self.license_details_page.registerField('license_copyright', self.copyright_edit)
         self.license_details_page.registerField('license_permissions', self.permissions_edit)
@@ -682,8 +675,14 @@ class BibleImportForm(OpenLPWizard):
         self.restart()
         self.finish_button.setVisible(False)
         self.cancel_button.setVisible(True)
-        # The PathEdit fields are not initialised since that does not work well with the UI Internals
         self.setField('source_format', 0)
+        self.setField('osis_location', None)
+        self.setField('csv_booksfile', None)
+        self.setField('csv_versefile', None)
+        self.setField('opensong_file', None)
+        self.setField('zefania_file', None)
+        self.setField('sword_folder_path', None)
+        self.setField('sword_zip_path', None)
         self.setField('web_location', WebDownload.Crosswalk)
         self.setField('web_biblename', self.web_translation_combo_box.currentIndex())
         self.setField('license_version', self.version_name_edit.text())

@@ -1,0 +1,49 @@
+alembic
+beautifulsoup4
+chardet
+dbus-python  # (Linux only)
+distro  # (Linux only)
+flask
+flask-cors
+lxml
+Mako
+packaging
+platformdirs
+PyICU
+# pyobjc  # (macOS only)
+# pyobjc-framework-Cocoa  # (macOS only)
+PyQt5==5.15.10
+PyQt5-Qt5==5.15.14
+PyQt5-sip==12.13.0
+PyQtWebEngine==5.15.6
+PyQtWebEngine-Qt5==5.15.14
+# Pyro5  # (macOS only)
+# pywin32  # (Windows only)
+QtAwesome
+qrcode
+requests
+SQLAlchemy
+waitress
+websockets
+PyMuPDF
+QDarkStyle
+PyMySQL
+pyodbc
+psycopg2
+pyenchant >= 1.6
+huggingface_hub
+pysword
+sentence-transformers
+PyMuPDF
+pyodbc
+pysword
+pytest
+pytest-qt
+flake8
+pytest-runner
+tensorflow
+tensorflow-hub
+tensorflow-text
+openai-whisper
+# deepspeech
+speechbrain

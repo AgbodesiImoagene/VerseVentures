@@ -24,7 +24,7 @@ OpenLyrics format.
 """
 import logging
 
-from PySide6 import QtCore, QtWidgets, QtGui
+from PyQt5 import QtCore, QtWidgets, QtGui
 
 from openlp.core.common.i18n import UiStrings, translate
 from openlp.core.common.registry import Registry
@@ -181,8 +181,8 @@ class SongExportForm(OpenLPWizard):
             # Add the songs to the list of selected songs.
             for item in items:
                 song = QtWidgets.QListWidgetItem(item.text())
-                song.setData(QtCore.Qt.ItemDataRole.UserRole, item.data(QtCore.Qt.ItemDataRole.UserRole))
-                song.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
+                song.setData(QtCore.Qt.UserRole, item.data(QtCore.Qt.UserRole))
+                song.setFlags(QtCore.Qt.ItemIsEnabled)
                 self.selected_list_widget.addItem(song)
             return True
         elif self.currentPage() == self.export_song_page:
@@ -225,11 +225,9 @@ class SongExportForm(OpenLPWizard):
             title = '{title} ({author})'.format(title=song.title,
                                                 author=create_separated_list(authors))
             item = QtWidgets.QListWidgetItem(title)
-            item.setData(QtCore.Qt.ItemDataRole.UserRole, song)
-            item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable |
-                          QtCore.Qt.ItemFlag.ItemIsUserCheckable |
-                          QtCore.Qt.ItemFlag.ItemIsEnabled)
-            item.setCheckState(QtCore.Qt.CheckState.Unchecked)
+            item.setData(QtCore.Qt.UserRole, song)
+            item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled)
+            item.setCheckState(QtCore.Qt.Unchecked)
             self.available_list_widget.addItem(item)
         self.application.set_normal_cursor()
 
@@ -246,7 +244,7 @@ class SongExportForm(OpenLPWizard):
         Perform the actual export. This creates an *openlyricsexport* instance and calls the *do_export* method.
         """
         songs = [
-            song.data(QtCore.Qt.ItemDataRole.UserRole)
+            song.data(QtCore.Qt.UserRole)
             for song in find_list_widget_items(self.selected_list_widget)
         ]
         exporter = OpenLyricsExport(self, songs, self.output_directory_path_edit.path)
@@ -282,7 +280,7 @@ class SongExportForm(OpenLPWizard):
         for row in range(self.available_list_widget.count()):
             item = self.available_list_widget.item(row)
             if not item.isHidden():
-                item.setCheckState(QtCore.Qt.CheckState.Unchecked)
+                item.setCheckState(QtCore.Qt.Unchecked)
 
     def on_check_button_clicked(self):
         """
@@ -291,7 +289,7 @@ class SongExportForm(OpenLPWizard):
         for row in range(self.available_list_widget.count()):
             item = self.available_list_widget.item(row)
             if not item.isHidden():
-                item.setCheckState(QtCore.Qt.CheckState.Checked)
+                item.setCheckState(QtCore.Qt.Checked)
 
     def provide_help(self):
         """
@@ -308,7 +306,7 @@ def find_list_widget_items(list_widget, text=''):
     :param text: The text to search for. (unicode string)
     """
     return [
-        item for item in list_widget.findItems(text, QtCore.Qt.MatchFlag.MatchContains)
+        item for item in list_widget.findItems(text, QtCore.Qt.MatchContains)
     ]
 
 
@@ -320,4 +318,4 @@ def on_item_activated(item):
 
     :param item:  The *QListWidgetItem* which was triggered.
     """
-    item.setCheckState(QtCore.Qt.CheckState.Unchecked if item.checkState() else QtCore.Qt.CheckState.Checked)
+    item.setCheckState(QtCore.Qt.Unchecked if item.checkState() else QtCore.Qt.Checked)

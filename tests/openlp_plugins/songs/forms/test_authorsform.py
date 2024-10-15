@@ -24,7 +24,7 @@ Package to test the openlp.plugins.songs.forms.authorsform package.
 import pytest
 from unittest.mock import patch
 
-from PySide6 import QtWidgets
+from PyQt5 import QtWidgets
 
 from openlp.core.common.registry import Registry
 from openlp.plugins.songs.forms.authorsform import AuthorsForm
@@ -277,7 +277,7 @@ def test_accept_no_display_name_no_combine(mocked_critical_error, form):
     Test the accept() method with no display name and no combining
     """
     # GIVEN: A form and no text in the display name edit
-    mocked_critical_error.return_value = QtWidgets.QMessageBox.StandardButton.No
+    mocked_critical_error.return_value = QtWidgets.QMessageBox.No
     with patch.object(form.first_name_edit, 'text') as mocked_first_name_edit_text, \
             patch.object(form.last_name_edit, 'text') as mocked_last_name_edit_text, \
             patch.object(form.display_edit, 'text') as mocked_display_edit_text, \
@@ -308,7 +308,7 @@ def test_accept_no_display_name(mocked_accept, mocked_critical_error, form):
     """
     # GIVEN: A form and no text in the display name edit
     mocked_accept.return_value = True
-    mocked_critical_error.return_value = QtWidgets.QMessageBox.StandardButton.Yes
+    mocked_critical_error.return_value = QtWidgets.QMessageBox.Yes
     with patch.object(form.first_name_edit, 'text') as mocked_first_name_edit_text, \
             patch.object(form.last_name_edit, 'text') as mocked_last_name_edit_text, \
             patch.object(form.display_edit, 'text') as mocked_display_edit_text, \

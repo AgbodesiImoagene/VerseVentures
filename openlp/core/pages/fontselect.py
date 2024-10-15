@@ -21,7 +21,7 @@
 """
 The :mod:`~openlp.core.pages.fontselect` module contains the font selection page used in the theme wizard
 """
-from PySide6 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from openlp.core.common.i18n import UiStrings, translate
 from openlp.core.pages import GridLayoutPage
@@ -39,19 +39,19 @@ class FontSelectPage(GridLayoutPage):
     LineSpacing = 'line_spacing'
     LetterSpacing = 'letter_spacing'
 
-    font_name_changed = QtCore.Signal(str)
-    font_size_changed = QtCore.Signal(int)
-    font_color_changed = QtCore.Signal(str)
-    is_bold_changed = QtCore.Signal(bool)
-    is_italic_changed = QtCore.Signal(bool)
-    line_spacing_changed = QtCore.Signal(int)
-    letter_spacing_changed = QtCore.Signal(int)
-    is_outline_enabled_changed = QtCore.Signal(bool)
-    outline_color_changed = QtCore.Signal(str)
-    outline_size_changed = QtCore.Signal(int)
-    is_shadow_enabled_changed = QtCore.Signal(bool)
-    shadow_color_changed = QtCore.Signal(str)
-    shadow_size_changed = QtCore.Signal(int)
+    font_name_changed = QtCore.pyqtSignal(str)
+    font_size_changed = QtCore.pyqtSignal(int)
+    font_color_changed = QtCore.pyqtSignal(str)
+    is_bold_changed = QtCore.pyqtSignal(bool)
+    is_italic_changed = QtCore.pyqtSignal(bool)
+    line_spacing_changed = QtCore.pyqtSignal(int)
+    letter_spacing_changed = QtCore.pyqtSignal(int)
+    is_outline_enabled_changed = QtCore.pyqtSignal(bool)
+    outline_color_changed = QtCore.pyqtSignal(str)
+    outline_size_changed = QtCore.pyqtSignal(int)
+    is_shadow_enabled_changed = QtCore.pyqtSignal(bool)
+    shadow_color_changed = QtCore.pyqtSignal(str)
+    shadow_size_changed = QtCore.pyqtSignal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)

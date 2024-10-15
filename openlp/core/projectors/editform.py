@@ -24,7 +24,7 @@ database.
 """
 import logging
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common import verify_ip_address, Singleton
 from openlp.core.common.i18n import translate
@@ -179,7 +179,7 @@ class Ui_ProjectorEditForm(object):
         self.notes_label.setObjectName('projector_edit_notes_label')
         self.notes_text = QtWidgets.QPlainTextEdit(edit_projector_dialog)
         self.notes_text.setObjectName('projector_edit_notes_text')
-        self.dialog_layout.addWidget(self.notes_label, _row, 0, alignment=QtCore.Qt.AlignmentFlag.AlignTop)
+        self.dialog_layout.addWidget(self.notes_label, _row, 0, alignment=QtCore.Qt.AlignTop)
         self.dialog_layout.addWidget(self.notes_text, _row, 1)
         # Time for the buttons
         self.button_box_edit = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.StandardButton.Help |
@@ -223,16 +223,16 @@ class ProjectorEditForm(QtWidgets.QDialog, Ui_ProjectorEditForm):
         location = Column(String(30))
         notes = Column(String(200))
     """
-    updateProjectors = QtCore.Signal()
+    updateProjectors = QtCore.pyqtSignal()
 
     def __init__(self, parent=None, projectordb=None):
         self.parent = parent
         self.projectordb = projectordb
         self.new_projector = False
         super(ProjectorEditForm, self).__init__(parent,
-                                                QtCore.Qt.WindowType.WindowSystemMenuHint |
-                                                QtCore.Qt.WindowType.WindowTitleHint |
-                                                QtCore.Qt.WindowType.WindowCloseButtonHint)
+                                                QtCore.Qt.WindowSystemMenuHint |
+                                                QtCore.Qt.WindowTitleHint |
+                                                QtCore.Qt.WindowCloseButtonHint)
         self.setup_ui(self)
         self.button_box_edit.accepted.connect(self.accept_me)
         self.button_box_edit.helpRequested.connect(self.help_me)
@@ -265,7 +265,7 @@ class ProjectorEditForm(QtWidgets.QDialog, Ui_ProjectorEditForm):
         reply = QtWidgets.QDialog.exec(self)
         return reply
 
-    @QtCore.Slot()
+    @QtCore.pyqtSlot()
     def accept_me(self):
         """
         Validate inputs before accepting.
@@ -343,14 +343,14 @@ class ProjectorEditForm(QtWidgets.QDialog, Ui_ProjectorEditForm):
         self.projector = None
         self.close()
 
-    @QtCore.Slot()
+    @QtCore.pyqtSlot()
     def help_me(self):
         """
         Show a help message about the input fields.
         """
         log.debug('help_me() signal received')
 
-    @QtCore.Slot()
+    @QtCore.pyqtSlot()
     def cancel_me(self):
         """
         Cancel button clicked - just close.

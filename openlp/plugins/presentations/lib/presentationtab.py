@@ -19,7 +19,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtWidgets
 
 from openlp.core.common.i18n import UiStrings, translate
 from openlp.core.lib.settingstab import SettingsTab
@@ -131,23 +131,19 @@ class PresentationTab(SettingsTab):
         for key in self.controllers:
             controller = self.controllers[key]
             checkbox = self.presenter_check_boxes[controller.name]
-            checkbox.setChecked(self.settings.value('presentations/' + controller.name) == QtCore.Qt.CheckState.Checked)
+            checkbox.setChecked(self.settings.value('presentations/' + controller.name))
             if controller.name == 'Powerpoint' and controller.is_available():
                 powerpoint_available = True
             if controller.name == 'Impress' and controller.is_available():
                 impress_available = True
-        self.override_app_check_box.setChecked(
-            self.settings.value('presentations/override app') == QtCore.Qt.CheckState.Checked)
+        self.override_app_check_box.setChecked(self.settings.value('presentations/override app'))
         # Load PowerPoint settings
-        self.ppt_slide_click_check_box.setChecked(
-            self.settings.value('presentations/powerpoint slide click advance') == QtCore.Qt.CheckState.Checked)
+        self.ppt_slide_click_check_box.setChecked(self.settings.value('presentations/powerpoint slide click advance'))
         self.ppt_slide_click_check_box.setEnabled(powerpoint_available)
-        self.ppt_window_check_box.setChecked(
-            self.settings.value('presentations/powerpoint control window') == QtCore.Qt.CheckState.Checked)
+        self.ppt_window_check_box.setChecked(self.settings.value('presentations/powerpoint control window'))
         self.ppt_window_check_box.setEnabled(powerpoint_available)
         # Load Impress settings
-        self.odp_display_check_box.setChecked(
-            self.settings.value('presentations/impress use display setting') == QtCore.Qt.CheckState.Checked)
+        self.odp_display_check_box.setChecked(self.settings.value('presentations/impress use display setting'))
         self.odp_display_check_box.setEnabled(impress_available)
 
     def save(self):
@@ -189,6 +185,7 @@ class PresentationTab(SettingsTab):
             self.settings.setValue(setting_key, self.odp_display_check_box.checkState())
             changed = True
         if changed:
+            self.settings_form.register_post_process('mediaitem_suffix_reset')
             self.settings_form.register_post_process('mediaitem_presentation_rebuild')
             self.settings_form.register_post_process('mediaitem_suffixes')
 

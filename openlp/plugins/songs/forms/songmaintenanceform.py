@@ -20,7 +20,7 @@
 ##########################################################################
 import logging
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 from sqlalchemy.sql import and_
 
 from openlp.core.common.i18n import UiStrings, get_natural_key, translate
@@ -46,10 +46,8 @@ class SongMaintenanceForm(QtWidgets.QDialog, Ui_SongMaintenanceDialog, RegistryP
         """
         Constructor
         """
-        super(SongMaintenanceForm, self).__init__(parent,
-                                                  QtCore.Qt.WindowType.WindowSystemMenuHint |
-                                                  QtCore.Qt.WindowType.WindowTitleHint |
-                                                  QtCore.Qt.WindowType.WindowCloseButtonHint)
+        super(SongMaintenanceForm, self).__init__(parent, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint |
+                                                  QtCore.Qt.WindowCloseButtonHint)
         self.setup_ui(self)
         self.manager = manager
         self.author_form = AuthorsForm(self)
@@ -100,7 +98,7 @@ class SongMaintenanceForm(QtWidgets.QDialog, Ui_SongMaintenanceDialog, RegistryP
         """
         item = list_widget.currentItem()
         if item:
-            item_id = (item.data(QtCore.Qt.ItemDataRole.UserRole))
+            item_id = (item.data(QtCore.Qt.UserRole))
             return item_id
         else:
             return -1
@@ -118,8 +116,7 @@ class SongMaintenanceForm(QtWidgets.QDialog, Ui_SongMaintenanceDialog, RegistryP
             song_titles = [song.title for song in item.songs]
             if song_titles:
                 critical_error_message_box(dlg_title, err_text + '\n\n' + '\n'.join(song_titles))
-            elif (critical_error_message_box(dlg_title, del_text, self, True) ==
-                  QtWidgets.QMessageBox.StandardButton.Yes):
+            elif critical_error_message_box(dlg_title, del_text, self, True) == QtWidgets.QMessageBox.Yes:
                 self.manager.delete_object(item_class, item.id)
                 reset_func()
         else:
@@ -141,7 +138,7 @@ class SongMaintenanceForm(QtWidgets.QDialog, Ui_SongMaintenanceDialog, RegistryP
                 author_name = QtWidgets.QListWidgetItem(author.display_name)
             else:
                 author_name = QtWidgets.QListWidgetItem(' '.join([author.first_name, author.last_name]))
-            author_name.setData(QtCore.Qt.ItemDataRole.UserRole, author.id)
+            author_name.setData(QtCore.Qt.UserRole, author.id)
             self.authors_list_widget.addItem(author_name)
 
     def reset_topics(self):
@@ -157,7 +154,7 @@ class SongMaintenanceForm(QtWidgets.QDialog, Ui_SongMaintenanceDialog, RegistryP
         topics.sort(key=get_topic_key)
         for topic in topics:
             topic_name = QtWidgets.QListWidgetItem(topic.name)
-            topic_name.setData(QtCore.Qt.ItemDataRole.UserRole, topic.id)
+            topic_name.setData(QtCore.Qt.UserRole, topic.id)
             self.topics_list_widget.addItem(topic_name)
 
     def reset_song_books(self):
@@ -174,7 +171,7 @@ class SongMaintenanceForm(QtWidgets.QDialog, Ui_SongMaintenanceDialog, RegistryP
         for book in books:
             book_name = QtWidgets.QListWidgetItem('{name} ({publisher})'.format(name=book.name,
                                                                                 publisher=book.publisher))
-            book_name.setData(QtCore.Qt.ItemDataRole.UserRole, book.id)
+            book_name.setData(QtCore.Qt.UserRole, book.id)
             self.song_books_list_widget.addItem(book_name)
 
     def check_author_exists(self, new_author, edit=False):
@@ -324,7 +321,7 @@ class SongMaintenanceForm(QtWidgets.QDialog, Ui_SongMaintenanceDialog, RegistryP
                         'SongsPlugin.SongMaintenanceForm',
                         'The author {original} already exists. Would you like to make songs with author {new} use the '
                         'existing author {original}?').format(original=author.display_name, new=temp_display_name),
-                    parent=self, question=True) == QtWidgets.QMessageBox.StandardButton.Yes:
+                    parent=self, question=True) == QtWidgets.QMessageBox.Yes:
                 self._merge_objects(author, self.merge_authors, self.reset_authors)
             else:
                 # We restore the author's old first and last name as well as
@@ -360,7 +357,7 @@ class SongMaintenanceForm(QtWidgets.QDialog, Ui_SongMaintenanceDialog, RegistryP
                                       'The topic {original} already exists. Would you like to make songs with '
                                       'topic {new} use the existing topic {original}?').format(original=topic.name,
                                                                                                new=temp_name),
-                    parent=self, question=True) == QtWidgets.QMessageBox.StandardButton.Yes:
+                    parent=self, question=True) == QtWidgets.QMessageBox.Yes:
                 self._merge_objects(topic, self.merge_topics, self.reset_topics)
             else:
                 # We restore the topics's old name.
@@ -399,7 +396,7 @@ class SongMaintenanceForm(QtWidgets.QDialog, Ui_SongMaintenanceDialog, RegistryP
                                       'The book {original} already exists. Would you like to make songs with '
                                       'book {new} use the existing book {original}?').format(original=book.name,
                                                                                              new=temp_name),
-                    parent=self, question=True) == QtWidgets.QMessageBox.StandardButton.Yes:
+                    parent=self, question=True) == QtWidgets.QMessageBox.Yes:
                 self._merge_objects(book, self.merge_song_books, self.reset_song_books)
             else:
                 # We restore the book's old name and publisher.

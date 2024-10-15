@@ -24,7 +24,7 @@ Module to test the EditCustomForm.
 import pytest
 from unittest.mock import MagicMock, patch
 
-from PySide6 import QtCore, QtTest, QtWidgets
+from PyQt5 import QtCore, QtTest, QtWidgets
 
 from openlp.plugins.custom.forms.editcustomform import EditCustomForm
 
@@ -71,9 +71,9 @@ def test_on_add_button_clicked(form):
     Test the on_add_button_clicked_test method / add_button button.
     """
     # GIVEN: A mocked QDialog.exec() method
-    with patch('PySide6.QtWidgets.QDialog.exec'):
+    with patch('PyQt5.QtWidgets.QDialog.exec'):
         # WHEN: Add a new slide.
-        QtTest.QTest.mouseClick(form.add_button, QtCore.Qt.MouseButton.LeftButton)
+        QtTest.QTest.mouseClick(form.add_button, QtCore.Qt.LeftButton)
 
         # THEN: One slide should be added.
         assert form.slide_list_view.count() == 1, 'There should be one slide added.'
@@ -145,7 +145,7 @@ def test_help(mocked_help, settings):
 
     # WHEN: The Help button is clicked
     QtTest.QTest.mouseClick(custom_form.button_box.button(QtWidgets.QDialogButtonBox.StandardButton.Help),
-                            QtCore.Qt.MouseButton.LeftButton)
+                            QtCore.Qt.LeftButton)
 
     # THEN: The Help function should be called
     mocked_help.assert_called_once()

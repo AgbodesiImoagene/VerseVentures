@@ -23,7 +23,7 @@ Package to test the openlp.plugins.songs.forms.topicsform package.
 """
 import pytest
 
-from PySide6 import QtWidgets
+from PyQt5 import QtWidgets
 
 from openlp.core.common.registry import Registry
 from openlp.plugins.songs.forms.topicsform import TopicsForm

@@ -24,7 +24,7 @@ Package to test the :mod:`~openlp.core.ui.serviceitemeditform` package.
 import pytest
 from unittest.mock import MagicMock, call, patch
 
-from PySide6 import QtCore, QtTest
+from PyQt5 import QtCore, QtTest
 
 from openlp.core.common.registry import Registry
 from openlp.core.common.settings import Settings
@@ -44,8 +44,8 @@ def test_basic_display(form: ServiceItemEditForm):
     # WHEN: Displaying the UI
     with patch('openlp.core.ui.serviceitemeditform.QtWidgets.QDialog.exec'):
         form.exec()
-    ok_widget = form.button_box.button(form.button_box.StandardButton.Save)
-    QtTest.QTest.mouseClick(ok_widget, QtCore.Qt.MouseButton.LeftButton)
+    ok_widget = form.button_box.button(form.button_box.Save)
+    QtTest.QTest.mouseClick(ok_widget, QtCore.Qt.LeftButton)
 
     # THEN: Everything should be fine
     assert form.item_list == [], 'The item list should be empty'

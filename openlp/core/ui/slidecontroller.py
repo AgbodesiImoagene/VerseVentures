@@ -27,7 +27,7 @@ from collections import deque
 from pathlib import Path, PurePath
 from threading import Lock
 
-from PySide6 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from openlp.core.common import SlideLimits
 from openlp.core.common.actions import ActionList, CategoryOrder
@@ -45,7 +45,7 @@ from openlp.core.lib.ui import create_action
 from openlp.core.state import State
 from openlp.core.ui import DisplayControllerType, HideMode
 from openlp.core.ui.icons import UiIcons
-from openlp.core.ui.media import MediaPlayItem, media_empty_song
+from openlp.core.ui.media import media_empty_song
 from openlp.core.widgets.layouts import AspectRatioLayout
 from openlp.core.widgets.toolbar import MediaToolbar, OpenLPToolbar
 from openlp.core.widgets.views import ListPreviewWidget
@@ -87,8 +87,8 @@ class InfoLabel(QtWidgets.QLabel):
         """
         painter = QtGui.QPainter(self)
         metrics = QtGui.QFontMetrics(self.font())
-        elided = metrics.elidedText(self.text(), QtCore.Qt.TextElideMode.ElideRight, self.width())
-        painter.drawText(self.rect(), QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignVCenter, elided)
+        elided = metrics.elidedText(self.text(), QtCore.Qt.ElideRight, self.width())
+        painter.drawText(self.rect(), QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter, elided)
 
     def setText(self, text):
         """
@@ -104,7 +104,7 @@ class SlideController(QtWidgets.QWidget, LogMixin, RegistryProperties):
     user uses to control the displaying of verses/slides/etc on the screen.
     """
 
-    slidecontroller_changed = QtCore.Signal()
+    slidecontroller_changed = QtCore.pyqtSignal()
 
     def __init__(self, *args, **kwargs):
         """
@@ -115,9 +115,8 @@ class SlideController(QtWidgets.QWidget, LogMixin, RegistryProperties):
         self.controller_type = None
         self.displays = []
         self.screens = ScreenList()
-        self.media_player = None
-        self.audio_player = None
-        self.media_play_item = MediaPlayItem()
+        self.vlc_instance = None
+        self.media_info = None
         Registry().set_flag('has doubleclick added item to service', True)
         Registry().set_flag('replace service manager item', False)
 
@@ -217,7 +216,7 @@ class SlideController(QtWidgets.QWidget, LogMixin, RegistryProperties):
         self.top_icon = QtWidgets.QLabel()
         self.top_icon.setPixmap(pixmap)
         self.top_icon.setStyleSheet("padding: 0px 0px 0px 25px;")
-        self.top_icon.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.top_icon.setAlignment(QtCore.Qt.AlignCenter)
         self.type_label = QtWidgets.QLabel(self.panel)
         self.type_label.setStyleSheet('padding: 0px 2px 0px 2px; font-weight: bold;')
         if self.is_live:
@@ -233,13 +232,13 @@ class SlideController(QtWidgets.QWidget, LogMixin, RegistryProperties):
         self.top_label_horizontal.addWidget(self.info_label, stretch=1)
         # Splitter
         self.splitter = QtWidgets.QSplitter(self.panel)
-        self.splitter.setOrientation(QtCore.Qt.Orientation.Vertical)
+        self.splitter.setOrientation(QtCore.Qt.Vertical)
         self.panel_layout.addWidget(self.splitter)
         # Actual controller section
         self.controller = QtWidgets.QWidget(self.splitter)
         self.controller.setGeometry(QtCore.QRect(0, 0, 100, 536))
         self.controller.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred,
-                                                            QtWidgets.QSizePolicy.Policy.Expanding))
+                                                            QtWidgets.QSizePolicy.Policy.Maximum))
         self.controller_layout = QtWidgets.QVBoxLayout(self.controller)
         self.controller_layout.setSpacing(0)
         self.controller_layout.setContentsMargins(0, 0, 0, 0)
@@ -259,15 +258,14 @@ class SlideController(QtWidgets.QWidget, LogMixin, RegistryProperties):
                                            text=translate('OpenLP.SlideController', 'Previous Slide'),
                                            icon=UiIcons().arrow_up,
                                            tooltip=translate('OpenLP.SlideController', 'Move to previous.'),
-                                           can_shortcuts=True,
-                                           context=QtCore.Qt.ShortcutContext.WidgetWithChildrenShortcut,
+                                           can_shortcuts=True, context=QtCore.Qt.WidgetWithChildrenShortcut,
                                            category=self.category, triggers=self.on_slide_selected_previous)
         self.toolbar.addAction(self.previous_item)
         self.next_item = create_action(self, 'nextItem_' + self.type_prefix,
                                        text=translate('OpenLP.SlideController', 'Next Slide'),
                                        icon=UiIcons().arrow_down,
                                        tooltip=translate('OpenLP.SlideController', 'Move to next.'),
-                                       can_shortcuts=True, context=QtCore.Qt.ShortcutContext.WidgetWithChildrenShortcut,
+                                       can_shortcuts=True, context=QtCore.Qt.WidgetWithChildrenShortcut,
                                        category=self.category, triggers=self.on_slide_selected_next_action)
         self.toolbar.addAction(self.next_item)
         self.toolbar.addSeparator()
@@ -393,8 +391,8 @@ class SlideController(QtWidgets.QWidget, LogMixin, RegistryProperties):
         self.preview_frame.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Ignored,
                                                                QtWidgets.QSizePolicy.Policy.Ignored,
                                                                QtWidgets.QSizePolicy.ControlType.Label))
-        self.preview_frame.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
-        self.preview_frame.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
+        self.preview_frame.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.preview_frame.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.preview_frame.setObjectName('preview_frame')
         self.slide_layout = AspectRatioLayout(self.preview_frame, self.ratio)
         self.slide_layout.margin = 8
@@ -424,7 +422,7 @@ class SlideController(QtWidgets.QWidget, LogMixin, RegistryProperties):
             self.controller.addActions([create_action(self, 'shortcutAction_{key}'.format(key=s['key']),
                                                       text=s.get('text'),
                                                       can_shortcuts=True,
-                                                      context=QtCore.Qt.ShortcutContext.WidgetWithChildrenShortcut,
+                                                      context=QtCore.Qt.WidgetWithChildrenShortcut,
                                                       category=self.category if s.get('configurable') else None,
                                                       triggers=self._slide_shortcut_activated) for s in shortcuts])
             self.shortcut_timer.timeout.connect(self._slide_shortcut_activated)
@@ -566,14 +564,12 @@ class SlideController(QtWidgets.QWidget, LogMixin, RegistryProperties):
         """
         self.previous_service = create_action(parent, 'previousService',
                                               text=translate('OpenLP.SlideController', 'Previous Service'),
-                                              can_shortcuts=True,
-                                              context=QtCore.Qt.ShortcutContext.WidgetWithChildrenShortcut,
+                                              can_shortcuts=True, context=QtCore.Qt.WidgetWithChildrenShortcut,
                                               category=self.category,
                                               triggers=self.service_previous)
         self.next_service = create_action(parent, 'nextService',
                                           text=translate('OpenLP.SlideController', 'Next Service'),
-                                          can_shortcuts=True,
-                                          context=QtCore.Qt.ShortcutContext.WidgetWithChildrenShortcut,
+                                          can_shortcuts=True, context=QtCore.Qt.WidgetWithChildrenShortcut,
                                           category=self.category,
                                           triggers=self.service_next)
 
@@ -1347,7 +1343,7 @@ class SlideController(QtWidgets.QWidget, LogMixin, RegistryProperties):
         slide_ready_time = self.slide_changed_time + datetime.timedelta(seconds=slide_delay_time)
         return datetime.datetime.now() > slide_ready_time
 
-    @QtCore.Slot(result=str)
+    @QtCore.pyqtSlot(result=str)
     def grab_maindisplay(self) -> str:
         """
         Gets the last taken screenshot
@@ -1638,10 +1634,10 @@ class PreviewController(RegistryBase, SlideController):
     """
     Set up the Preview Controller.
     """
-    slidecontroller_preview_set = QtCore.Signal(list)
-    slidecontroller_preview_next = QtCore.Signal()
-    slidecontroller_preview_previous = QtCore.Signal()
-    slidecontroller_preview_clear = QtCore.Signal()
+    slidecontroller_preview_set = QtCore.pyqtSignal(list)
+    slidecontroller_preview_next = QtCore.pyqtSignal()
+    slidecontroller_preview_previous = QtCore.pyqtSignal()
+    slidecontroller_preview_clear = QtCore.pyqtSignal()
 
     def __init__(self, *args, **kwargs):
         """
@@ -1670,14 +1666,14 @@ class LiveController(RegistryBase, SlideController):
     """
     Set up the Live Controller.
     """
-    slidecontroller_live_set = QtCore.Signal(list)
-    slidecontroller_live_next = QtCore.Signal()
-    slidecontroller_live_previous = QtCore.Signal()
-    slidecontroller_toggle_display = QtCore.Signal(str)
-    slidecontroller_live_clear = QtCore.Signal()
-    mediacontroller_live_play = QtCore.Signal()
-    mediacontroller_live_pause = QtCore.Signal()
-    mediacontroller_live_stop = QtCore.Signal()
+    slidecontroller_live_set = QtCore.pyqtSignal(list)
+    slidecontroller_live_next = QtCore.pyqtSignal()
+    slidecontroller_live_previous = QtCore.pyqtSignal()
+    slidecontroller_toggle_display = QtCore.pyqtSignal(str)
+    slidecontroller_live_clear = QtCore.pyqtSignal()
+    mediacontroller_live_play = QtCore.pyqtSignal()
+    mediacontroller_live_pause = QtCore.pyqtSignal()
+    mediacontroller_live_stop = QtCore.pyqtSignal()
 
     def __init__(self, *args, **kwargs):
         """

@@ -27,7 +27,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from lxml import etree, objectify
-from PySide6.QtWidgets import QDialog
+from PyQt5.QtWidgets import QDialog
 
 from openlp.core.common.i18n import Language
 from openlp.core.common.registry import Registry
@@ -296,7 +296,7 @@ def test_get_book_ref_id_by_name_get_book_reference_id(MockAlterativeBookNamesDB
 @patch('openlp.plugins.bibles.lib.bibleimport.AlternativeBookNamesDB',
        **{'get_book_reference_id.return_value': None})
 @patch('openlp.plugins.bibles.forms.BookNameForm',
-       return_value=MagicMock(**{'exec.return_value': QDialog.DialogCode.Rejected}))
+       return_value=MagicMock(**{'exec.return_value': QDialog.Rejected}))
 def test_get_book_ref_id_by_name_book_name_form_rejected(MockBookNameForm, MockAlterativeBookNamesDB,
                                                          MockBibleResourcesDB, mocked_get_books, mocked_log_debug,
                                                          mocked_setup, registry):
@@ -320,7 +320,7 @@ def test_get_book_ref_id_by_name_book_name_form_rejected(MockBookNameForm, MockA
 @patch('openlp.plugins.bibles.lib.bibleimport.AlternativeBookNamesDB',
        **{'get_book_reference_id.return_value': None})
 @patch('openlp.plugins.bibles.forms.BookNameForm',
-       return_value=MagicMock(**{'exec.return_value': QDialog.DialogCode.Accepted, 'book_id': 50}))
+       return_value=MagicMock(**{'exec.return_value': QDialog.Accepted, 'book_id': 50}))
 def test_get_book_ref_id_by_name_book_name_form_accepted(MockBookNameForm, MockAlterativeBookNamesDB,
                                                          MockBibleResourcesDB, mocked_get_books, mocked_log_debug,
                                                          mocked_setup, registry):

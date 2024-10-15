@@ -23,7 +23,7 @@ The :mod:`upgrade` module provides a way for the database and schema that is the
 """
 import logging
 
-from PySide6 import QtWidgets
+from PyQt5 import QtWidgets
 from sqlalchemy import Table
 from sqlalchemy.sql.expression import delete, select
 
@@ -66,7 +66,7 @@ def upgrade_2(session, metadata):
         msg_box.setText(translate('BiblesPlugin', f'The proxy server {proxy} was found in the bible {name}.<br>'
                                                   f'Would you like to set it as the proxy for OpenLP?'))
         msg_box.setIcon(QtWidgets.QMessageBox.Icon.Question)
-        msg_box.addButton(QtWidgets.QMessageBox.StandardButton.No)
+        msg_box.addButton(QtWidgets.QMessageBox.No)
         http_button = msg_box.addButton('http', QtWidgets.QMessageBox.ButtonRole.ActionRole)
         both_button = msg_box.addButton(translate('BiblesPlugin', 'both'), QtWidgets.QMessageBox.ButtonRole.ActionRole)
         https_button = msg_box.addButton('https', QtWidgets.QMessageBox.ButtonRole.ActionRole)

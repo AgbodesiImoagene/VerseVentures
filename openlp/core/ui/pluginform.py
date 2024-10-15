@@ -23,7 +23,7 @@ The actual plugin view form
 """
 import logging
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.state import State
 from openlp.core.common.i18n import translate
@@ -43,10 +43,8 @@ class PluginForm(QtWidgets.QDialog, Ui_PluginViewDialog, RegistryProperties):
         """
         Constructor
         """
-        super(PluginForm, self).__init__(parent,
-                                         QtCore.Qt.WindowType.WindowSystemMenuHint |
-                                         QtCore.Qt.WindowType.WindowTitleHint |
-                                         QtCore.Qt.WindowType.WindowCloseButtonHint)
+        super(PluginForm, self).__init__(parent, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint |
+                                         QtCore.Qt.WindowCloseButtonHint)
         self.active_plugin = None
         self.programmatic_change = False
         self.setup_ui(self)

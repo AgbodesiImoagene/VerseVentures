@@ -22,7 +22,7 @@
 """
 Provide a custom widget based on QPushButton for the selection of colors
 """
-from PySide6 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from openlp.core.common.i18n import translate
 
@@ -32,7 +32,7 @@ class ColorButton(QtWidgets.QPushButton):
     Subclasses QPushbutton to create a "Color Chooser" button
     """
 
-    colorChanged = QtCore.Signal(str)
+    colorChanged = QtCore.pyqtSignal(str)
 
     def __init__(self, parent=None):
         """

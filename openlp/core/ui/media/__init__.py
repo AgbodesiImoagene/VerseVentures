@@ -23,27 +23,22 @@ The :mod:`~openlp.core.ui.media` module contains classes and objects for media p
 """
 import logging
 
-from PySide6.QtMultimedia import QMediaFormat
-
 from openlp.core.common.registry import Registry
 
 log = logging.getLogger(__name__ + '.__init__')
 
-
-def get_supported_media_suffix() -> tuple[list, list]:
-    """
-    Provide a list of suffixes the Media input dialog to use for selection
-    """
-    # Hardcode mp3 until QT bUG 126143 lands
-    a_suffixes = ['*.mp3']
-    v_suffixes = ['']
-    for f in QMediaFormat().supportedFileFormats(QMediaFormat.Decode):
-        mime_type = QMediaFormat(f).mimeType()
-        if 'video' in mime_type.name():
-            v_suffixes += [f'*.{s}' for s in mime_type.suffixes()]
-        else:
-            a_suffixes += [f'*.{s}' for s in mime_type.suffixes()]
-    return a_suffixes, v_suffixes
+# Audio and video extensions copied from 'include/vlc_interface.h' from vlc 2.2.0 source
+AUDIO_EXT = ['*.3ga', '*.669', '*.a52', '*.aac', '*.ac3', '*.adt', '*.adts', '*.aif', '*.aifc', '*.aiff', '*.amr',
+             '*.aob', '*.ape', '*.awb', '*.caf', '*.dts', '*.flac', '*.it', '*.kar', '*.m4a', '*.m4b', '*.m4p', '*.m5p',
+             '*.mid', '*.mka', '*.mlp', '*.mod', '*.mpa', '*.mp1', '*.mp2', '*.mp3', '*.mpc', '*.mpga', '*.mus',
+             '*.oga', '*.ogg', '*.oma', '*.opus', '*.qcp', '*.ra', '*.rmi', '*.s3m', '*.sid', '*.spx', '*.thd', '*.tta',
+             '*.voc', '*.vqf', '*.w64', '*.wav', '*.wma', '*.wv', '*.xa', '*.xm']
+VIDEO_EXT = ['*.3g2', '*.3gp', '*.3gp2', '*.3gpp', '*.amv', '*.asf', '*.avi', '*.bik', '*.divx', '*.drc', '*.dv',
+             '*.f4v', '*.flv', '*.gvi', '*.gxf', '*.iso', '*.m1v', '*.m2v', '*.m2t', '*.m2ts', '*.m4v', '*.mkv',
+             '*.mov', '*.mp2', '*.mp2v', '*.mp4', '*.mp4v', '*.mpe', '*.mpeg', '*.mpeg1', '*.mpeg2', '*.mpeg4', '*.mpg',
+             '*.mpv2', '*.mts', '*.mtv', '*.mxf', '*.mxg', '*.nsv', '*.nuv', '*.ogg', '*.ogm', '*.ogv', '*.ogx', '*.ps',
+             '*.rec', '*.rm', '*.rmvb', '*.rpl', '*.thp', '*.tod', '*.ts', '*.tts', '*.txd', '*.vob', '*.vro', '*.webm',
+             '*.wm', '*.wmv', '*.wtv', '*.xesc', '*.nut', '*.rv', '*.xvid']
 
 
 class MediaState(object):
@@ -57,6 +52,21 @@ class MediaState(object):
     Stopped = 4
 
 
+class VlCState(object):
+    """
+    A copy of the VLC States to allow for readable code
+    From https://www.olivieraubert.net/vlc/python-ctypes/doc/vlc.State-class.html
+    """
+    NothingSpecial = 0
+    Opening = 1
+    Buffering = 2
+    Playing = 3
+    Paused = 4
+    Stopped = 5
+    Ended = 6
+    Error = 7
+
+
 class MediaType(object):
     """
     An enumeration of possible Media Types
@@ -64,29 +74,28 @@ class MediaType(object):
     Unused = 0
     Audio = 1
     Video = 2
-    Dual = 3
-    DeviceStream = 4
-    NetworkStream = 5
+    CD = 3
+    DVD = 4
+    Folder = 5
+    Stream = 6
 
 
-class MediaPlayItem(object):
+class ItemMediaInfo(object):
     """
     This class hold the media related info
     """
-    external_stream = []  # for remote things like USB Cameras
-    audio_file = None  # for song Audio files when we have background videos
-    media_file = None  # for standalone media
+    file_info = None
     is_background = False
-    is_theme_background = False
+    is_theme_background = None
     length = 0
     start_time = 0
     end_time = 0
-    is_playing = MediaState.Off
+    title_track = 0
+    is_playing = False
     timer = 1000
-    media_type = MediaType().Unused
-    media_autostart = False
-    audio_autostart = False
-    request_play = False  # On Load do I reun play
+    audio_track = 0
+    subtitle_track = 0
+    media_type = MediaType()
 
 
 def get_volume(controller) -> int:
@@ -116,7 +125,7 @@ def save_volume(controller, volume: int) -> None:
         return Registry().get('settings').setValue('media/preview volume', volume)
 
 
-def saved_looping_playback(controller) -> bool:
+def is_looping_playback(controller) -> bool:
     """
     :param controller: the controller in use
     :return: Are we looping
@@ -140,26 +149,44 @@ def toggle_looping_playback(controller) -> None:
                                             not Registry().get('settings').value('media/preview loop'))
 
 
+def parse_optical_path(input_string):
+    """
+    Split the optical path info.
+
+    :param input_string: The string to parse
+    :return: The elements extracted from the string:  filename, title, audio_track, subtitle_track, start, end
+    """
+    log.debug('parse_optical_path, about to parse: "{text}"'.format(text=input_string))
+    clip_info = input_string.split(sep=':')
+    title = str(clip_info[1])
+    audio_track = int(clip_info[2])
+    subtitle_track = int(clip_info[3])
+    start = float(clip_info[4])
+    end = float(clip_info[5])
+    clip_name = clip_info[6]
+    filename = clip_info[7]
+    # Windows path usually contains a colon after the drive letter
+    if len(clip_info) > 8:
+        filename += ':' + clip_info[8]
+    return filename, title, audio_track, subtitle_track, start, end, clip_name
+
+
 def parse_stream_path(input_string):
     """
     Split the device stream path info.
 
     :param input_string: The string to parse
-    :return: The elements extracted from the string:  type, streamname, MRL, VLC-options
+    :return: The elements extracted from the string:  streamname, MRL, VLC-options
     """
     log.debug('parse_stream_path, about to parse: "{text}"'.format(text=input_string))
-    # identify header: 'devicestream:' or 'networkstream:'
-    type_str, data = input_string.split(':', 1)
-    if type_str == 'devicestream':
-        stream_type = MediaType.DeviceStream
-    else:
-        stream_type = MediaType.NetworkStream
+    # skip the header: 'devicestream:' or 'networkstream:'
+    header, data = input_string.split(':', 1)
     # split at '&&'
     stream_info = data.split('&&')
     name = stream_info[0]
     mrl = stream_info[1]
     options = stream_info[2]
-    return stream_type, name, mrl, options
+    return name, mrl, options
 
 
 def format_milliseconds(milliseconds):
@@ -172,28 +199,10 @@ def format_milliseconds(milliseconds):
     seconds, millis = divmod(milliseconds, 1000)
     minutes, seconds = divmod(seconds, 60)
     hours, minutes = divmod(minutes, 60)
-    return f"{hours:02d}:{minutes:02d}:{seconds:02d},{millis:03d}"
-
-
-def format_play_time(milliseconds):
-    """
-    Format milliseconds into a human readable time string.
-    :param milliseconds: Milliseconds to format
-    :return: Time string in format: hh:mm:ss,ttt
-    """
-    milliseconds = int(milliseconds)
-    seconds, _ = divmod(milliseconds, 1000)
-    minutes, seconds = divmod(seconds, 60)
-    _, minutes = divmod(minutes, 60)
-    return f"{minutes:02d}:{seconds:02d}"
-
-
-def format_play_seconds(seconds: float) -> str:
-    """
-
-    """
-    secs, psec = divmod(seconds, 10)
-    return f"{secs:01d}.{psec:01d}"
+    return "{hours:02d}:{minutes:02d}:{seconds:02d},{millis:03d}".format(hours=hours,
+                                                                         minutes=minutes,
+                                                                         seconds=seconds,
+                                                                         millis=millis)
 
 
 media_empty_song = [{"title": "", "text": "", "verse": 0, "footer": ""}]

@@ -20,11 +20,12 @@
 ##########################################################################
 
 import logging
+import re
 
-from PySide6 import QtWidgets
+from PyQt5 import QtWidgets
 
 from openlp.core.common.i18n import translate
-from openlp.plugins.media.forms import StreamSelectorFormBase
+from openlp.plugins.media.forms import StreamSelectorFormBase, VLCOptionsWidget
 from openlp.core.ui.media import parse_stream_path
 
 log = logging.getLogger(__name__)
@@ -51,6 +52,11 @@ class NetworkStreamSelectorForm(StreamSelectorFormBase):
         self.net_mrl_lineedit.setObjectName('net_mrl_lineedit')
         self.top_layout.addRow(self.net_mrl_label, self.net_mrl_lineedit)
         self.main_layout.addWidget(self.top_widget)
+
+        # Add groupbox for VLC options
+        self.more_options_group = VLCOptionsWidget(self)
+        # Add groupbox for more options to main layout
+        self.main_layout.addWidget(self.more_options_group)
         # Save and close buttons
         self.button_box = QtWidgets.QDialogButtonBox(self)
         self.button_box.addButton(QtWidgets.QDialogButtonBox.StandardButton.Save)
@@ -58,10 +64,12 @@ class NetworkStreamSelectorForm(StreamSelectorFormBase):
         self.close_button = self.button_box.button(QtWidgets.QDialogButtonBox.StandardButton.Close)
         self.save_button = self.button_box.button(QtWidgets.QDialogButtonBox.StandardButton.Save)
         self.main_layout.addWidget(self.button_box)
+
         # translate
         self.retranslate_ui()
         # connect
         self.net_mrl_lineedit.editingFinished.connect(self.on_updates)
+        self.more_options_group.caching.valueChanged.connect(self.on_updates)
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
 
@@ -72,12 +80,19 @@ class NetworkStreamSelectorForm(StreamSelectorFormBase):
         self.net_mrl_label.setText(translate('MediaPlugin.StreamSelector', 'Network URL'))
 
     def on_updates(self):
-        self.update_mrl_from_form(self.net_mrl_lineedit.text())
+        self.update_mrl_options(self.net_mrl_lineedit.text(), '')
 
     def set_mrl(self, network_stream_str):
         """
         Setup the stream widgets based on the saved stream string. This is best effort as the string is
         editable for the user.
         """
-        (_, mrl, options) = parse_stream_path(network_stream_str)
+        (name, mrl, options) = parse_stream_path(network_stream_str)
         self.net_mrl_lineedit.setText(mrl)
+
+        cache = re.search(r'live-caching=(\d+)', options)
+        if cache:
+            self.more_options_group.caching.setValue(int(cache.group(1)))
+
+        self.more_options_group.mrl_lineedit.setText(mrl)
+        self.more_options_group.vlc_options_lineedit.setText(options)

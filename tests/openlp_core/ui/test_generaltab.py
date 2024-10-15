@@ -24,7 +24,7 @@ Package to test the openlp.core.ui.generaltab package.
 from openlp.core.ui.generaltab import GeneralTab
 from openlp.core.ui.settingsform import SettingsForm
 
-from PySide6 import QtCore, QtTest
+from PyQt5 import QtCore, QtTest
 
 
 def test_creation(settings):
@@ -69,7 +69,7 @@ def test_slide_numbers_in_footer(settings):
     settings_form.insert_tab(general_tab, is_visible=True)
 
     # WHEN: I click the checkbox and then save
-    QtTest.QTest.mouseClick(general_tab.slide_no_in_footer_checkbox, QtCore.Qt.MouseButton.LeftButton)
+    QtTest.QTest.mouseClick(general_tab.slide_no_in_footer_checkbox, QtCore.Qt.LeftButton)
     settings_form.accept()
 
     # THEN: the settings should be updated
@@ -87,7 +87,7 @@ def test_new_service_message(settings):
     settings_form.insert_tab(general_tab, is_visible=True)
 
     # WHEN: I click the checkbox and then save
-    QtTest.QTest.mouseClick(general_tab.new_service_message_check_box, QtCore.Qt.MouseButton.LeftButton)
+    QtTest.QTest.mouseClick(general_tab.new_service_message_check_box, QtCore.Qt.LeftButton)
     settings_form.accept()
 
     # THEN: the settings should be updated

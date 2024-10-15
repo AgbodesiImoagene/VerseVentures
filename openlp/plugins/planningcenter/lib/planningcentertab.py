@@ -22,7 +22,7 @@
 The :mod:`~openlp.plugins.planningcenter.lib.planningcentertab` module contains
 the settings tab for the PlanningCenter plugin
 """
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import translate
 from openlp.core.lib.settingstab import SettingsTab
@@ -37,7 +37,7 @@ class PlanningCenterTab(SettingsTab):
         self.setObjectName('PlanningCenterTab')
         self.tab_layout = QtWidgets.QVBoxLayout(self)
         self.tab_layout.setObjectName('tab_layout')
-        self.tab_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
+        self.tab_layout.setAlignment(QtCore.Qt.AlignTop)
         self.auth_group_box = QtWidgets.QGroupBox(self)
         self.tab_layout.addWidget(self.auth_group_box)
         self.auth_layout = QtWidgets.QFormLayout(self.auth_group_box)
@@ -125,15 +125,15 @@ boxes below. Personal Access Tokens are created by doing the following:
         if len(application_id) == 0 or len(secret) == 0:
             QtWidgets.QMessageBox.warning(self, "Authentication Failed",
                                           "Please enter values for both Application ID and Secret",
-                                          QtWidgets.QMessageBox.StandardButton.Ok)
+                                          QtWidgets.QMessageBox.Ok)
             return
         test_auth = PlanningCenterAPI(application_id, secret)
         organization = test_auth.check_credentials()
         if len(organization):
             QtWidgets.QMessageBox.information(self, 'Planning Center Online Authentication Test',
                                               "Authentication successful for organization: {0}".format(organization),
-                                              QtWidgets.QMessageBox.StandardButton.Ok)
+                                              QtWidgets.QMessageBox.Ok)
         else:
             QtWidgets.QMessageBox.warning(self, "Authentication Failed",
                                           "Authentiation Failed",
-                                          QtWidgets.QMessageBox.StandardButton.Ok)
+                                          QtWidgets.QMessageBox.Ok)

@@ -28,7 +28,7 @@ from shutil import rmtree
 from tempfile import mkdtemp
 
 import pytest
-from PySide6 import QtCore, QtWidgets, QtGui
+from PyQt5 import QtCore, QtWidgets, QtGui
 
 from openlp.core.common.i18n import UiStrings
 from openlp.core.common.platform import is_macosx
@@ -48,7 +48,7 @@ def _create_mock_action(parent, name, **kwargs):
     """
     Create a fake action with some "real" attributes
     """
-    action = QtGui.QAction(parent)
+    action = QtWidgets.QAction(parent)
     action.setObjectName(name)
     if kwargs.get('triggers'):
         action.triggered.connect(kwargs.pop('triggers'))
@@ -419,7 +419,7 @@ def test_on_search_shortcut_triggered_focuses_widget(main_window):
 def test_on_first_time_wizard_clicked_show_projectors_after(mocked_warning, MockWizard, main_window):
     """Test that the projector manager is shown after the FTW is run"""
     # GIVEN: Main_window, patched things, patched "Yes" as confirmation to re-run wizard, settings to True.
-    mocked_warning.return_value = QtWidgets.QMessageBox.StandardButton.Yes
+    mocked_warning.return_value = QtWidgets.QMessageBox.Yes
     MockWizard.return_value.was_cancelled = False
     main_window.settings.setValue('projector/show after wizard', True)
 
@@ -437,7 +437,7 @@ def test_on_first_time_wizard_clicked_show_projectors_after(mocked_warning, Mock
 def test_on_first_time_wizard_clicked_hide_projectors_after(mocked_warning, MockWizard, main_window):
     """Test that the projector manager is hidden after the FTW is run"""
     # GIVEN: Main_window, patched things, patched "Yes" as confirmation to re-run wizard, settings to False.
-    mocked_warning.return_value = QtWidgets.QMessageBox.StandardButton.Yes
+    mocked_warning.return_value = QtWidgets.QMessageBox.Yes
     MockWizard.return_value.was_cancelled = False
     main_window.settings.setValue('projector/show after wizard', False)
 
@@ -486,7 +486,7 @@ def test_eventFilter(main_window):
     # GIVEN: A file path and a QEvent.
     file_path = str(RESOURCE_PATH / 'church.jpg')
     mocked_file_method = MagicMock(return_value=file_path)
-    event = QtCore.QEvent(QtCore.QEvent.Type.FileOpen)
+    event = QtCore.QEvent(QtCore.QEvent.FileOpen)
     event.file = mocked_file_method
 
     # WHEN: Call the vent method.
@@ -505,7 +505,7 @@ def test_application_activate_event(mocked_is_macosx, main_window):
     """
     # GIVEN: Mac OS X and an ApplicationActivate event
     mocked_is_macosx.return_value = True
-    event = QtCore.QEvent(QtCore.QEvent.Type.ApplicationActivate)
+    event = QtCore.QEvent(QtCore.QEvent.ApplicationActivate)
     main_window.showMinimized()
 
     # WHEN: The icon in the dock is clicked
@@ -568,7 +568,7 @@ def test_projector_manager_dock_locked(main_window_reduced):
     main_window_reduced.lock_panel.triggered.emit(True)
 
     # THEN: Projector manager dock should have been called with disable UI features
-    projector_dock.setFeatures.assert_called_with(QtWidgets.QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
+    projector_dock.setFeatures.assert_called_with(0)
 
 
 def test_projector_manager_dock_unlocked(main_window_reduced):
@@ -582,9 +582,7 @@ def test_projector_manager_dock_unlocked(main_window_reduced):
     main_window_reduced.lock_panel.triggered.emit(False)
 
     # THEN: Projector manager dock should have been called with enable UI features
-    projector_dock.setFeatures.assert_called_with(QtWidgets.QDockWidget.DockWidgetFeature.DockWidgetClosable |
-                                                  QtWidgets.QDockWidget.DockWidgetFeature.DockWidgetFloatable |
-                                                  QtWidgets.QDockWidget.DockWidgetFeature.DockWidgetMovable)
+    projector_dock.setFeatures.assert_called_with(7)
 
 
 @patch('openlp.core.ui.mainwindow.MainWindow.open_cmd_line_files')

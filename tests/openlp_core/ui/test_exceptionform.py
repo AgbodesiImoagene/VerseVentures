@@ -26,7 +26,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, call, patch
 
 import pytest
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.settings import Settings
 from openlp.core.common.registry import Registry
@@ -43,14 +43,14 @@ exceptionform.VLC_VERSION = 'VLC Test'
 MAIL_ITEM_TEXT = ('**OpenLP Bug Report**\nVersion: Trunk Test\n\n--- Details of the Exception. ---\n\n'
                   'Description Test\n\n --- Exception Traceback ---\nopenlp: Traceback Test\n'
                   '--- System information ---\nPlatform: Nose Test\n\n--- Library Versions ---\n'
-                  'Python: Python Test\nQt6: Qt6 Test\nPySide6: PySide6 Test\n'
+                  'Python: Python Test\nQt5: Qt5 Test\nPyQt5: PyQt5 Test\n'
                   'SQLAlchemy: SQLAlchemy Test\nAlembic: Alembic Test\nBeautifulSoup: BeautifulSoup Test\n'
                   'lxml: ETree Test\nChardet: Chardet Test\nPyEnchant: PyEnchant Test\nMako: Mako Test\n'
                   'pyICU: pyICU Test\nVLC: VLC Test\nPyUNO: UNO Bridge Test\n')
 LIBRARY_VERSIONS = OrderedDict([
     ('Python', 'Python Test'),
-    ('Qt6', 'Qt6 Test'),
-    ('PySide6', 'PySide6 Test'),
+    ('Qt5', 'Qt5 Test'),
+    ('PyQt5', 'PyQt5 Test'),
     ('SQLAlchemy', 'SQLAlchemy Test'),
     ('Alembic', 'Alembic Test'),
     ('BeautifulSoup', 'BeautifulSoup Test'),

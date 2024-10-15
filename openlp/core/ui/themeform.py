@@ -23,7 +23,7 @@ The Theme wizard
 """
 import logging
 
-from PySide6 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from openlp.core.common import is_not_image_file
 from openlp.core.common.enum import ServiceItemType
@@ -52,10 +52,8 @@ class ThemeForm(QtWidgets.QWizard, Ui_ThemeWizard, RegistryProperties):
 
         :param parent: The QWidget-derived parent of the wizard.
         """
-        super(ThemeForm, self).__init__(parent,
-                                        QtCore.Qt.WindowType.WindowSystemMenuHint |
-                                        QtCore.Qt.WindowType.WindowTitleHint |
-                                        QtCore.Qt.WindowType.WindowCloseButtonHint)
+        super(ThemeForm, self).__init__(parent, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint |
+                                        QtCore.Qt.WindowCloseButtonHint)
         self._setup()
 
     def _setup(self):
@@ -188,13 +186,13 @@ class ThemeForm(QtWidgets.QWizard, Ui_ThemeWizard, RegistryProperties):
         width = self.renderer.width()
         height = self.renderer.height()
         pixmap = QtGui.QPixmap(width, height)
-        pixmap.fill(QtCore.Qt.GlobalColor.white)
+        pixmap.fill(QtCore.Qt.white)
         paint = QtGui.QPainter(pixmap)
-        paint.setPen(QtGui.QPen(QtCore.Qt.GlobalColor.blue, 2))
+        paint.setPen(QtGui.QPen(QtCore.Qt.blue, 2))
         main_rect = QtCore.QRect(int(self.theme.font_main_x), int(self.theme.font_main_y),
                                  int(self.theme.font_main_width - 1), int(self.theme.font_main_height - 1))
         paint.drawRect(main_rect)
-        paint.setPen(QtGui.QPen(QtCore.Qt.GlobalColor.red, 2))
+        paint.setPen(QtGui.QPen(QtCore.Qt.red, 2))
         footer_rect = QtCore.QRect(int(self.theme.font_footer_x), int(self.theme.font_footer_y),
                                    int(self.theme.font_footer_width - 1), int(self.theme.font_footer_height - 1))
         paint.drawRect(footer_rect)

@@ -23,7 +23,7 @@ import logging
 import subprocess
 from typing import List
 
-from PySide6 import QtCore
+from PyQt5 import QtCore
 import numpy as np
 
 from openlp.core.common.i18n import translate

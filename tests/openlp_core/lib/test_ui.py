@@ -23,7 +23,7 @@ Package to test the openlp.core.lib.ui package.
 """
 from unittest.mock import MagicMock, call, patch
 
-from PySide6 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from openlp.core.common.i18n import UiStrings, translate
 from openlp.core.lib.ui import MultipleViewModeList, add_list_view_mode_items_to_toolbar, add_welcome_page, \
@@ -119,9 +119,8 @@ def test_critical_error_question(mocked_critical):
 
     # THEN: The error_message() method on the main window should be called
     mocked_critical.assert_called_once_with(mocked_parent, 'Error', 'This is a question',
-                                            QtWidgets.QMessageBox.StandardButton(
-                                                QtWidgets.QMessageBox.StandardButton.Yes |
-                                                QtWidgets.QMessageBox.StandardButton.No))
+                                            QtWidgets.QMessageBox.StandardButtons(QtWidgets.QMessageBox.Yes |
+                                                                                  QtWidgets.QMessageBox.No))
 
 
 def test_create_horizontal_adjusting_combo_box():
@@ -137,7 +136,7 @@ def test_create_horizontal_adjusting_combo_box():
     # THEN: We should get a ComboBox
     assert isinstance(combo, QtWidgets.QComboBox)
     assert combo.objectName() == 'combo1'
-    assert QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon == combo.sizeAdjustPolicy()
+    assert QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLength == combo.sizeAdjustPolicy()
 
 
 @patch('openlp.core.lib.ui.log')
@@ -190,7 +189,7 @@ def test_create_action(mocked_log):
                            tooltip='my tooltip', statustip='my statustip', test=1)
 
     # THEN: These properties should be set
-    assert isinstance(action, QtGui.QAction)
+    assert isinstance(action, QtWidgets.QAction)
     assert action.objectName() == 'my_action'
     assert action.text() == 'my text'
     assert isinstance(action.icon(), QtGui.QIcon)
@@ -205,7 +204,7 @@ def test_create_action_on_mac_osx():
     """
     # GIVEN: A dialog and a mocked out is_macosx() method to always return True
     with patch('openlp.core.lib.ui.is_macosx') as mocked_is_macosx, \
-            patch('openlp.core.lib.ui.QtGui.QAction') as MockedQAction:
+            patch('openlp.core.lib.ui.QtWidgets.QAction') as MockedQAction:
         mocked_is_macosx.return_value = True
         mocked_action = MagicMock()
         MockedQAction.return_value = mocked_action
@@ -224,7 +223,7 @@ def test_create_action_not_on_mac_osx():
     """
     # GIVEN: A dialog and a mocked out is_macosx() method to always return True
     with patch('openlp.core.lib.ui.is_macosx') as mocked_is_macosx, \
-            patch('openlp.core.lib.ui.QtGui.QAction') as MockedQAction:
+            patch('openlp.core.lib.ui.QtWidgets.QAction') as MockedQAction:
         mocked_is_macosx.return_value = False
         mocked_action = MagicMock()
         MockedQAction.return_value = mocked_action
@@ -325,7 +324,7 @@ def test_create_widget_action():
     action = create_widget_action(button, 'some action')
 
     # THEN: The action should be returned
-    assert isinstance(action, QtGui.QAction)
+    assert isinstance(action, QtWidgets.QAction)
     assert action.objectName() == 'some action'
 
 
@@ -356,7 +355,7 @@ def test_multiple_view_mode_list(settings):
     list = MultipleViewModeList(None)
 
     # THEN: It's should be build sucessfully, with default ListMode
-    assert list.viewMode() == QtWidgets.QListWidget.ViewMode.ListMode
+    list.viewMode() == QtWidgets.QListWidget.ViewMode.ListMode
 
 
 def test_multiple_view_mode_list_set_icon_size_by_view_mode_icon_mode(settings):
@@ -437,8 +436,8 @@ def test_add_list_view_mode_items_to_toolbar_creates_items(settings):
     add_list_view_mode_items_to_toolbar(toolbar, MagicMock())
 
     # THEN: Assert correct icons are created
-    assert isinstance(toolbar.actions['listView'], QtGui.QAction) is True
-    assert isinstance(toolbar.actions['gridView'], QtGui.QAction) is True
+    assert isinstance(toolbar.actions['listView'], QtWidgets.QAction) is True
+    assert isinstance(toolbar.actions['gridView'], QtWidgets.QAction) is True
 
 
 def test_add_list_view_mode_items_to_toolbar_click_calls_handlers(settings):

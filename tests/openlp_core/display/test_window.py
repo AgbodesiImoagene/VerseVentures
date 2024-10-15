@@ -28,10 +28,10 @@ from pathlib import Path
 
 from unittest.mock import MagicMock, patch
 
-from PySide6 import QtCore
+from PyQt5 import QtCore
 
-# Mock QtWebEngineCore
-sys.modules['PySide6.QtWebEngineCore'] = MagicMock()
+# Mock QtWebEngineWidgets
+sys.modules['PyQt5.QtWebEngineWidgets'] = MagicMock()
 
 from openlp.core.common.enum import ServiceItemType
 from openlp.core.common.platform import is_win
@@ -79,8 +79,8 @@ def test_x11_override_on(display_window_env, mock_settings):
     display_window = DisplayWindow()
 
     # THEN: The x11 override flag should be set
-    x11_bit = display_window.windowFlags() & QtCore.Qt.WindowType.X11BypassWindowManagerHint
-    assert x11_bit == QtCore.Qt.WindowType.X11BypassWindowManagerHint
+    x11_bit = display_window.windowFlags() & QtCore.Qt.X11BypassWindowManagerHint
+    assert x11_bit == QtCore.Qt.X11BypassWindowManagerHint
 
 
 def test_x11_override_off(display_window_env, mock_settings):
@@ -94,14 +94,14 @@ def test_x11_override_off(display_window_env, mock_settings):
     display_window = DisplayWindow()
 
     # THEN: The x11 override flag should not be set
-    x11_bit = display_window.windowFlags() & QtCore.Qt.WindowType.X11BypassWindowManagerHint
-    assert x11_bit != QtCore.Qt.WindowType.X11BypassWindowManagerHint
+    x11_bit = display_window.windowFlags() & QtCore.Qt.X11BypassWindowManagerHint
+    assert x11_bit != QtCore.Qt.X11BypassWindowManagerHint
 
 
 @patch('openlp.core.display.window.is_macosx')
 def test_macos_toolwindow_attribute_set(mocked_is_macosx, mock_settings, display_window_env):
     """
-    Test that on macOS, the Qt.WidgetAttribute.WA_MacAlwaysShowToolWindow attribute is set
+    Test that on macOS, the Qt.WA_MacAlwaysShowToolWindow attribute is set
     """
     # GIVEN: We're on macOS
     mocked_is_macosx.return_value = True
@@ -110,13 +110,13 @@ def test_macos_toolwindow_attribute_set(mocked_is_macosx, mock_settings, display
     display_window = DisplayWindow()
 
     # THEN: The attribute is set
-    assert display_window.testAttribute(QtCore.Qt.WidgetAttribute.WA_MacAlwaysShowToolWindow) is True
+    assert display_window.testAttribute(QtCore.Qt.WA_MacAlwaysShowToolWindow) is True
 
 
 @patch('openlp.core.display.window.is_macosx')
 def test_not_macos_toolwindow_attribute_set(mocked_is_macosx, mock_settings, display_window_env):
     """
-    Test that on systems other than macOS, the Qt.WidgetAttribute.WA_MacAlwaysShowToolWindow attribute is NOT set
+    Test that on systems other than macOS, the Qt.WA_MacAlwaysShowToolWindow attribute is NOT set
     """
     # GIVEN: We're on macOS
     mocked_is_macosx.return_value = False
@@ -125,7 +125,7 @@ def test_not_macos_toolwindow_attribute_set(mocked_is_macosx, mock_settings, dis
     display_window = DisplayWindow()
 
     # THEN: The attribute is set
-    assert display_window.testAttribute(QtCore.Qt.WidgetAttribute.WA_MacAlwaysShowToolWindow) is False
+    assert display_window.testAttribute(QtCore.Qt.WA_MacAlwaysShowToolWindow) is False
 
 
 @patch.object(DisplayWindow, 'show')
@@ -149,8 +149,8 @@ def test_not_shown_if_start_hidden_is_set(mocked_show, display_window_env, mock_
     mocked_show.assert_not_called()
 
 
-@patch.object(DisplayWindow, 'showFullScreen')
-def test_shown_if_start_hidden_is_not_set(mocked_show_fullscreen, display_window_env, mock_settings):
+@patch.object(DisplayWindow, 'show')
+def test_shown_if_start_hidden_is_not_set(mocked_show, display_window_env, mock_settings):
     """
     Tests if DisplayWindow's .show() method is called on constructor if constructed with start_hidden=False
     """
@@ -162,27 +162,6 @@ def test_shown_if_start_hidden_is_not_set(mocked_show_fullscreen, display_window
     }
     mock_settings.value.side_effect = lambda key: settings[key]
     screen = Screen(1, QtCore.QRect(0, 0, 800, 600), is_display=True)
-
-    # WHEN: A DisplayWindow is created with start_hidden=True
-    DisplayWindow(screen=screen, start_hidden=False)
-
-    # THEN: Window is shown
-    mocked_show_fullscreen.assert_called()
-
-
-@patch.object(DisplayWindow, 'show')
-def test_shown_if_start_hidden_is_not_set_custom_geometry(mocked_show, display_window_env, mock_settings):
-    """
-    Tests if DisplayWindow's .show() method is called on constructor if constructed with start_hidden=False
-    """
-
-    # GIVEN: A mocked DisplayWindow's show method, a fake screen and relevant settings
-    settings = {
-        'advanced/x11 bypass wm': False,
-        'core/display on monitor': True
-    }
-    mock_settings.value.side_effect = lambda key: settings[key]
-    screen = Screen(1, QtCore.QRect(0, 0, 800, 600), QtCore.QRect(0, 0, 700, 600), is_display=True)
 
     # WHEN: A DisplayWindow is created with start_hidden=True
     DisplayWindow(screen=screen, start_hidden=False)

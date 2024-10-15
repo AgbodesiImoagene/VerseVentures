@@ -25,7 +25,7 @@ import os
 from shutil import copyfile
 from typing import Any
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 from sqlalchemy.sql import and_, or_
 
 from openlp.core.state import State
@@ -58,8 +58,8 @@ class SongMediaItem(MediaManagerItem):
     """
     This is the custom media manager item for Songs.
     """
-    songs_go_live = QtCore.Signal(list)
-    songs_add_to_service = QtCore.Signal(list)
+    songs_go_live = QtCore.pyqtSignal(list)
+    songs_add_to_service = QtCore.pyqtSignal(list)
     log.info('Song Media Item loaded')
 
     def __init__(self, parent, plugin):
@@ -272,7 +272,7 @@ class SongMediaItem(MediaManagerItem):
             else:
                 song_detail = '{title} ({author})'.format(title=song.title, author=text)
             song_name = QtWidgets.QListWidgetItem(song_detail)
-            song_name.setData(QtCore.Qt.ItemDataRole.UserRole, song.id)
+            song_name.setData(QtCore.Qt.UserRole, song.id)
             self.list_view.addItem(song_name)
             # Auto-select the item if name has been set
             if song.id == self.auto_select_id:
@@ -306,7 +306,7 @@ class SongMediaItem(MediaManagerItem):
                     continue
                 song_detail = '{author} ({title})'.format(author=author.display_name, title=song.title)
                 song_name = QtWidgets.QListWidgetItem(song_detail)
-                song_name.setData(QtCore.Qt.ItemDataRole.UserRole, song.id)
+                song_name.setData(QtCore.Qt.UserRole, song.id)
                 self.list_view.addItem(song_name)
 
     def display_results_book(self, search_results):
@@ -330,7 +330,7 @@ class SongMediaItem(MediaManagerItem):
             song_detail = '{result1} #{result0}: {result2}'.format(result1=result[1], result0=result[0],
                                                                    result2=result[2])
             song_name = QtWidgets.QListWidgetItem(song_detail)
-            song_name.setData(QtCore.Qt.ItemDataRole.UserRole, result[3])
+            song_name.setData(QtCore.Qt.UserRole, result[3])
             self.list_view.addItem(song_name)
 
     def display_results_topic(self, search_results):
@@ -359,7 +359,7 @@ class SongMediaItem(MediaManagerItem):
                     continue
                 song_detail = '{topic} ({title})'.format(topic=topic.name, title=song.title)
                 song_name = QtWidgets.QListWidgetItem(song_detail)
-                song_name.setData(QtCore.Qt.ItemDataRole.UserRole, song.id)
+                song_name.setData(QtCore.Qt.UserRole, song.id)
                 self.list_view.addItem(song_name)
 
     def display_results_themes(self, search_results):
@@ -382,7 +382,7 @@ class SongMediaItem(MediaManagerItem):
                 continue
             song_detail = '{theme} ({song})'.format(theme=song.theme_name, song=song.title)
             song_name = QtWidgets.QListWidgetItem(song_detail)
-            song_name.setData(QtCore.Qt.ItemDataRole.UserRole, song.id)
+            song_name.setData(QtCore.Qt.UserRole, song.id)
             self.list_view.addItem(song_name)
 
     def display_results_cclinumber(self, search_results):
@@ -405,7 +405,7 @@ class SongMediaItem(MediaManagerItem):
                 continue
             song_detail = '{ccli} ({song})'.format(ccli=song.ccli_number, song=song.title)
             song_name = QtWidgets.QListWidgetItem(song_detail)
-            song_name.setData(QtCore.Qt.ItemDataRole.UserRole, song.id)
+            song_name.setData(QtCore.Qt.UserRole, song.id)
             self.list_view.addItem(song_name)
 
     def on_clear_text_button_click(self):
@@ -466,7 +466,7 @@ class SongMediaItem(MediaManagerItem):
         valid = self.plugin.manager.get_object(Song, song_id)
         if valid:
             self.edit_song_form.load_song(song_id, preview)
-            if self.edit_song_form.exec() == QtWidgets.QDialog.DialogCode.Accepted:
+            if self.edit_song_form.exec() == QtWidgets.QDialog.Accepted:
                 self.auto_select_id = -1
                 self.on_song_list_load()
                 self.remote_song = song_id
@@ -488,7 +488,7 @@ class SongMediaItem(MediaManagerItem):
         log.debug('on_edit_click')
         if check_item_selected(self.list_view, UiStrings().SelectEdit):
             self.edit_item = self.list_view.currentItem()
-            item_id = self.edit_item.data(QtCore.Qt.ItemDataRole.UserRole)
+            item_id = self.edit_item.data(QtCore.Qt.UserRole)
             self.edit_song_form.load_song(item_id, False)
             self.edit_song_form.exec()
             self.auto_select_id = -1
@@ -510,7 +510,7 @@ class SongMediaItem(MediaManagerItem):
             self.application.set_busy_cursor()
             self.main_window.display_progress_bar(len(items))
             for item in items:
-                item_id = item.data(QtCore.Qt.ItemDataRole.UserRole)
+                item_id = item.data(QtCore.Qt.UserRole)
                 delete_song(item_id, self.plugin)
                 self.main_window.increment_progress_bar()
             self.main_window.finished_progress_bar()
@@ -524,7 +524,7 @@ class SongMediaItem(MediaManagerItem):
         log.debug('on_clone_click')
         if check_item_selected(self.list_view, UiStrings().SelectEdit):
             self.edit_item = self.list_view.currentItem()
-            item_id = self.edit_item.data(QtCore.Qt.ItemDataRole.UserRole)
+            item_id = self.edit_item.data(QtCore.Qt.UserRole)
             old_song = self.plugin.manager.get_object(Song, item_id)
             song_xml = self.open_lyrics.song_to_xml(old_song)
             new_song = self.open_lyrics.xml_to_song(song_xml)
@@ -644,6 +644,9 @@ class SongMediaItem(MediaManagerItem):
                 service_item.metadata.append('<em>{label}:</em> {media}'.
                                              format(label=translate('SongsPlugin.MediaItem', 'Media'),
                                                     media=service_item.background_audio))
+                # In older versions of OpenLP, this setting may have been a Qt enum, so we typecast to bool
+                # TODO: Remove this after 3.0
+                service_item.will_auto_start = bool(self.settings.value('songs/auto play audio'))
         return True
 
     def generate_footer(self, item, song, authors, songbooks, mako_vars):
@@ -853,7 +856,7 @@ class SongMediaItem(MediaManagerItem):
         # List must be empty at the end
         return not author_list
 
-    @QtCore.Slot(str, bool, result=list)
+    @QtCore.pyqtSlot(str, bool, result=list)
     def search(self, string: str, show_error: bool = True) -> list[list[Any]]:
         """
         Search for some songs

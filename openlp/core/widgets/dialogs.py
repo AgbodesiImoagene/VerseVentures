@@ -21,7 +21,7 @@
 """ Patch the QFileDialog so it accepts and returns Path objects"""
 from pathlib import Path
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.path import path_to_str, replace_params, str_to_path
 from openlp.core.common.i18n import UiStrings, translate
@@ -116,7 +116,7 @@ class DownloadProgressDialog(QtWidgets.QProgressDialog):
         super(DownloadProgressDialog, self).__init__(parent)
         self.parent = parent
         self.app = app
-        self.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
+        self.setWindowModality(QtCore.Qt.WindowModal)
         self.setWindowTitle(translate('OpenLP.RemotePlugin', 'Importing Website'))
         self.setLabelText(UiStrings().StartingImport)
         self.setCancelButton(None)

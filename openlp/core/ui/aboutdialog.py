@@ -20,7 +20,7 @@
 ##########################################################################
 import datetime
 
-from PySide6 import QtGui, QtWidgets
+from PyQt5 import QtGui, QtWidgets
 
 from openlp.core.common.i18n import UiStrings, translate
 from openlp.core.lib.ui import create_button, create_button_box
@@ -51,8 +51,8 @@ class UiAboutDialog(object):
         self.logo_label.setObjectName('logo_label')
         self.base_layout.addWidget(self.logo_label)
         self.line = QtWidgets.QFrame(about_dialog)
-        self.line.setFrameShape(QtWidgets.QFrame.Shape.HLine)
-        self.line.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
+        self.line.setFrameShape(QtWidgets.QFrame.HLine)
+        self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line.setObjectName('line')
         self.base_layout.addWidget(self.line)
         self.about_dialog_layout = QtWidgets.QVBoxLayout()
@@ -123,8 +123,8 @@ class UiAboutDialog(object):
                                'libraries:')
         build_tech = ('<ul>'
                       '<li><a href="https://www.python.org/">Python</a> (PSFL)</li>'
-                      '<li><a href="https://www.qt.io">Qt6</a> (GPL3/LGPL3)</li>'
-                      '<li><a href="https://pyside.org">PySide6</a> (GPL3/LGPL3)</li>'
+                      '<li><a href="https://www.qt.io">Qt5</a> (GPL3/LGPL3)</li>'
+                      '<li><a href="https://www.riverbankcomputing.co.uk/software/pyqt/intro">PyQt5</a> (GPL3)</li>'
                       '<li><a href="https://github.com/platformdirs/platformdirs">platformdirs</a> (MIT)</li>'
                       '<li><a href="https://alembic.sqlalchemy.org/en/latest/">Alembic</a> (MIT)</li>'
                       '<li><a href="https://www.crummy.com/software/BeautifulSoup/">BeautifulSoup 4</a> (MIT)</li>'
@@ -135,6 +135,7 @@ class UiAboutDialog(object):
                       '<li><a href="https://mupdf.com/">MuPDF</a> (AGPL)</li>'
                       '<li><a href="https://github.com/pymupdf/PyMuPDF">PyMuPDF</a> (AGPL3+/GPL3+)</li>'
                       '<li><a href="https://mediaarea.net/en/MediaInfo">MediaInfo</a> (BSD-style)</li>'
+                      '<li><a href="https://pymediainfo.readthedocs.io">pymediainfo</a> (MIT)</li>'
                       '<li><a href="https://github.com/rfk/pyenchant/">pyenchant</a> (LGPL)</li>'
                       '<li><a href="https://gitlab.com/tgc-dk/pysword">pysword</a> (MIT)</li>'
                       '<li><a href="https://pytest.org/">pytest</a> (MIT)</li>'
@@ -143,6 +144,8 @@ class UiAboutDialog(object):
                       '<li><a href="https://github.com/spyder-ide/qtawesome">QtAwesome</a> (MIT)</li>'
                       '<li><a href="https://2.python-requests.org/en/master/">Requests</a> (Apache 2.0)</li>'
                       '<li><a href="https://www.sqlalchemy.org">SQLAlchemy</a> (MIT)</li>'
+                      '<li><a href="https://www.videolan.org/vlc/">VLC</a> (LGPL)</li>'
+                      '<li><a href="https://wiki.videolan.org/PythonBinding">Python bindings for VLC</a> (LGPL)</li>'
                       '<li><a href="https://github.com/Pylons/waitress">Waitress</a> (ZPL)</li>'
                       '<li><a href="https://github.com/aaugustin/websockets">websockets</a> (BSD)</li>'
                       '<li><a href="https://mkleehammer.github.io/pyodbc/">pyodbc</a> (MIT)</li>'

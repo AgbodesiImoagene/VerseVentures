@@ -25,10 +25,11 @@ from tempfile import mkdtemp
 from unittest.mock import MagicMock, patch
 
 import pytest
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
-# Mock QtWebEngineCore
-sys.modules['PySide6.QtWebEngineCore'] = MagicMock()
+
+# Mock QtWebEngineWidgets
+sys.modules['PyQt5.QtWebEngineWidgets'] = MagicMock()
 
 from openlp.core.app import parse_options, backup_if_version_changed, main as app_main, setup_portable_settings
 from openlp.core.common.platform import is_win
@@ -199,20 +200,20 @@ def test_parse_options_file_and_debug():
 
 
 @patch('openlp.core.app.QtWidgets.QMessageBox.critical')
-@patch('openlp.core.app.QtWidgets.QMessageBox.StandardButton')
-def test_is_already_running_is_running_continue(MockedStandardButton, mocked_critical, qapp):
+@patch('openlp.core.app.QtWidgets.QMessageBox.StandardButtons')
+def test_is_already_running_is_running_continue(MockedStandardButtons, mocked_critical, qapp):
     """
     Test the is_already_running() method when OpenLP IS running and the user chooses to continue
     """
     # GIVEN: An OpenLP app and some mocks
-    MockedStandardButton.return_value = 0
-    mocked_critical.return_value = QtWidgets.QMessageBox.StandardButton.Yes
+    MockedStandardButtons.return_value = 0
+    mocked_critical.return_value = QtWidgets.QMessageBox.Yes
 
     # WHEN: is_already_running() is called
     qapp.is_already_running()
 
     # THEN: The result should be false
-    MockedStandardButton.assert_called_once_with(QtWidgets.QMessageBox.StandardButton.Ok)
+    MockedStandardButtons.assert_called_once_with(QtWidgets.QMessageBox.Ok)
     mocked_critical.assert_called_once_with(None, 'Error',
                                             'OpenLP is already running on this machine. \nClosing this instance', 0)
 
@@ -241,7 +242,7 @@ def test_set_busy_cursor(mocked_processEvents, mocked_setOverrideCursor, qapp):
     qapp.set_busy_cursor()
 
     # THEN: The cursor should have been set
-    mocked_setOverrideCursor.assert_called_once_with(QtCore.Qt.CursorShape.BusyCursor)
+    mocked_setOverrideCursor.assert_called_once_with(QtCore.Qt.BusyCursor)
     mocked_processEvents.assert_called_once_with()
 
 
@@ -275,7 +276,7 @@ def test_backup_on_upgrade_first_install(mocked_question, mocked_get_version, qa
     }
     settings.setValue('core/application version', '2.4.0')
     mocked_get_version.return_value = MOCKED_VERSION
-    mocked_question.return_value = QtWidgets.QMessageBox.StandardButton.No
+    mocked_question.return_value = QtWidgets.QMessageBox.No
 
     # WHEN: We check if a backup should be created
     qapp.backup_on_upgrade(old_install, False)
@@ -302,7 +303,7 @@ def test_backup_on_upgrade(mocked_question, mocked_get_version, qapp, settings):
     qapp.splash = MagicMock()
     qapp.splash.isVisible.return_value = True
     mocked_get_version.return_value = MOCKED_VERSION
-    mocked_question.return_value = QtWidgets.QMessageBox.StandardButton.No
+    mocked_question.return_value = QtWidgets.QMessageBox.No
 
     # WHEN: We check if a backup should be created
     qapp.backup_on_upgrade(old_install, True)
@@ -358,7 +359,7 @@ def test_main_future_settings(mock_move: MagicMock, mock_get_path: MagicMock, mo
     settings.clear = MagicMock()
     settings.upgrade_settings = MagicMock()
     settings.setValue('core/application version', '3.0.1')
-    mock_warn.return_value = QtWidgets.QMessageBox.StandardButton.Yes
+    mock_warn.return_value = QtWidgets.QMessageBox.Yes
     MOCKED_VERSION = {
         'full': '2.9.3',
         'version': '2.9.3',

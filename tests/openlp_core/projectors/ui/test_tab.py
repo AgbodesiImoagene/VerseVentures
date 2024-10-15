@@ -26,7 +26,7 @@ import logging
 
 import openlp.core.projectors.tab
 
-from PySide6 import QtWidgets  # noqa
+from PyQt5 import QtWidgets  # noqa
 from unittest.mock import MagicMock
 
 from openlp.core.projectors.tab import ProjectorTab

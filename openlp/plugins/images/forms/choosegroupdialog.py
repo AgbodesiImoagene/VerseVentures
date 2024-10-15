@@ -19,7 +19,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import translate
 from openlp.core.lib.ui import create_button_box
@@ -41,8 +41,7 @@ class Ui_ChooseGroupDialog(object):
         self.choose_group_layout.setFieldGrowthPolicy(QtWidgets.QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
         self.choose_group_layout.setContentsMargins(8, 8, 8, 8)
         self.choose_group_layout.setSpacing(8)
-        self.choose_group_layout.setLabelAlignment(QtCore.Qt.AlignmentFlag.AlignLeft |
-                                                   QtCore.Qt.AlignmentFlag.AlignVCenter)
+        self.choose_group_layout.setLabelAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
         self.choose_group_layout.setObjectName('choose_group_layout')
         self.group_question_label = QtWidgets.QLabel(choose_group_dialog)
         self.group_question_label.setWordWrap(True)
@@ -63,6 +62,7 @@ class Ui_ChooseGroupDialog(object):
         self.new_radio_button = QtWidgets.QRadioButton(choose_group_dialog)
         self.new_radio_button.setChecked(False)
         self.new_radio_button.setObjectName('new_radio_button')
+        self.choose_group_layout.setWidget(3, QtWidgets.QFormLayout.ItemRole.FieldRole, self.group_combobox)
         self.choose_group_layout.setWidget(4, QtWidgets.QFormLayout.ItemRole.LabelRole, self.new_radio_button)
         self.new_group_edit = QtWidgets.QLineEdit(choose_group_dialog)
         self.new_group_edit.setObjectName('new_group_edit')

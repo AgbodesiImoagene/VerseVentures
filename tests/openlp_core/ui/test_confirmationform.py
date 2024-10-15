@@ -22,7 +22,7 @@
 Test the Confirmation Form
 """
 from unittest.mock import patch
-from PySide6 import QtWidgets, QtTest, QtCore
+from PyQt5 import QtWidgets, QtTest, QtCore
 
 from openlp.core.ui.confirmationform import ConfirmationForm
 
@@ -60,7 +60,7 @@ def test_confirmation_form_yes_button(mocked_reject, mocked_accept, settings):
     buttons = form.findChildren(QtWidgets.QPushButton)
     for button in buttons:
         if 'Yes' in button.text():
-            QtTest.QTest.mouseClick(button, QtCore.Qt.MouseButton.LeftButton)
+            QtTest.QTest.mouseClick(button, QtCore.Qt.LeftButton)
             break
 
     # THEN: accept is called
@@ -83,7 +83,7 @@ def test_confirmation_form_no_button(mocked_reject, mocked_accept, settings):
     buttons = form.findChildren(QtWidgets.QPushButton)
     for button in buttons:
         if 'No' in button.text():
-            QtTest.QTest.mouseClick(button, QtCore.Qt.MouseButton.LeftButton)
+            QtTest.QTest.mouseClick(button, QtCore.Qt.LeftButton)
             break
 
     # THEN: reject is called

@@ -38,7 +38,7 @@ def test_get_application_stylesheet_qdarkstyle(mocked_qdarkstyle, mock_settings)
     """Test that the QDarkStyle stylesheet is returned when available and enabled"""
     # GIVEN: Theme is QDarkStyle
     mock_settings.value.return_value = UiThemes.QDarkStyle
-    mocked_qdarkstyle.load_stylesheet_pyqt.return_value = '//dark_style//'
+    mocked_qdarkstyle.load_stylesheet_pyqt5.return_value = '//dark_style//'
 
     # WHEN: get_application_stylesheet() is called
     result = get_application_stylesheet()

@@ -25,7 +25,7 @@ The duplicate song removal logic for OpenLP.
 import logging
 import multiprocessing
 
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import translate
 from openlp.core.common.mixins import RegistryProperties
@@ -111,8 +111,8 @@ class DuplicateSongRemovalForm(OpenLPWizard, RegistryProperties):
         self.review_layout.setObjectName('review_layout')
         self.review_scroll_area = QtWidgets.QScrollArea(self.review_page)
         self.review_scroll_area.setObjectName('review_scroll_area')
-        self.review_scroll_area.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        self.review_scroll_area.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.review_scroll_area.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        self.review_scroll_area.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.review_scroll_area.setWidgetResizable(True)
         self.review_scroll_area_widget = QtWidgets.QWidget(self.review_scroll_area)
         self.review_scroll_area_widget.setObjectName('review_scroll_area_widget')

@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License      #
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
-from PySide6 import QtCore
+from PyQt5 import QtCore
 from openlp.core.common.mixins import RegistryProperties
 
 
@@ -27,7 +27,7 @@ class WebSocketPoller(QtCore.QObject, RegistryProperties):
     Accessed by web sockets to get status type information from the application
     """
 
-    poller_changed = QtCore.Signal()
+    poller_changed = QtCore.pyqtSignal()
 
     def __init__(self):
         """
@@ -67,9 +67,9 @@ class WebSocketPoller(QtCore.QObject, RegistryProperties):
         except Exception:
             pass
 
-    @QtCore.Slot(list)
-    @QtCore.Slot(str)
-    @QtCore.Slot()
+    @QtCore.pyqtSlot(list)
+    @QtCore.pyqtSlot(str)
+    @QtCore.pyqtSlot()
     def on_signal_received(self):
         self._state = self.create_state()
         self.poller_changed.emit()

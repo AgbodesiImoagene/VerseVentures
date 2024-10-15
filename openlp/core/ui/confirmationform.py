@@ -28,7 +28,7 @@ It is implemented as a QDialog containing:
 After instantiating a ConfirmationForm object the calling code must call exec() on the instance.
 This runs the Qt dialog, which returns the usual 0 (for No) or 1 (for Yes)
 """
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.ui.confirmationdialog import Ui_ConfirmationDialog
 
@@ -47,8 +47,6 @@ class ConfirmationForm(QtWidgets.QDialog, Ui_ConfirmationDialog):
         :param width:    Width of the dialog window
         :param height:   Height of the dialog window
         """
-        super(ConfirmationForm, self).__init__(parent,
-                                               QtCore.Qt.WindowType.WindowSystemMenuHint |
-                                               QtCore.Qt.WindowType.WindowTitleHint |
-                                               QtCore.Qt.WindowType.WindowCloseButtonHint)
+        super(ConfirmationForm, self).__init__(parent, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint |
+                                               QtCore.Qt.WindowCloseButtonHint)
         self.setup_ui(self, title, items, message, width, height)

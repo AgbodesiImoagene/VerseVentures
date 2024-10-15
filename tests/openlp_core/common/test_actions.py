@@ -24,7 +24,7 @@ Package to test the openlp.core.common.actions package.
 import pytest
 from unittest.mock import MagicMock
 
-from PySide6 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from openlp.core.common.actions import ActionList, CategoryActionList
 from openlp.core.common.registry import Registry
@@ -159,19 +159,19 @@ def test_action_list_remove():
 def test_add_action_same_parent(action_list):
     """
     ActionList test - Tests the add_action method. The actions have the same parent, the same shortcuts and both
-    have the QtCore.Qt.ShortcutContext.WindowShortcut shortcut context set.
+    have the QtCore.Qt.WindowShortcut shortcut context set.
     """
     # GIVEN: Two actions with the same shortcuts.
     parent = QtCore.QObject()
-    action1 = QtGui.QAction(parent)
+    action1 = QtWidgets.QAction(parent)
     action1.setObjectName('action1')
-    action_with_same_shortcuts1 = QtGui.QAction(parent)
+    action_with_same_shortcuts1 = QtWidgets.QAction(parent)
     action_with_same_shortcuts1.setObjectName('action_with_same_shortcuts1')
     # Add default shortcuts to Settings class.
     default_shortcuts = {
-        'shortcuts/action1': [QtGui.QKeySequence(QtCore.Qt.Key.Key_A), QtGui.QKeySequence(QtCore.Qt.Key.Key_B)],
-        'shortcuts/action_with_same_shortcuts1': [QtGui.QKeySequence(QtCore.Qt.Key.Key_B),
-                                                  QtGui.QKeySequence(QtCore.Qt.Key.Key_A)]
+        'shortcuts/action1': [QtGui.QKeySequence(QtCore.Qt.Key_A), QtGui.QKeySequence(QtCore.Qt.Key_B)],
+        'shortcuts/action_with_same_shortcuts1': [QtGui.QKeySequence(QtCore.Qt.Key_B),
+                                                  QtGui.QKeySequence(QtCore.Qt.Key_A)]
     }
     Registry().get('settings').extend_default_settings(default_shortcuts)
 
@@ -190,20 +190,20 @@ def test_add_action_same_parent(action_list):
 def test_add_action_different_parent(action_list):
     """
     ActionList test - Tests the add_action method. The actions have the different parent, the same shortcuts and
-    both have the QtCore.Qt.ShortcutContext.WindowShortcut shortcut context set.
+    both have the QtCore.Qt.WindowShortcut shortcut context set.
     """
     # GIVEN: Two actions with the same shortcuts.
     parent = QtCore.QObject()
-    action2 = QtGui.QAction(parent)
+    action2 = QtWidgets.QAction(parent)
     action2.setObjectName('action2')
     second_parent = QtCore.QObject()
-    action_with_same_shortcuts2 = QtGui.QAction(second_parent)
+    action_with_same_shortcuts2 = QtWidgets.QAction(second_parent)
     action_with_same_shortcuts2.setObjectName('action_with_same_shortcuts2')
     # Add default shortcuts to Settings class.
     default_shortcuts = {
-        'shortcuts/action2': [QtGui.QKeySequence(QtCore.Qt.Key.Key_C), QtGui.QKeySequence(QtCore.Qt.Key.Key_D)],
-        'shortcuts/action_with_same_shortcuts2': [QtGui.QKeySequence(QtCore.Qt.Key.Key_D),
-                                                  QtGui.QKeySequence(QtCore.Qt.Key.Key_C)]
+        'shortcuts/action2': [QtGui.QKeySequence(QtCore.Qt.Key_C), QtGui.QKeySequence(QtCore.Qt.Key_D)],
+        'shortcuts/action_with_same_shortcuts2': [QtGui.QKeySequence(QtCore.Qt.Key_D),
+                                                  QtGui.QKeySequence(QtCore.Qt.Key_C)]
     }
     Registry().get('settings').extend_default_settings(default_shortcuts)
 
@@ -222,22 +222,22 @@ def test_add_action_different_parent(action_list):
 def test_add_action_different_context(action_list):
     """
     ActionList test - Tests the add_action method. The actions have the different parent, the same shortcuts and
-    both have the QtCore.Qt.ShortcutContext.WidgetShortcut shortcut context set.
+    both have the QtCore.Qt.WidgetShortcut shortcut context set.
     """
     # GIVEN: Two actions with the same shortcuts.
     parent = QtCore.QObject()
-    action3 = QtGui.QAction(parent)
+    action3 = QtWidgets.QAction(parent)
     action3.setObjectName('action3')
-    action3.setShortcutContext(QtCore.Qt.ShortcutContext.WidgetShortcut)
+    action3.setShortcutContext(QtCore.Qt.WidgetShortcut)
     second_parent = QtCore.QObject()
-    action_with_same_shortcuts3 = QtGui.QAction(second_parent)
+    action_with_same_shortcuts3 = QtWidgets.QAction(second_parent)
     action_with_same_shortcuts3.setObjectName('action_with_same_shortcuts3')
-    action_with_same_shortcuts3.setShortcutContext(QtCore.Qt.ShortcutContext.WidgetShortcut)
+    action_with_same_shortcuts3.setShortcutContext(QtCore.Qt.WidgetShortcut)
     # Add default shortcuts to Settings class.
     default_shortcuts = {
-        'shortcuts/action3': [QtGui.QKeySequence(QtCore.Qt.Key.Key_E), QtGui.QKeySequence(QtCore.Qt.Key.Key_F)],
-        'shortcuts/action_with_same_shortcuts3': [QtGui.QKeySequence(QtCore.Qt.Key.Key_E),
-                                                  QtGui.QKeySequence(QtCore.Qt.Key.Key_F)]
+        'shortcuts/action3': [QtGui.QKeySequence(QtCore.Qt.Key_E), QtGui.QKeySequence(QtCore.Qt.Key_F)],
+        'shortcuts/action_with_same_shortcuts3': [QtGui.QKeySequence(QtCore.Qt.Key_E),
+                                                  QtGui.QKeySequence(QtCore.Qt.Key_F)]
     }
     Registry().get('settings').extend_default_settings(default_shortcuts)
 

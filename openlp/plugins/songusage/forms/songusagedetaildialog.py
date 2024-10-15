@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License      #
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
-from PySide6 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import translate
 from openlp.core.lib.ui import create_button_box
@@ -55,7 +55,7 @@ class Ui_SongUsageDetailDialog(object):
         self.date_horizontal_layout.addWidget(self.from_date_calendar)
         self.to_label = QtWidgets.QLabel(self.date_range_group_box)
         self.to_label.setScaledContents(False)
-        self.to_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.to_label.setAlignment(QtCore.Qt.AlignCenter)
         self.to_label.setObjectName('to_label')
         self.date_horizontal_layout.addWidget(self.to_label)
         self.to_date_calendar = QtWidgets.QCalendarWidget(self.date_range_group_box)
