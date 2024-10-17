@@ -1,15 +1,9 @@
-OpenLP
+VerseVentures
 ======
 
-You're probably reading this because you've just downloaded the source code for
-OpenLP. If you are looking for the installer file, please go to the download
-page on the web site:
+Please use the "pyqt5" branch to access the correct version of VerseVentures
+
+VerseVentures is based on OpenLP. Here is the official website of OpenLP
 
     https://openlp.org/#download
 
-If you're looking for how to contribute to OpenLP, then please look at the
-OpenLP wiki:
-
-    https://wiki.openlp.org/
-
-Thanks for downloading OpenLP!
