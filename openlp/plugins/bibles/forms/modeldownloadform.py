@@ -34,7 +34,7 @@ from openlp.core.widgets.enums import PathEditType
 from openlp.core.widgets.edits import PathEdit
 from openlp.core.widgets.wizard import OpenLPWizard, WizardStrings
 from openlp.plugins.bibles.lib.db import clean_filename
-from openlp.plugins.bibles.lib import ModelInfo, ModelType, get_size_from_string
+from openlp.plugins.bibles.lib import ModelInfo, ModelLibrary, ModelType, get_size_from_string
 
 
 log = logging.getLogger(__name__)
@@ -105,7 +105,7 @@ class ModelDownloadForm(OpenLPWizard):
         self.model_type_combo_box.addItems(['', ''])
         self.model_type_combo_box.setObjectName('ModelTypeComboBox')
         self.model_type_layout.addRow(self.model_type_label, self.model_type_combo_box)
-        self.spacer = QtWidgets.QSpacerItem(10, 0, QtWidgets.QSizePolicy.Policy.Fixed,
+        self.spacer = QtWidgets.QSpacerItem(10, 0, QtWidgets.QSizePolicy.Policy.MinimumExpanding,
                                             QtWidgets.QSizePolicy.Policy.Minimum)
         self.model_type_layout.setItem(1, QtWidgets.QFormLayout.ItemRole.LabelRole, self.spacer)
         self.select_page_layout.addLayout(self.model_type_layout)
@@ -186,24 +186,24 @@ class ModelDownloadForm(OpenLPWizard):
         # Download Location Page
         self.download_location_page = QtWidgets.QWizardPage()
         self.download_location_page.setObjectName('DownloadLocationPage')
-        self.download_location_widget = QtWidgets.QWidget(self.download_location_page)
-        self.download_location_widget.setObjectName('DownloadLocationWidget')
-        self.download_location_layout = QtWidgets.QFormLayout(self.download_location_widget)
-        self.download_location_layout.setContentsMargins(0, 0, 0, 0)
+        # self.download_location_widget = QtWidgets.QWidget(self.download_location_page)
+        # self.download_location_widget.setObjectName('DownloadLocationWidget')
+        self.download_location_layout = QtWidgets.QFormLayout(self.download_location_page)
+        # self.download_location_layout.setContentsMargins(0, 0, 0, 0)
         self.download_location_layout.setObjectName('DownloadLocationLayout')
-        self.download_location_label = QtWidgets.QLabel(self.download_location_widget)
+        self.download_location_label = QtWidgets.QLabel(self.download_location_page)
         self.download_location_label.setObjectName('DownloadLocationLabel')
         default_path = self.settings.value('models/last directory download')
         default_path = default_path if default_path else AppLocation.get_section_data_path('models')
         self.download_location_edit = PathEdit(
-            self.download_location_widget,
+            self.download_location_page,
             path_type=PathEditType.Directories,
             default_path=default_path,
             dialog_caption=translate('BiblesPlugin.ImportWizardForm', 'Select the location to download the model to.'),
         )
         self.download_location_edit.setObjectName('DownloadLocationEdit')
         self.download_location_layout.addRow(self.download_location_label, self.download_location_edit)
-        self.download_location_layout.setItem(1, QtWidgets.QFormLayout.ItemRole.LabelRole, self.spacer)
+        self.download_location_layout.setItem(1, QtWidgets.QFormLayout.ItemRole.FieldRole, self.spacer)
         self.addPage(self.download_location_page)
 
     def _populate_models_table(self, table, models):
@@ -345,21 +345,36 @@ class ModelDownloadForm(OpenLPWizard):
         model_data = None
         if model_type == ModelType.ENCODER.value:
             model_name = self.embedding_models_table.selectedItems()[0].text()
-            model_data = ModelInfo.embedding_models[model_name]
         elif model_type == ModelType.TRANSCRIBER.value:
             model_name = self.transcription_models_table.selectedItems()[0].text()
-            model_data = ModelInfo.transcription_models[model_name]
+        model_data = ModelInfo.get_model_info(model_name)
         self.settings.setValue('models/last directory download', self.download_location_edit.path)
         download_location = self.download_location_edit.path / clean_filename(model_name)
         create_paths(download_location)
         model_data['path'] = download_location
-        model_class = model_data['library'].model_class
+        model_library = model_data['library']
+        model_class = None
+        if model_library == ModelLibrary.WHISPER:
+            from openlp.plugins.bibles.lib.models.whispertranscriber import WhisperTranscriberModel
+            model_class = WhisperTranscriberModel
+        elif model_library == ModelLibrary.SPEECHBRAIN:
+            from openlp.plugins.bibles.lib.models.sptranscriber import SpeechBrainTranscriberModel
+            model_class = SpeechBrainTranscriberModel
+        elif model_library == ModelLibrary.SENTENCE_TRANSFORMERS:
+            from openlp.plugins.bibles.lib.models.stencoder import SentenceTransformerEncoderModel
+            model_class = SentenceTransformerEncoderModel
+        elif model_library == ModelLibrary.TENSORFLOW:
+            from openlp.plugins.bibles.lib.models.tfencoder import TensorFlowEncoderModel
+            model_class = TensorFlowEncoderModel
+
         model = model_class(model_name, self.manager, **model_data)
         try:
             if not model.stop_import_flag:
-                self.manager.import_model(model)
+                model.register(self)
+                model.download()
+                self.manager.reload_models()
                 if model_type == ModelType.ENCODER.value:
-                    self.manager.reload_bibles()
+                    self.manager.encode_bibles()
                 self.progress_label.setText(WizardStrings.FinishedImport)
                 return
         except Exception:
@@ -367,6 +382,7 @@ class ModelDownloadForm(OpenLPWizard):
             trace_error_handler(log)
 
         self.progress_label.setText(translate('BiblesPlugin.ImportWizardForm', 'Your model import failed.'))
+        self.application.process_events()
 
     def provide_help(self):
         """

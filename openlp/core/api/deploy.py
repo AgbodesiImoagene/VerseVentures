@@ -54,7 +54,7 @@ class RemoteVersionWorker(ThreadWorker):
 
         :param string current_version: The current version of the web remote
         """
-        log.debug('VersionWorker - Initialise')
+        log.debug('RemoteVersionWorker - Initialise')
         super().__init__(None)
         self.current_version = current_version or '0.0'
 

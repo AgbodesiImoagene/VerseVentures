@@ -20,7 +20,6 @@
 ##########################################################################
 
 import logging
-from urllib.request import urlretrieve
 
 import numpy as np
 import torch
@@ -42,27 +41,15 @@ class WhisperTranscriberModel(TranscriberModel):
         :param kwargs: The keyword arguments.
         """
         log.debug("Loading WhisperTranscriberModel: %s", name)
-        super().__init__(name, manager, *args, **kwargs)
-        self.filename = self.path / self.url.split('/')[-1]
+        super(WhisperTranscriberModel, self).__init__(name, manager, *args, **kwargs)
         self.gpu = self.has_gpu()
 
     def download(self):
         """
         Download the model.
         """
-        if self.is_downloaded():
-            return self.path
         log.debug("Downloading WhisperTranscriberModel: %s", self.name)
-        urlretrieve(self.url, self.filename)
-        return self.path
-
-    def is_downloaded(self):
-        """
-        Check if the model is downloaded.
-
-        :return: True if the model is downloaded, False otherwise.
-        """
-        return self.filename.exists()
+        self._download(self.url, self.model_info['file_list'], self.path)
 
     def load(self):
         """
@@ -71,10 +58,9 @@ class WhisperTranscriberModel(TranscriberModel):
         :return: The model.
         """
         if not self.model:
-            if not self.is_downloaded():
-                self.download()
             log.debug("Loading WhisperTranscriberModel: %s", self.name)
-            self.model = load_model(self.filename)
+            device = torch.device("cuda" if self.gpu else "cpu")
+            self.model = load_model(str(self.path / self.model_info['file_list'][0]), device=device)
 
     def transcribe(self, audio: np.ndarray, *args, **kwargs) -> str:
         """

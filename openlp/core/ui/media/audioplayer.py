@@ -30,8 +30,8 @@ from openlp.core.ui.slidecontroller import SlideController
 from openlp.core.ui.media import MediaType
 from openlp.core.ui.media.mediabase import MediaBase
 
-from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
-from PySide6.QtCore import QUrl
+from PyQt5.QtMultimedia import QMediaPlayer, QAudioOutput
+from PyQt5.QtCore import QUrl
 
 log = logging.getLogger(__name__)
 

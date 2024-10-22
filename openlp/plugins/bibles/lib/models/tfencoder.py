@@ -21,11 +21,10 @@
 
 import logging
 from typing import List
-from urllib.request import Request, urlopen
 
 import numpy as np
 import tensorflow as tf
-from tensorflow_hub.file_utils import extract_tarfile_to_destination
+import tensorflow_text  # noqa
 
 from openlp.plugins.bibles.lib.model import EncoderModel
 
@@ -46,27 +45,15 @@ class TensorFlowEncoderModel(EncoderModel):
         :param kwargs: The keyword arguments.
         """
         log.debug("Loading TensorFlowEncoderModel: %s", name)
-        super().__init__(name, manager, *args, **kwargs)
+        super(TensorFlowEncoderModel, self).__init__(name, manager, *args, **kwargs)
+        self.url = self.url + COMPRESSION_QUERY if not self.url.endswith(COMPRESSION_QUERY) else self.url
 
     def download(self):
         """
         Download the model.
         """
-        if self.is_downloaded():
-            return self.path
         log.debug("Downloading TensorFlowEncoderModel: %s", self.name)
-        request = Request(self.url + COMPRESSION_QUERY)
-        response = urlopen(request)
-        extract_tarfile_to_destination(response, str(self.path))
-        return self.path
-
-    def is_downloaded(self):
-        """
-        Check if the model is downloaded.
-
-        :return: True if the model is downloaded, False otherwise.
-        """
-        return any(file.suffix == ".pb" for file in self.path.iterdir())
+        self._download(self.url, [], self.path)
 
     def load(self):
         """
@@ -75,8 +62,7 @@ class TensorFlowEncoderModel(EncoderModel):
         :return: The model.
         """
         if not self.model:
-            if not self.is_downloaded():
-                self.download()
+            log.debug("Loading TensorFlowEncoderModel: %s", self.name)
             self.model = tf.saved_model.load(str(self.path))
 
     def encode(self, text: str | List[str], *args, **kwargs) -> np.ndarray:
@@ -112,7 +98,7 @@ class TensorFlowEncoderModel(EncoderModel):
         # normalize the embeddings
         text_embedding = text_embedding / np.linalg.norm(text_embedding, ord=2, axis=1, keepdims=True)
         embeddings = embeddings / np.linalg.norm(embeddings, ord=2, axis=1, keepdims=True)
-        return np.dot(text_embedding, embeddings.T)
+        return np.dot(text_embedding, embeddings.T).squeeze()
 
     def has_gpu(self):
         """

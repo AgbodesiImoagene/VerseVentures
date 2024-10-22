@@ -12,7 +12,11 @@ platformdirs
 PyICU
 # pyobjc  # (macOS only)
 # pyobjc-framework-Cocoa  # (macOS only)
-PySide6 >= 6.7
+PyQt5==5.15.10
+PyQt5-Qt5==5.15.14
+PyQt5-sip==12.13.0
+PyQtWebEngine==5.15.6
+PyQtWebEngine-Qt5==5.15.14
 # Pyro5  # (macOS only)
 # pywin32  # (Windows only)
 QtAwesome
@@ -27,7 +31,7 @@ PyMySQL
 pyodbc
 psycopg2
 pyenchant >= 1.6
-huggingface_hub
+# huggingface_hub
 pysword
 sentence-transformers
 PyMuPDF
@@ -38,8 +42,12 @@ pytest-qt
 flake8
 pytest-runner
 tensorflow
-tensorflow-hub
+# tensorflow-hub
 tensorflow-text
 openai-whisper
 # deepspeech
 speechbrain
+SpeechRecognition
+PyAudio
+python-vlc
+pymediainfo

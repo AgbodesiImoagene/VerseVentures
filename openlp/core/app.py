@@ -43,7 +43,7 @@ from openlp.core.common.enum import HiDPIMode
 from openlp.core.common.i18n import LanguageManager, UiStrings, translate
 from openlp.core.common.mixins import LogMixin
 from openlp.core.common.path import create_paths, resolve
-from openlp.core.common.platform import is_macosx, is_win
+from openlp.core.common.platform import is_macosx, is_wayland_compositor, is_win
 from openlp.core.common.registry import Registry
 from openlp.core.common.settings import Settings
 from openlp.core.display.screens import ScreenList
@@ -124,7 +124,9 @@ class OpenLP(QtCore.QObject, LogMixin):
         # Check if OpenLP has been upgrade and if a backup of data should be created
         self.backup_on_upgrade(has_run_wizard, can_show_splash)
         # start the main app window
+        Registry().toggle_suppressing()
         loader()
+        Registry().toggle_suppressing()
         # Set the darkmode based on theme
         set_default_theme(app)
         self.main_window = MainWindow()
@@ -491,6 +493,9 @@ def main():
                                                      'Frameworks' / 'QtWebEngineCore.framework' / 'Versions' / '5' /
                                                      'Helpers' / 'QtWebEngineProcess.app' / 'Contents' / 'MacOS' /
                                                      'QtWebEngineProcess').resolve())
+    # Prevent the use of wayland, use xcb instead
+    if is_wayland_compositor():
+        qt_args.extend(['-platform', 'xcb'])
     no_custom_factor_rounding = not ('QT_SCALE_FACTOR_ROUNDING_POLICY' in os.environ
                                      and bool(os.environ['QT_SCALE_FACTOR_ROUNDING_POLICY'].strip()))
     if no_custom_factor_rounding:

@@ -20,10 +20,11 @@
 ##########################################################################
 
 import logging
+from urllib.parse import urljoin
 
 import numpy as np
+import requests
 from speechbrain.inference.ASR import EncoderDecoderASR
-from huggingface_hub import snapshot_download
 import torch
 
 from openlp.plugins.bibles.lib.model import TranscriberModel
@@ -42,7 +43,7 @@ class SpeechBrainTranscriberModel(TranscriberModel):
         :param kwargs: The keyword arguments.
         """
         log.debug("Loading SpeechBrainTranscriberModel: %s", name)
-        super().__init__(name, manager, *args, **kwargs)
+        super(SpeechBrainTranscriberModel, self).__init__(name, manager, *args, **kwargs)
 
     def _get_repo_id(self):
         """
@@ -56,23 +57,26 @@ class SpeechBrainTranscriberModel(TranscriberModel):
         """
         Download the model.
         """
-        if self.is_downloaded():
-            return self.path
         log.debug("Downloading SpeechBrainTranscriberModel: %s", self.name)
-        return snapshot_download(self._get_repo_id(), local_dir=self.path)
-
-    def is_downloaded(self):
-        """
-        Check if the model is downloaded.
-
-        :return: True if the model is downloaded, False otherwise.
-        """
-        # check if repo has hyperparams.yaml and custom.py
-        if not self.path.exists():
-            return False
-        hyperparams = self.path / "hyperparams.yaml"
-        custom = self.path / "custom.py"
-        return hyperparams.exists() and custom.exists()
+        repo_id = self._get_repo_id()
+        if not self.model_info["file_list"]:
+            try:
+                repo_data = requests.get(
+                    urljoin(
+                        "https://huggingface.co/api/models/",
+                        repo_id,
+                        allow_fragments=False,
+                    ),
+                    timeout=10,
+                ).json()
+                self.model_info["file_list"] = [
+                    sibling["rfilename"] for sibling in repo_data["siblings"]
+                ]
+            except requests.RequestException as e:
+                log.error("Failed to get model data: %s", e)
+        url = urljoin("https://huggingface.co/", repo_id, allow_fragments=False)
+        url = urljoin(url, "resolve/main/", allow_fragments=False)
+        self._download(url, self.model_info["file_list"], self.path)
 
     def load(self):
         """
@@ -81,10 +85,8 @@ class SpeechBrainTranscriberModel(TranscriberModel):
         :return: The model.
         """
         if not self.model:
-            if not self.is_downloaded():
-                self.download()
             log.debug("Loading SpeechBrainTranscriberModel: %s", self.name)
-            self.model = EncoderDecoderASR.from_hparams(source=self.path)
+            self.model = EncoderDecoderASR.from_hparams(source=str(self.path))
 
     def transcribe(self, audio: np.ndarray, *args, **kwargs) -> str:
         """

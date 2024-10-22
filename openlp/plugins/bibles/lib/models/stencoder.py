@@ -21,15 +21,12 @@
 
 import logging
 from typing import List
+from urllib.parse import urljoin
 
-from huggingface_hub import snapshot_download
 import numpy as np
+import requests
 from sentence_transformers import SentenceTransformer
-from sentence_transformers.util import (
-    cos_sim,
-    get_device_name,
-    is_sentence_transformer_model,
-)
+from sentence_transformers.util import cos_sim, get_device_name
 
 from openlp.plugins.bibles.lib.model import EncoderModel
 
@@ -48,7 +45,7 @@ class SentenceTransformerEncoderModel(EncoderModel):
         :param kwargs: The keyword arguments.
         """
         log.debug("Loading SentenceTransformerEncoderModel: %s", name)
-        super().__init__(name, manager, *args, **kwargs)
+        super(SentenceTransformerEncoderModel, self).__init__(name, manager, *args, **kwargs)
 
     def _get_repo_id(self):
         """
@@ -62,16 +59,24 @@ class SentenceTransformerEncoderModel(EncoderModel):
         """
         Download the model.
         """
-        if self.is_downloaded():
-            return self.path
         log.debug("Downloading SentenceTransformerEncoderModel: %s", self.name)
-        return snapshot_download(self._get_repo_id(), local_dir=self.path)
-
-    def is_downloaded(self):
-        """
-        Check if the model is downloaded.
-        """
-        return is_sentence_transformer_model(str(self.path))
+        repo_id = self._get_repo_id()
+        if not self.model_info["file_list"]:
+            try:
+                repo_data = requests.get(
+                    urljoin(
+                        "https://huggingface.co/api/models/",
+                        repo_id,
+                        allow_fragments=False,
+                    ),
+                    timeout=10,
+                ).json()
+                self.model_info["file_list"] = [sibling["rfilename"] for sibling in repo_data["siblings"]]
+            except requests.RequestException as e:
+                log.error("Failed to get model data: %s", e)
+        url = urljoin("https://huggingface.co/", repo_id, allow_fragments=False)
+        url = urljoin(url, "resolve/main/", allow_fragments=False)
+        self._download(url, self.model_info["file_list"], self.path)
 
     def load(self):
         """
@@ -81,7 +86,7 @@ class SentenceTransformerEncoderModel(EncoderModel):
             if not self.is_downloaded():
                 self.download()
             self.model = SentenceTransformer(
-                self.path, device=get_device_name(), local_files_only=True
+                str(self.path), device=get_device_name(), local_files_only=True
             )
 
     def encode(self, text: str | List[str], *args, **kwargs) -> np.ndarray:
@@ -109,4 +114,4 @@ class SentenceTransformerEncoderModel(EncoderModel):
         """
         if not self.model:
             self.load()
-        return cos_sim(self.encode(text), embeddings).numpy()
+        return cos_sim(self.encode(text), embeddings).numpy().squeeze()

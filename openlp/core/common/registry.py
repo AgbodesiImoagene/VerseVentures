@@ -54,6 +54,12 @@ class Registry(metaclass=Singleton):
         registry._is_suppressing = False
         return registry
 
+    def toggle_suppressing(self) -> None:
+        """
+        Switch error message suppression during initialisation
+        """
+        self._is_suppressing = not self._is_suppressing
+
     def get(self, key: str) -> Any | None:
         """
         Extracts the registry value from the list based on the key passed in
@@ -62,6 +68,8 @@ class Registry(metaclass=Singleton):
         """
         if key in self.service_list:
             return self.service_list[key]
+        elif self._is_suppressing:
+            return None
         else:
             warn(f'Service "{key}" not found in list', stacklevel=2)
             return None

@@ -25,9 +25,9 @@ import logging
 
 from time import sleep
 
-from PySide6 import QtWidgets
-from PySide6.QtCore import QObject, QUrl
-from PySide6.QtMultimedia import QMediaPlayer
+from PyQt5 import QtWidgets
+from PyQt5.QtCore import QObject, QUrl
+from PyQt5.QtMultimedia import QMediaPlayer
 
 log = logging.getLogger(__name__)
 

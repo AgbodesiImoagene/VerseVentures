@@ -27,7 +27,7 @@ from typing import Any, List, Optional, Tuple
 
 import chardet
 from PyQt5 import QtCore
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, JSON, LargeBinary, func, or_
+from sqlalchemy import Boolean, Column, Enum, ForeignKey, JSON, LargeBinary, func, or_
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session, declarative_base, relationship
 from sqlalchemy.types import Unicode, UnicodeText, Integer
@@ -404,6 +404,15 @@ class BibleDB(DBManager):
                 verses = verses.filter(self.Verse.text.like(keyword))
         verses = verses.all()
         return verses
+
+    def get_verses_by_id(self, verse_ids: List[int]):
+        """
+        Return a list of verses by their ids.
+
+        :param verse_ids: The list of verse ids to return.
+        """
+        log.debug('BibleDB.get_verses_by_id("{ids}")'.format(ids=verse_ids))
+        return self.session.query(self.Verse).filter(self.Verse.id.in_(verse_ids)).all()
 
     def get_chapter_count(self, book) -> int:
         """
@@ -843,8 +852,8 @@ class Model(Base):
     library = Column(Enum(ModelLibrary), nullable=False)
     description = Column(UnicodeText)
     path = Column(UnicodeText, unique=True)
-    download_date = Column(DateTime)
-    download_source = Column(Unicode(100))
+    downloaded = Column(Boolean, default=False)
+    download_source = Column(Unicode(200))
     meta = Column(JSON)
 
 

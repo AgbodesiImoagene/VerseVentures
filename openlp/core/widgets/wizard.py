@@ -267,6 +267,17 @@ class OpenLPWizard(QtWidgets.QWizard, RegistryProperties):
             self.progress_bar.setValue(self.progress_bar.value() + increment)
         self.application.process_events()
 
+    def update_progress_bar(self, status_text, value):
+        """
+        Update the wizard progress page.
+
+        :param status_text: Current status information to display.
+        :param value: The value (as a fraction of the maximum) to set the progress bar to.
+        """
+        self.progress_label.setText(status_text)
+        self.progress_bar.setValue(int(value * self.progress_bar.maximum()))
+        self.application.process_events()
+
     def pre_wizard(self):
         """
         Prepare the UI for the import.
