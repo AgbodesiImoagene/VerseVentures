@@ -31,7 +31,7 @@ from openlp.core.common.i18n import translate
 from openlp.core.common.mixins import LogMixin, RegistryProperties
 from openlp.core.common.registry import Registry
 from openlp.core.db.manager import DBManager
-from openlp.core.threading import run_thread
+from openlp.core.threading import get_thread_worker, run_thread
 from openlp.plugins.bibles.lib.db import Model, init_schema
 from openlp.plugins.bibles.lib.workers.download import ModelDownloadWorker
 
@@ -80,9 +80,18 @@ class ModelBase(QtCore.QObject, LogMixin, RegistryProperties):
         self.model_info['author'] = metadata.get('author', '')
         self.model_info['size'] = metadata.get('size')
         self.stop_import_flag = False
+        self.threading = False
+        self.download_worker = None
+        self.download_thread_name = None
         Registry().register_function('openlp_stop_wizard', self.stop_import)
 
-    def _download(self, url: str, file_list: List[str], path: Path, threading: bool = False):
+    def download(self):
+        """
+        Download the model. This method must be overridden by descendant classes.
+        """
+        pass
+
+    def _download(self, url: str, file_list: List[str], path: Path):
         """
         Download the model. This method must be overridden by descendant classes.
         """
@@ -90,12 +99,14 @@ class ModelBase(QtCore.QObject, LogMixin, RegistryProperties):
             download_worker = ModelDownloadWorker(url, file_list, path)
             download_worker.download_progress.connect(self.on_download_progress)
             download_worker.download_finished.connect(self.on_download_finished)
-            if threading:
-                thread_name = "download-worker-{id}".format(id=id(download_worker))
-                run_thread(download_worker, thread_name)
-                return thread_name
+            if self.threading:
+                self.download_thread_name = "download-worker-{id}".format(id=id(download_worker))
+                run_thread(download_worker, self.download_thread_name)
             else:
-                return download_worker.start()
+                self.download_worker = download_worker
+                self.download_worker.start()
+                del download_worker
+                self.download_worker = None
 
     def is_downloaded(self):
         """
@@ -159,6 +170,12 @@ class ModelBase(QtCore.QObject, LogMixin, RegistryProperties):
         """
         self.log_debug('Stopping import')
         self.stop_import_flag = True
+        if self.threading and self.download_thread_name:
+            download_worker = get_thread_worker(self.download_thread_name)
+            if download_worker:
+                download_worker.cancel_download()
+        elif self.download_worker:
+            self.download_worker.cancel_download()
 
     def load(self):
         """

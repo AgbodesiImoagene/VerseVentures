@@ -21,7 +21,7 @@
 
 from datetime import UTC, datetime, timedelta
 import logging
-# from queue import Queue
+from queue import Queue
 
 import numpy as np
 from PyQt5 import QtCore
@@ -35,18 +35,19 @@ from openlp.plugins.bibles.lib.db import Model, init_schema
 
 log = logging.getLogger(__name__)
 
-microphone_mutex = QtCore.QMutex()
 transcriber_mutex = QtCore.QMutex()
+
+data_queue = Queue()
 
 
 class AudioWorker(ThreadWorker):
     """
     The :class:`~openlp.plugins.bibles.lib.workers.AudioWorker` class provides a worker object for audio processing.
     """
+    display_text = QtCore.pyqtSignal(str)
     submitted_text = QtCore.pyqtSignal(str)
 
     def __init__(self):
-
         super().__init__()
         log.debug('AudioWorker - Initialise')
         self.model_manager = DBManager('models', init_schema)
@@ -56,81 +57,61 @@ class AudioWorker(ThreadWorker):
         # Definitely do this, dynamic energy compensation lowers the energy threshold
         # dramatically to a point where the SpeechRecognizer never stops recording.
         self.recognizer.dynamic_energy_threshold = False
-        self.setup_microphone(None)
-        self.is_active = True
+        self.stopper = None
+        self.is_active = False
         self.shutdown = False
+        self.setup_microphone(None)
 
     def start(self):
         log.debug('AudioWorker - Start')
-        # data_queue = Queue()
-
-        # def record_callback(_, audio):
-        #     """
-        #     Threaded callback function to receive audio data when recordings finish.
-        #     audio: An AudioData containing the recorded bytes.
-        #     """
-        #     # Grab the raw bytes and push it into the thread safe queue.
-        #     data = audio.get_raw_data()
-        #     data_queue.put(data)
-
-        # self.recognizer.listen_in_background(
-        #     self.microphone, record_callback, phrase_time_limit=2)
-        # log.debug('AudioWorker - Listening in background')
-
-        curr_audio_data = None
-        last_audio_data_time = datetime.now(UTC)
+        phrase_time = None
+        transcription = ''
         while not self.shutdown:
             if self.is_active:
-                audio_data = None
-                microphone_mutex.lock()
-                with self.microphone as source:
-                    audio_data = self.recognizer.listen(source).get_raw_data()
                 now = datetime.now(UTC)
-                microphone_mutex.unlock()
-                audio_np = np.frombuffer(
-                    audio_data, dtype=np.int16).astype(np.float32) / 32768.0
-                curr_audio_data = (
-                    audio_np
-                    if curr_audio_data is None
-                    else np.concatenate((curr_audio_data, audio_np))
-                )
-                log.debug('AudioWorker - Received audio data')
+                if phrase_time and now - phrase_time > timedelta(seconds=3) and transcription:
+                    self.submitted_text.emit(transcription)
+                    transcription = ''
 
-                if curr_audio_data is not None and now - last_audio_data_time > timedelta(seconds=3):
+                if not data_queue.empty():
+                    # This is the last time we received new audio data from the queue.
+                    phrase_time = now
+
+                    # Combine audio data from queue
+                    audio_data = b''.join(data_queue.queue)
+                    data_queue.queue.clear()
+
+                    # Convert in-ram buffer to something the model can use directly without needing a temp file.
+                    # Convert data from 16 bit wide integers to floating point with a width of 32 bits.
+                    # Clamp the audio stream frequency to a PCM wavelength compatible default of 32768hz max.
+                    audio_np = np.frombuffer(
+                        audio_data, dtype=np.int16).astype(np.float32) / 32768.0
+
                     transcriber_mutex.lock()
                     if self.transcriber_model is not None:
-                        text = self.transcriber_model.transcribe(curr_audio_data)
-                        if text:
-                            self.submitted_text.emit(text)
-                        log.debug('AudioWorker - Transcribed text: %s', text)
+                        transcription += ' ' + self.transcriber_model.transcribe(audio_np)
+                        transcription = transcription.strip()
+                        if transcription:
+                            self.display_text.emit(transcription)
+                        log.debug('AudioWorker - Transcribed text: %s', transcription)
                     transcriber_mutex.unlock()
-                    curr_audio_data = None
-                    last_audio_data_time = now
 
-                # now = datetime.now(UTC)
-                # if not data_queue.empty():
-                #     last_audio_data_time = now
-                #     audio_data = b''.join(data_queue.queue)
-                #     audio_np = np.frombuffer(
-                #         audio_data, dtype=np.int16).astype(np.float32) / 32768.0
-                #     data_queue.queue.clear()
-                #     curr_audio_data = (
-                #         audio_np
-                #         if curr_audio_data is None
-                #         else np.concatenate((curr_audio_data, audio_np))
-                #     )
-                #     log.debug('AudioWorker - Received audio data')
+            QtCore.QThread.msleep(250)
 
-                # if curr_audio_data is not None and now - last_audio_data_time > timedelta(seconds=3):
-                #     transcriber_mutex.lock()
-                #     if self.transcriber_model is not None:
-                #         text = self.transcriber_model.transcribe(curr_audio_data)
-                #         self.submitted_text.emit(text)
-                #         log.debug('AudioWorker - Transcribed text: %s', text)
-                #     transcriber_mutex.unlock()
-                #     curr_audio_data = None
+    def start_listening(self):
+        if self.microphone:
+            log.debug('AudioWorker - Listening in background')
+            self.stopper = self.recognizer.listen_in_background(
+                self.microphone,
+                record_callback,
+                1,
+            )
 
-            QtCore.QThread.msleep(100)
+    def stop_listening(self):
+        if self.stopper:
+            log.debug('AudioWorker - Stopping background listening')
+            self.stopper(False)
+            self.stopper = None
 
     @QtCore.pyqtSlot(int)
     def setup_microphone(self, microphone_source):
@@ -139,11 +120,16 @@ class AudioWorker(ThreadWorker):
         """
         log.debug('AudioWorker - Setup microphone %s', microphone_source)
 
-        microphone_mutex.lock()
-        self.microphone = Microphone(device_index=microphone_source) if microphone_source else Microphone()
+        self.stop_listening()
+        self.microphone = (
+            Microphone(sample_rate=16000, device_index=microphone_source)
+            if microphone_source
+            else Microphone()
+        )
         with self.microphone:
             self.recognizer.adjust_for_ambient_noise(self.microphone)
-        microphone_mutex.unlock()
+        if self.is_active:
+            self.start_listening()
 
     @QtCore.pyqtSlot(bool)
     def toggle_active(self, state):
@@ -152,6 +138,10 @@ class AudioWorker(ThreadWorker):
         """
         log.debug('AudioWorker - Toggle active %s', state)
         self.is_active = state
+        if self.is_active:
+            self.start_listening()
+        else:
+            self.stop_listening()
 
     @QtCore.pyqtSlot(str)
     def set_model(self, model_name):
@@ -186,3 +176,13 @@ class AudioWorker(ThreadWorker):
         self.shutdown = True
         self.is_active = False
         self.quit.emit()
+
+
+def record_callback(_, audio):
+    """
+    Threaded callback function to receive audio data when recordings finish.
+    audio: An AudioData containing the recorded bytes.
+    """
+    # Grab the raw bytes and push it into the thread safe queue.
+    data = audio.get_raw_data()
+    data_queue.put(data)

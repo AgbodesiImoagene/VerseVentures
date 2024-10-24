@@ -25,6 +25,7 @@ from pathlib import Path
 from pickle import loads
 
 from PyQt5 import QtWidgets as QWidgets
+import numpy as np
 
 from openlp.core.common import delete_file
 from openlp.core.common.enum import LanguageSelection
@@ -437,7 +438,7 @@ class BibleManager(LogMixin, RegistryProperties):
             return []
         # Fetch the embeddings from db. If no results are found, return None, no message is given for this.
         verse_ids, encodings = zip(*self.get_encodings(bible, self.encoder_model.name))
-        similarities = self.encoder_model.similarity(text, encodings)
+        similarities = self.encoder_model.similarity(text, np.array(encodings))
         verse_similarity = zip(verse_ids, similarities)
         verse_similarity = sorted(verse_similarity, key=lambda x: x[1], reverse=True)
         # Filter out duplicate verses, keeping the highest similarity.

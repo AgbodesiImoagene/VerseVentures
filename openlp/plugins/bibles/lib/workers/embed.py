@@ -60,7 +60,13 @@ class EmbeddingWorker(ThreadWorker):
             return
         EmbeddingWorker.current_processes.append(key)
         all_verses = self.bible.get_all_objects(self.bible.Verse)
-        verse_texts = [(verse.id, text) for verse in all_verses for text in self._prepare_verse(verse.text)]
+        all_books = self.bible.get_all_objects(self.bible.Book)
+        book_dict = {book.id: book for book in all_books}
+        verse_texts = [
+            (verse.id, text)
+            for verse in all_verses
+            for text in self._prepare_verse(verse, book_dict[verse.book_id])
+        ]
         # split list into ids and texts
         verse_ids, verse_texts = zip(*verse_texts)
         encodings = self.model.encode(verse_texts)
@@ -69,17 +75,33 @@ class EmbeddingWorker(ThreadWorker):
         self.bible.save_objects(encodings)
         self.embedding_finished.emit(self.model.name, self.bible.name)
         EmbeddingWorker.current_processes.remove(key)
+        self.quit.emit()
 
-    def _prepare_verse(self, verse):
+    def _prepare_verse(self, verse, book):
         """
         Prepare a verse for encoding.
         """
-        sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s', verse)
+        sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s', verse.text)
         if len(sentences) > 1:
-            sentences.append(verse)
+            sentences.append(verse.text)
 
         def clean_text(text):
             return text.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ').strip()
 
         sentences = [clean_text(sentence) for sentence in sentences]
+        sentences.append(self._get_verse_name(verse, book.name))
         return list(filter(lambda x: x, sentences))
+
+    def _get_verse_name(self, verse, book_name):
+        """
+        Get the name of the verse
+        """
+        return f'{book_name} {verse.chapter}:{verse.verse}'
+
+    @QtCore.pyqtSlot()
+    def cancel(self):
+        """
+        Cancel the worker
+        """
+        log.debug('EmbeddingWorker - Cancel')
+        self.is_cancelled = True

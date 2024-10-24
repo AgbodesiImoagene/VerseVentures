@@ -186,10 +186,7 @@ class ModelDownloadForm(OpenLPWizard):
         # Download Location Page
         self.download_location_page = QtWidgets.QWizardPage()
         self.download_location_page.setObjectName('DownloadLocationPage')
-        # self.download_location_widget = QtWidgets.QWidget(self.download_location_page)
-        # self.download_location_widget.setObjectName('DownloadLocationWidget')
         self.download_location_layout = QtWidgets.QFormLayout(self.download_location_page)
-        # self.download_location_layout.setContentsMargins(0, 0, 0, 0)
         self.download_location_layout.setObjectName('DownloadLocationLayout')
         self.download_location_label = QtWidgets.QLabel(self.download_location_page)
         self.download_location_label.setObjectName('DownloadLocationLabel')

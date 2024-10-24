@@ -93,8 +93,6 @@ class BibleMediaItem(MediaManagerItem):
     """
     bibles_go_live = QtCore.pyqtSignal(list)
     bibles_add_to_service = QtCore.pyqtSignal(list)
-    microphone_source = QtCore.pyqtSignal(int)
-    transcriber_model_changed = QtCore.pyqtSignal(str)
     log.info('Bible Media Item loaded')
 
     def __init__(self, *args, **kwargs):
@@ -120,7 +118,6 @@ class BibleMediaItem(MediaManagerItem):
         self.search_timer.timeout.connect(self.on_search_timer_timeout)
         self.is_first_suggestion = True
         self.audio_worker = None
-        self.audio_worker_started = False
         super().__init__(*args, **kwargs)
         Registry().register_function('populate_bible_combo_boxes', self.populate_bible_combo_boxes)
         Registry().register_function('populate_model_combo_boxes', self.populate_model_combo_boxes)
@@ -143,8 +140,8 @@ class BibleMediaItem(MediaManagerItem):
         Registry().register_function('models_load_list', self.reload_models)
         self.plugin.manager.set_encoder_model(self.settings.value('models/encoder model'))
         model_name = self.settings.value('models/transcriber model')
-        if model_name in ModelInfo.transcription_models:
-            self.transcriber_model_changed.emit(model_name)
+        if model_name in ModelInfo.transcription_models and self.audio_worker:
+            self.audio_worker.set_model(model_name)
 
     def required_icons(self):
         """
@@ -365,9 +362,6 @@ class BibleMediaItem(MediaManagerItem):
         """
         log.debug('bible manager initialise')
         self.audio_worker = AudioWorker()
-        self.microphone_source.connect(self.audio_worker.setup_microphone)
-        self.toggle_microphone_button.toggled.connect(self.audio_worker.toggle_active)
-        self.transcriber_model_changed.connect(self.audio_worker.set_model)
         self.audio_worker.submitted_text.connect(self.on_audio_search)
         self.populate_bible_combo_boxes()
         self.populate_model_combo_boxes()
@@ -389,7 +383,7 @@ class BibleMediaItem(MediaManagerItem):
         if self.settings.value('bibles/reset to combined quick search'):
             self.search_edit.set_current_search_type(BibleSearch.Combined)
         self.config_update()
-        # run_thread(self.audio_worker, 'audio-worker')
+        run_thread(self.audio_worker, 'audio-worker')
         log.debug('bible manager initialisation complete')
 
     def populate_bible_combo_boxes(self):
@@ -671,7 +665,7 @@ class BibleMediaItem(MediaManagerItem):
 
         :return: None
         """
-        self.microphone_source.emit(self.microphone_selection.currentData())
+        self.audio_worker.setup_microphone(self.microphone_selection.currentData())
 
     def on_clear_button_clicked(self):
         """
@@ -696,13 +690,11 @@ class BibleMediaItem(MediaManagerItem):
         :param checked: Indicates if the button is checked or not (Bool)
         :return: None
         """
-        if checked and not self.audio_worker_started:
-            self.audio_worker_started = True
-            run_thread(self.audio_worker, 'audio-worker')
         state_string = 'off' if checked else 'on'
         self.toggle_microphone_button.setToolTip(translate('BiblesPlugin.MediaItem', 'Turn {state} microphone.'.format(
             state=state_string)))
         self.microphone_selection.setEnabled(checked)
+        self.audio_worker.toggle_active(checked)
 
     def on_save_results_button_clicked(self):
         """
@@ -788,8 +780,8 @@ class BibleMediaItem(MediaManagerItem):
         """
         model_name = self.transcriber_model_combo_box.currentText()
         self.settings.setValue('models/transcriber model', model_name)
-        if model_name in ModelInfo.transcription_models:
-            self.transcriber_model_changed.emit(model_name)
+        if model_name in ModelInfo.transcription_models and self.audio_worker:
+            self.audio_worker.set_model(model_name)
 
     def on_advanced_book_combo_box(self):
         """
