@@ -449,3 +449,24 @@ def add_list_view_mode_items_to_toolbar(toolbar, trigger_handler):
                                checked=False,
                                tooltip=translate('OpenLP.Ui', 'Shows the list in a grid view.'),
                                triggers=trigger_handler.on_set_view_mode_grid)
+
+
+class GrowingTextEdit(QtWidgets.QTextEdit):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setFixedHeight(self.sizeHint().height())
+        self.setSizePolicy(QtWidgets.QSizePolicy.Policy.MinimumExpanding, QtWidgets.QSizePolicy.Policy.Fixed)
+        self.textChanged.connect(self._on_text_changed)
+
+    def _on_text_changed(self):
+        document = self.document()
+        margins = self.contentsMargins()
+        height = document.size().toSize().height() + margins.top() + margins.bottom()
+        if not self.toPlainText():
+            single_line_edit = QtWidgets.QLineEdit()
+            height = single_line_edit.sizeHint().height()
+            single_line_edit.deleteLater()
+            del single_line_edit
+        self.setFixedHeight(height)
