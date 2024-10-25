@@ -37,7 +37,7 @@ class EmbeddingWorker(ThreadWorker):
     """
     embedding_finished = QtCore.pyqtSignal(str, str)
     embedding_progress = QtCore.pyqtSignal(str, float)
-
+    embedding_beginning = QtCore.pyqtSignal(str, str)
     current_processes = []
 
     def __init__(self, model, bible):
@@ -70,6 +70,7 @@ class EmbeddingWorker(ThreadWorker):
         # split list into ids and texts
         verse_ids, verse_texts = zip(*verse_texts)
         encodings = self.model.encode(verse_texts)
+        self.embedding_beginning.emit(self.model.name, self.bible.name)
         encodings = [self.bible.Encoding(verse_id=verse_id, model_name=self.model.name, encoding=dumps(encoding))
                      for verse_id, encoding in zip(verse_ids, encodings)]
         self.bible.save_objects(encodings)

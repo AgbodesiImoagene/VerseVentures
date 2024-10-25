@@ -233,12 +233,29 @@ class BibleManager(LogMixin, RegistryProperties):
             ).format(bible=bible_name, model=model_name),
         )
         self.application.process_events()
+    
+    def on_bible_encoding_beginning(self, model_name, bible_name):
+        key = 'bible_embedding_{model}'.format(model=model_name)
+        self.db_cache[bible_name].save_meta(key, True)
+        QWidgets.QMessageBox.information(
+            self.application.main_window,
+            translate("BiblesPlugin.BibleManager", "Bible Encoding Has Started"),
+            translate(
+                "BiblesPlugin.BibleManager",
+                "Bible {bible} is currently being encoded with model {model}. This is a long process"
+                "which takes approximately 1 hour 30 mins. You cannot use the semantic search feature"
+                "of this Bible neither audio transcription (speech to text) until the encoding process"
+                "is complete. Upon completion you will be notified",
+            ).format(bible=bible_name, model=model_name),
+        )
+        self.application.process_events()    
 
     def _encode_bible(self, bible, model):
         log.debug('Encoding Bible {bible} with {model}'.format(bible=bible.name, model=model.name))
         if not bible or not model:
             return
         encode_worker = EmbeddingWorker(model, bible)
+        encode_worker.embedding_beginning.connect(self.on_bible_encoding_beginning)
         encode_worker.embedding_finished.connect(self.on_bible_encoding_finished)
         thread_name = "encode-worker-{bible}-{model}-{id}".format(
             bible=bible.name, model=model.name, id=id(encode_worker)
