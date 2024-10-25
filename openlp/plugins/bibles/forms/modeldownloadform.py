@@ -367,20 +367,27 @@ class ModelDownloadForm(OpenLPWizard):
         model = model_class(model_name, self.manager, **model_data)
         try:
             if not model.stop_import_flag:
-                model.register(self)
-                model.download()
-                self.manager.reload_models()
+                self.manager.import_model(model)
                 if model_type == ModelType.ENCODER.value:
-                    self.manager.encode_bibles()
+                    self.manager.reload_bibles()
                 self.progress_label.setText(WizardStrings.FinishedImport)
+                self.button(QtWidgets.QWizard.FinishButton).clicked.connect(self.encoding_dialogue_message)
                 return
         except Exception:
             log.exception('Importing model failed')
             trace_error_handler(log)
 
         self.progress_label.setText(translate('BiblesPlugin.ImportWizardForm', 'Your model import failed.'))
-        self.application.process_events()
 
+    def encoding_dialogue_message(self):
+        msgBox = QtWidgets.QMessageBox()
+        msgBox.setIcon(QtWidgets.QMessageBox.Information)
+        msgBox.setText("Your Bibles have started being encoded using your selected model"
+                        "This will take approximately 1 hour 30 mins"
+                        "You cannot use semantic search feature or audio transcription until" 
+                        "encoding is complete. You will be notified when encoding is complete")
+        msgBox.setWindowTitle("About encoding")
+        
     def provide_help(self):
         """
         Provide help within the wizard by opening the appropriate page of the openlp manual in the user's browser

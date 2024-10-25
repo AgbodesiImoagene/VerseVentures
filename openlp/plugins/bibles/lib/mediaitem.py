@@ -568,8 +568,10 @@ class BibleMediaItem(MediaManagerItem):
         if not hasattr(self, 'model_import_wizard'):
             self.model_import_wizard = ModelDownloadForm(self, self.plugin.manager, self.plugin)
         # If the import was not cancelled then reload.
-        if self.model_import_wizard.exec():
+        if self.model_import_wizard.exec():            
             self.reload_models()
+
+
 
     def on_edit_click(self):
         """
