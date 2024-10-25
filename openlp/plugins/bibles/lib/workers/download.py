@@ -29,6 +29,8 @@ from urllib.request import urlopen
 
 from PyQt5 import QtCore
 import requests
+import ssl
+import certifi
 
 from openlp.core.common.httputils import get_url_file_size
 from openlp.core.common.i18n import translate
@@ -107,7 +109,7 @@ class ModelDownloadWorker(ThreadWorker):
         Get the size of a remote tar file
         """
         try:
-            with urlopen(urljoin(self._base_url, file)) as f_stream:
+            with urlopen(urljoin(self._base_url, file), context=ssl.create_default_context(cafile=certifi.where())) as f_stream:
                 with tarfile.open(mode="r|*", fileobj=f_stream) as tgz:
                     return sum([member.size for member in tgz])
         except tarfile.TarError:

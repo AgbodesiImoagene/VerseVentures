@@ -19,7 +19,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 import logging
 from queue import Queue
 
@@ -68,8 +68,8 @@ class AudioWorker(ThreadWorker):
         transcription = ''
         while not self.shutdown:
             if self.is_active:
-                now = datetime.now(UTC)
-                if phrase_time and now - phrase_time > timedelta(seconds=2) and transcription:
+                now = datetime.now()
+                if phrase_time and now - phrase_time > timedelta(seconds=3) and transcription:
                     self.submitted_text.emit(transcription)
                     transcription = ''
 
@@ -104,7 +104,7 @@ class AudioWorker(ThreadWorker):
             self.stopper = self.recognizer.listen_in_background(
                 self.microphone,
                 record_callback,
-                2.5,
+                2,
             )
 
     def stop_listening(self):
