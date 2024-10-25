@@ -104,7 +104,7 @@ class AudioWorker(ThreadWorker):
             self.stopper = self.recognizer.listen_in_background(
                 self.microphone,
                 record_callback,
-                1,
+                2,
             )
 
     def stop_listening(self):
@@ -126,8 +126,8 @@ class AudioWorker(ThreadWorker):
             if microphone_source
             else Microphone()
         )
-        with self.microphone:
-            self.recognizer.adjust_for_ambient_noise(self.microphone)
+        with self.microphone as source:
+            self.recognizer.adjust_for_ambient_noise(source)
         if self.is_active:
             self.start_listening()
 

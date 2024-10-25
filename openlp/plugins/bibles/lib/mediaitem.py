@@ -33,7 +33,7 @@ from openlp.core.common.registry import Registry
 from openlp.core.lib import ServiceItemContext
 from openlp.core.lib.mediamanageritem import MediaManagerItem
 from openlp.core.lib.serviceitem import ItemCapabilities
-from openlp.core.lib.ui import create_horizontal_adjusting_combo_box, critical_error_message_box, \
+from openlp.core.lib.ui import GrowingTextEdit, create_horizontal_adjusting_combo_box, critical_error_message_box, \
     find_and_set_in_combo_box, set_case_insensitive_completer
 from openlp.core.threading import run_thread
 from openlp.core.ui.icons import UiIcons
@@ -87,6 +87,24 @@ class SearchTabs(IntEnum):
     Options = 3
 
 
+@unique
+class SematicSimilarity(IntEnum):
+    """
+    Enumeration class for the different semantic similarity levels.
+    """
+    Low = 0
+    Medium = 1
+    High = 2
+
+    @property
+    def threshold(self):
+        return {
+            SematicSimilarity.Low: 0.5,
+            SematicSimilarity.Medium: 0.70,
+            SematicSimilarity.High: 0.8,
+        }[self]
+
+
 class BibleMediaItem(MediaManagerItem):
     """
     This is the custom media manager item for Bibles.
@@ -116,6 +134,7 @@ class BibleMediaItem(MediaManagerItem):
         self.search_timer.setInterval(1000)
         self.search_timer.setSingleShot(True)
         self.search_timer.timeout.connect(self.on_search_timer_timeout)
+        self.similarity_threshold = 0.5
         self.is_first_suggestion = True
         self.audio_worker = None
         super().__init__(*args, **kwargs)
@@ -227,6 +246,11 @@ class BibleMediaItem(MediaManagerItem):
         self.microphone_options_layout.addWidget(self.toggle_microphone_button)
         self.suggestions_layout.addRow(translate('BiblesPlugin.MediaItem', 'Microphone:'),
                                        self.microphone_options_layout)
+        self.transcription_text_box = GrowingTextEdit(self.suggestions_tab)
+        self.transcription_text_box.setReadOnly(True)
+        self.transcription_text_box.setAcceptRichText(False)
+        self.transcription_text_box.setPlaceholderText(translate('BiblesPlugin.MediaItem', 'Live Transcription'))
+        self.suggestions_layout.addRow(self.transcription_text_box)
         self.suggestions_tab.setVisible(False)
         self.page_layout.addWidget(self.suggestions_tab)
         # General Search Options
@@ -240,13 +264,19 @@ class BibleMediaItem(MediaManagerItem):
         self.general_bible_layout.addRow(translate('BiblesPlugin.MediaItem', 'Second:'), self.second_combo_box)
         self.style_combo_box = create_horizontal_adjusting_combo_box(self, 'style_combo_box')
         self.style_combo_box.addItems(['', '', '', ''])
+        self.general_bible_layout.addRow(UiStrings().LayoutStyle, self.style_combo_box)
         self.encoder_model_combo_box = create_horizontal_adjusting_combo_box(self, 'encoder_model_combo_box')
         self.general_bible_layout.addRow(translate('BiblesPlugin.MediaItem', 'Encoding Model:'),
                                          self.encoder_model_combo_box)
         self.transcriber_model_combo_box = create_horizontal_adjusting_combo_box(self, 'transcriber_model_combo_box')
         self.general_bible_layout.addRow(translate('BiblesPlugin.MediaItem', 'Transcriber Model:'),
                                          self.transcriber_model_combo_box)
-        self.general_bible_layout.addRow(UiStrings().LayoutStyle, self.style_combo_box)
+        self.semantic_similarity_dropdown = QtWidgets.QComboBox(self)
+        self.semantic_similarity_dropdown.addItem(translate('BiblesPlugin.MediaItem', 'Low'))
+        self.semantic_similarity_dropdown.addItem(translate('BiblesPlugin.MediaItem', 'Medium'))
+        self.semantic_similarity_dropdown.addItem(translate('BiblesPlugin.MediaItem', 'High'))
+        self.general_bible_layout.addRow(translate('BiblesPlugin.MediaItem', 'Semantic Similarity:'),
+                                         self.semantic_similarity_dropdown)
         self.options_tab.setVisible(False)
         self.page_layout.addWidget(self.options_tab)
         # This widget is the easier way to reset the spacing of search_button_layout. (Because page_layout has had its
@@ -295,6 +325,9 @@ class BibleMediaItem(MediaManagerItem):
         self.microphone_selection.currentIndexChanged.connect(self.on_microphone_selection_index_changed)
         self.encoder_model_combo_box.currentIndexChanged.connect(self.on_encoder_model_combo_box_index_changed)
         self.transcriber_model_combo_box.currentIndexChanged.connect(self.on_transcriber_model_combo_box_index_changed)
+        self.semantic_similarity_dropdown.currentIndexChanged.connect(
+            self.on_semantic_similarity_dropdown_index_changed
+        )
         # Buttons
         self.book_order_button.toggled.connect(self.on_book_order_button_toggled)
         self.clear_button.clicked.connect(self.on_clear_button_clicked)
@@ -363,6 +396,7 @@ class BibleMediaItem(MediaManagerItem):
         log.debug('bible manager initialise')
         self.audio_worker = AudioWorker()
         self.audio_worker.submitted_text.connect(self.on_audio_search)
+        self.audio_worker.display_text.connect(self.on_audio_transcription)
         self.populate_bible_combo_boxes()
         self.populate_model_combo_boxes()
         self.populate_microphone_combo_box()
@@ -382,6 +416,7 @@ class BibleMediaItem(MediaManagerItem):
         ])
         if self.settings.value('bibles/reset to combined quick search'):
             self.search_edit.set_current_search_type(BibleSearch.Combined)
+        self.semantic_similarity_dropdown.setCurrentIndex(self.settings.value('models/semantic similarity'))
         self.config_update()
         run_thread(self.audio_worker, 'audio-worker')
         log.debug('bible manager initialisation complete')
@@ -613,6 +648,10 @@ class BibleMediaItem(MediaManagerItem):
             self.search_button.setEnabled(True)
         else:
             self.search_button.setEnabled(False)
+        if index == SearchTabs.Suggestions:
+            self.is_first_suggestion = True
+            self.transcription_text_box.clear()
+            self.transcription_text_box.setPlaceholderText(translate('BiblesPlugin.MediaItem', 'Live Transcription'))
         self.search_tab.setVisible(index == SearchTabs.Search)
         self.select_tab.setVisible(index == SearchTabs.Select)
         self.suggestions_tab.setVisible(index == SearchTabs.Suggestions)
@@ -785,6 +824,21 @@ class BibleMediaItem(MediaManagerItem):
         if model_name in ModelInfo.transcription_models and self.audio_worker:
             self.audio_worker.set_model(model_name)
 
+    def on_semantic_similarity_dropdown_index_changed(self):
+        """
+        Update the semantic similarity setting and save it to settings
+
+        :return: None
+        """
+        self.settings.setValue(
+            "models/semantic similarity",
+            self.semantic_similarity_dropdown.currentIndex(),
+        )
+        self.similarity_threshold = SematicSimilarity(
+            self.semantic_similarity_dropdown.currentIndex()
+        ).threshold
+        log.debug("Semantic similarity threshold set to %s", self.similarity_threshold)
+
     def on_advanced_book_combo_box(self):
         """
         Update the verse selection boxes
@@ -903,7 +957,6 @@ class BibleMediaItem(MediaManagerItem):
 
         :return: None
         """
-        self.is_first_suggestion = True
         verse_range = self.plugin.manager.process_verse_range(
             self.select_book_combo_box.currentData(), self.from_chapter.currentData(), self.from_verse.currentData(),
             self.to_chapter.currentData(), self.to_verse.currentData())
@@ -971,7 +1024,11 @@ class BibleMediaItem(MediaManagerItem):
         """
         self.search_results = self.plugin.manager.similarity_search(self.bible.name, text)
         if self.second_bible:
-            self.second_search_results = self.plugin.manager.similarity_search(self.second_bible.name, text)
+            self.second_search_results = self.plugin.manager.similarity_search(
+                self.second_bible.name,
+                text,
+                similarity_threshold=self.similarity_threshold,
+            )
         if not self.search_results and not self.second_search_results:
             return False
         self.display_results()
@@ -984,7 +1041,6 @@ class BibleMediaItem(MediaManagerItem):
         """
         self.search_results = []
         self.second_search_results = []
-        self.is_first_suggestion = True
         log.debug('text_search called')
         text = self.search_edit.text()
         if text == '':
@@ -1070,6 +1126,9 @@ class BibleMediaItem(MediaManagerItem):
             if self.second_bible:
                 self.second_search_results.extend(self.plugin.manager.similarity_search(self.second_bible.name, text))
         self.display_results()
+
+    def on_audio_transcription(self, text):
+        self.transcription_text_box.setText(text)
 
     def display_results(self):
         """
