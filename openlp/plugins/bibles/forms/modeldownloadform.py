@@ -410,21 +410,21 @@ class ModelDownloadForm(OpenLPWizard):
                     self.manager.encode_bibles()
                     model_has_been_used_successfully = self.manager.has_used_model_to_successfully_encode(model)
                     if model_has_been_used_successfully:
-                        self.progress_label =  QtWidgets.QLabel('Model already imported \n'
-                                                                'Your selected model has already been used \n'
-                                                                'to successfully encode all bibles \n'
-                                                        'Semantic search and transcription (speech to text) \n'
-                                                        'are already working \n')
+                        self.progress_label =  QtWidgets.QLabel('Model already imported                             \n'
+                                                                'Your selected model has already been used          \n'
+                                                                'to successfully encode all bibles                  \n'
+                                                                'Semantic search and transcription (speech to text) \n'
+                                                                'are already working                                \n')
                     else:        
-                        self.progress_label =  QtWidgets.QLabel('Finished Import \n'
-                                                                'Your selected model has finished importing however \n'
-                                                                'the selected model has started to encode all your bibles \n'
-                                                        'Which is occuring in the background \n'
-                                                        'This process takes approximatel an additional 1 hour 30 mins \n'
-                                                        'This process must be completed before you can use \n'
-                                                        'semantic search and audio transcription (speech to text) features \n'
-                                                        'You will be notified once this process is complete \n'
-                                                        'But you may continue to use verse ventures')
+                        self.progress_label =  QtWidgets.QLabel('Finished Import                                                    \n'
+                                                                'Your selected model has finished importing however                 \n'
+                                                                'the selected model has started to encode all your bibles           \n'
+                                                                'Which is occuring in the background                                \n'
+                                                                'This process takes approximatel an additional 1 hour 30 mins       \n'
+                                                                'This process must be completed before you can use                  \n'
+                                                                'semantic search and audio transcription (speech to text) features  \n'
+                                                                'You will be notified once this process is complete                 \n'
+                                                                'But you may continue to use verse ventures')
                     self.progress_layout.addWidget(self.progress_label)
                 return
         except Exception:

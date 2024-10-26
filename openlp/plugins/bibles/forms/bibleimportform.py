@@ -42,7 +42,7 @@ from openlp.core.lib.ui import critical_error_message_box
 from openlp.core.widgets.enums import PathEditType
 from openlp.core.widgets.edits import PathEdit
 from openlp.core.widgets.wizard import OpenLPWizard, WizardStrings
-from openlp.plugins.bibles.lib.db import clean_filename
+from openlp.plugins.bibles.lib.db import clean_filename, ModelType
 from openlp.plugins.bibles.lib.importers.http import BGExtract, CWExtract, BSExtract
 from openlp.plugins.bibles.lib.manager import BibleFormat
 
@@ -768,6 +768,26 @@ class BibleImportForm(OpenLPWizard):
                                             license_copyright, license_permissions, license_full_license)
                 self.manager.reload_bibles()
                 self.manager.encode_bibles()
+                model_names = self.manager.get_models(type=ModelType.ENCODER).keys()
+                if len(model_names) > 0:
+                    self.progress_label =  QtWidgets.QLabel('Your selected bible will be encoded with all       \n'
+                                                            'encoding models in your database \n which is       \n'
+                                                            'occuring in the background. This is a long         \n'
+                                                            'process which will take approximately 1 hour       \n'
+                                                            '30 mins This process must be completed before      \n' 
+                                                            'you can use semantic search and bible suggesstions \n'
+                                                            'using audio transcription (speech to text) features\n'
+                                                            'You will be notified once this process is complete \n'
+                                                            'But you may continue to use verse ventures         \n')
+                else:        
+                    self.progress_label =  QtWidgets.QLabel('To start using semantic search please:          \n'
+                                                            'import encoding models and transcription models \n'
+                                                            'using the model import wizard                   \n')
+                self.progress_layout.addWidget(self.progress_label)
+
+
+
+
                 if bible_type == BibleFormat.WebDownload:
                     self.progress_label.setText(
                         translate('BiblesPlugin.ImportWizardForm', 'Registered Bible. Please note, that verses will be '
