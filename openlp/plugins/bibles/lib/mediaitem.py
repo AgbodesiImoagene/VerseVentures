@@ -492,7 +492,7 @@ class BibleMediaItem(MediaManagerItem):
         self.microphone_selection.blockSignals(True)
         self.microphone_selection.clear()
         microphones = Microphone.list_microphone_names()
-        for device_index in microphones:
+        for device_index in range(len(microphones)):
             microphone = microphones[device_index]
             self.microphone_selection.addItem(microphone, device_index)
         self.microphone_selection.blockSignals(False)
