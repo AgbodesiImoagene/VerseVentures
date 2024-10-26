@@ -403,26 +403,37 @@ class ModelDownloadForm(OpenLPWizard):
         model = model_class(model_name, self.manager, **model_data)
         try:
             if not model.stop_import_flag:
-                self.manager.import_model(model)
+                model.register(self)
+                model.download()
+                self.manager.reload_models()
                 if model_type == ModelType.ENCODER.value:
-                    self.manager.reload_bibles()
-                self.progress_label.setText(WizardStrings.FinishedImport)
-                self.progress_label =  QtWidgets.QLabel('Your select model has finished importing however'
-                                                        'the model just started to encode all your bibles \n'
-                                                'This process takes an approx an additional 1 hour 30 mins \n'
-                                                'This process must be completed before you can use \n'
-                                                'semantic search and audio transcription (speech to text) features \n'
-                                                'You will be notified once this process is complete')       
-                self.progress_layout.addWidget(self.progress_label)
-
+                    self.manager.encode_bibles()
+                    model_has_been_used_successfully = self.manager.has_used_model_to_successfully_encode(model)
+                    if model_has_been_used_successfully:
+                        self.progress_label =  QtWidgets.QLabel('Model already imported \n'
+                                                                'Your selected model has already been used \n'
+                                                                'to successfully encode all bibles \n'
+                                                        'Semantic search and transcription (speech to text) \n'
+                                                        'are already working \n')
+                    else:        
+                        self.progress_label =  QtWidgets.QLabel('Finished Import \n'
+                                                                'Your selected model has finished importing however \n'
+                                                                'the selected model has started to encode all your bibles \n'
+                                                        'Which is occuring in the background \n'
+                                                        'This process takes approximatel an additional 1 hour 30 mins \n'
+                                                        'This process must be completed before you can use \n'
+                                                        'semantic search and audio transcription (speech to text) features \n'
+                                                        'You will be notified once this process is complete \n'
+                                                        'But you may continue to use verse ventures')
+                    self.progress_layout.addWidget(self.progress_label)
                 return
-
         except Exception:
             log.exception('Importing model failed')
             trace_error_handler(log)
 
         self.progress_label.setText(translate('BiblesPlugin.ImportWizardForm', 'Your model import failed.'))
-
+        self.application.process_events()
+        
     def encoding_dialogue_message(self):
         msgBox = QtWidgets.QMessageBox()
         msgBox.setIcon(QtWidgets.QMessageBox.Information)

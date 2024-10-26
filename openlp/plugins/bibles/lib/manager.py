@@ -137,6 +137,7 @@ class BibleManager(LogMixin, RegistryProperties):
         self.reload_bibles()
         self.reload_models()
         self.media = None
+        self.successfully_encoded_with_models = []
 
     def reload_bibles(self):
         """
@@ -269,6 +270,14 @@ class BibleManager(LogMixin, RegistryProperties):
                 key = 'bible_embedding_{model}'.format(model=model.name)
                 if not bible.get_object(bible.BibleMeta, key) and not bible.is_web_bible:
                     self._encode_bible(bible, model)
+
+    def has_used_model_to_successfully_encode(self, model):
+        model_ecoded_all_bibles = False
+        for bible in self.db_cache.values():
+            key = 'bible_embedding_{model}'.format(model=model.name)
+            if bible.get_object(bible.BibleMeta, key) and not bible.is_web_bible:
+                model_ecoded_all_bibles = True
+        return model_ecoded_all_bibles
 
     def get_bibles(self):
         """
