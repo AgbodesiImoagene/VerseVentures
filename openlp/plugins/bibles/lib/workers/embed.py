@@ -58,6 +58,7 @@ class EmbeddingWorker(ThreadWorker):
         key = f'{self.model.name} - {self.bible.name}'
         if not self.bible or not self.model or self.is_cancelled or key in EmbeddingWorker.current_processes:
             return
+        self.embedding_beginning.emit(self.model.name, self.bible.name)
         EmbeddingWorker.current_processes.append(key)
         all_verses = self.bible.get_all_objects(self.bible.Verse)
         all_books = self.bible.get_all_objects(self.bible.Book)
@@ -70,7 +71,6 @@ class EmbeddingWorker(ThreadWorker):
         # split list into ids and texts
         verse_ids, verse_texts = zip(*verse_texts)
         encodings = self.model.encode(verse_texts)
-        self.embedding_beginning.emit(self.model.name, self.bible.name)
         encodings = [self.bible.Encoding(verse_id=verse_id, model_name=self.model.name, encoding=dumps(encoding))
                      for verse_id, encoding in zip(verse_ids, encodings)]
         self.bible.save_objects(encodings)

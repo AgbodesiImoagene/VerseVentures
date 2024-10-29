@@ -136,6 +136,7 @@ class BibleManager(LogMixin, RegistryProperties):
         self.import_wizard = None
         self.reload_bibles()
         self.reload_models()
+        self.encode_bibles()
         self.media = None
         self.successfully_encoded_with_models = []
 
@@ -240,16 +241,14 @@ class BibleManager(LogMixin, RegistryProperties):
         self.db_cache[bible_name].save_meta(key, True)
         QWidgets.QMessageBox.information(
             self.application.main_window,
-            translate("BiblesPlugin.BibleManager", "Bible Encoding Has Started"),
+            translate("BiblesPlugin.BibleManager", "Bible Encoding Started"),
             translate(
                 "BiblesPlugin.BibleManager",
-                "Bible {bible} is currently being encoded with model {model}. This is a long process"
-                "which takes approximately 1 hour 30 mins. You cannot use the semantic search feature"
-                "of this Bible neither audio transcription (speech to text) until the encoding process"
-                "is complete. Upon completion you will be notified",
+                "Bible {bible} is currently being encoded with model {model}."
+                "This process may take a while. You will be notified upon completion.",
             ).format(bible=bible_name, model=model_name),
         )
-        self.application.process_events()    
+        self.application.process_events()
 
     def _encode_bible(self, bible, model):
         log.debug('Encoding Bible {bible} with {model}'.format(bible=bible.name, model=model.name))
@@ -272,12 +271,12 @@ class BibleManager(LogMixin, RegistryProperties):
                     self._encode_bible(bible, model)
 
     def has_used_model_to_successfully_encode(self, model):
-        model_ecoded_all_bibles = False
+        model_encoded_all_bibles = False
         for bible in self.db_cache.values():
             key = 'bible_embedding_{model}'.format(model=model.name)
             if bible.get_object(bible.BibleMeta, key) and not bible.is_web_bible:
-                model_ecoded_all_bibles = True
-        return model_ecoded_all_bibles
+                model_encoded_all_bibles = True
+        return model_encoded_all_bibles
 
     def get_bibles(self):
         """

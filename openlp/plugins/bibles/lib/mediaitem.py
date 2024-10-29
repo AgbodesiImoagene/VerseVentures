@@ -25,7 +25,6 @@ from enum import IntEnum, unique
 from typing import Any
 
 from PyQt5 import QtCore, QtWidgets
-from speech_recognition import Microphone
 
 from openlp.core.common.enum import BibleSearch, DisplayStyle, LayoutStyle
 from openlp.core.common.i18n import UiStrings, get_locale_key, translate
@@ -33,7 +32,7 @@ from openlp.core.common.registry import Registry
 from openlp.core.lib import ServiceItemContext
 from openlp.core.lib.mediamanageritem import MediaManagerItem
 from openlp.core.lib.serviceitem import ItemCapabilities
-from openlp.core.lib.ui import GrowingTextEdit, create_horizontal_adjusting_combo_box, critical_error_message_box, \
+from openlp.core.lib.ui import DissapearingListWidgetItem, GrowingTextEdit, create_horizontal_adjusting_combo_box, critical_error_message_box, \
     find_and_set_in_combo_box, set_case_insensitive_completer
 from openlp.core.threading import run_thread
 from openlp.core.ui.icons import UiIcons
@@ -43,7 +42,7 @@ from openlp.plugins.bibles.forms.editbibleform import EditBibleForm
 from openlp.plugins.bibles.forms.modeldownloadform import ModelDownloadForm
 from openlp.plugins.bibles.lib import ModelInfo, ModelType, get_reference_match, get_reference_separator
 from openlp.plugins.bibles.lib.versereferencelist import VerseReferenceList
-from openlp.plugins.bibles.lib.workers.audio import AudioWorker
+from openlp.plugins.bibles.lib.workers.audio import AudioWorker, get_working_microphones
 
 log = logging.getLogger(__name__)
 
@@ -105,6 +104,44 @@ class SematicSimilarity(IntEnum):
         }[self]
 
 
+@unique
+class SuggestionTimeout(IntEnum):
+    """
+    Enumeration class for the different suggestion timeout options.
+    """
+    SECS_15 = 0
+    SECS_30 = 1
+    MIN_1 = 2
+    MIN_2 = 3
+    MIN_5 = 4
+    MIN_10 = 5
+    NO_TIMEOUT = 6
+
+    @property
+    def timeout(self):
+        return {
+            SuggestionTimeout.SECS_15: 15,
+            SuggestionTimeout.SECS_30: 30,
+            SuggestionTimeout.MIN_1: 60,
+            SuggestionTimeout.MIN_2: 120,
+            SuggestionTimeout.MIN_5: 300,
+            SuggestionTimeout.MIN_10: 600,
+            SuggestionTimeout.NO_TIMEOUT: None,
+        }[self]
+
+    @property
+    def display(self):
+        return {
+            SuggestionTimeout.SECS_15: '15s',
+            SuggestionTimeout.SECS_30: '30s',
+            SuggestionTimeout.MIN_1: '1m',
+            SuggestionTimeout.MIN_2: '2m',
+            SuggestionTimeout.MIN_5: '5m',
+            SuggestionTimeout.MIN_10: '10m',
+            SuggestionTimeout.NO_TIMEOUT: 'No Timeout',
+        }[self]
+
+
 class BibleMediaItem(MediaManagerItem):
     """
     This is the custom media manager item for Bibles.
@@ -137,6 +174,7 @@ class BibleMediaItem(MediaManagerItem):
         self.similarity_threshold = 0.5
         self.is_first_suggestion = True
         self.audio_worker = None
+        self.suggestion_timeout = None
         super().__init__(*args, **kwargs)
         Registry().register_function('populate_bible_combo_boxes', self.populate_bible_combo_boxes)
         Registry().register_function('populate_model_combo_boxes', self.populate_model_combo_boxes)
@@ -271,12 +309,18 @@ class BibleMediaItem(MediaManagerItem):
         self.transcriber_model_combo_box = create_horizontal_adjusting_combo_box(self, 'transcriber_model_combo_box')
         self.general_bible_layout.addRow(translate('BiblesPlugin.MediaItem', 'Transcriber Model:'),
                                          self.transcriber_model_combo_box)
-        self.semantic_similarity_dropdown = QtWidgets.QComboBox(self)
+        self.semantic_similarity_dropdown = create_horizontal_adjusting_combo_box(self, 'semantic_similarity_dropdown')
         self.semantic_similarity_dropdown.addItem(translate('BiblesPlugin.MediaItem', 'Low'))
         self.semantic_similarity_dropdown.addItem(translate('BiblesPlugin.MediaItem', 'Medium'))
         self.semantic_similarity_dropdown.addItem(translate('BiblesPlugin.MediaItem', 'High'))
         self.general_bible_layout.addRow(translate('BiblesPlugin.MediaItem', 'Semantic Similarity:'),
                                          self.semantic_similarity_dropdown)
+        self.suggestion_timeout_dropdown = create_horizontal_adjusting_combo_box(self, 'suggestion_timeout_dropdown')
+        self.suggestion_timeout_dropdown.addItems([
+            translate('BiblesPlugin.MediaItem', x.display) for x in SuggestionTimeout
+        ])
+        self.general_bible_layout.addRow(translate('BiblesPlugin.MediaItem', 'Suggestion Timeout:'),
+                                         self.suggestion_timeout_dropdown)
         self.options_tab.setVisible(False)
         self.page_layout.addWidget(self.options_tab)
         # This widget is the easier way to reset the spacing of search_button_layout. (Because page_layout has had its
@@ -327,6 +371,9 @@ class BibleMediaItem(MediaManagerItem):
         self.transcriber_model_combo_box.currentIndexChanged.connect(self.on_transcriber_model_combo_box_index_changed)
         self.semantic_similarity_dropdown.currentIndexChanged.connect(
             self.on_semantic_similarity_dropdown_index_changed
+        )
+        self.suggestion_timeout_dropdown.currentIndexChanged.connect(
+            self.on_suggestion_timeout_dropdown_index_changed
         )
         # Buttons
         self.book_order_button.toggled.connect(self.on_book_order_button_toggled)
@@ -386,6 +433,10 @@ class BibleMediaItem(MediaManagerItem):
         layout_style = self.settings.value('bibles/verse layout style')
         if layout_style is not None:
             self.style_combo_box.setCurrentIndex(layout_style)
+        self.semantic_similarity_dropdown.setCurrentIndex(self.settings.value('models/semantic similarity'))
+        suggestion_timeout_index = self.settings.value('models/suggestion timeout')
+        self.suggestion_timeout_dropdown.setCurrentIndex(suggestion_timeout_index)
+        self.suggestion_timeout = SuggestionTimeout(suggestion_timeout_index).timeout
 
     def initialise(self):
         """
@@ -416,7 +467,6 @@ class BibleMediaItem(MediaManagerItem):
         ])
         if self.settings.value('bibles/reset to combined quick search'):
             self.search_edit.set_current_search_type(BibleSearch.Combined)
-        self.semantic_similarity_dropdown.setCurrentIndex(self.settings.value('models/semantic similarity'))
         self.config_update()
         run_thread(self.audio_worker, 'audio-worker')
         log.debug('bible manager initialisation complete')
@@ -491,14 +541,11 @@ class BibleMediaItem(MediaManagerItem):
         log.debug('Loading Microphones')
         self.microphone_selection.blockSignals(True)
         self.microphone_selection.clear()
-        microphones = Microphone.list_microphone_names()
-        for device_index in range(len(microphones)):
-            microphone = microphones[device_index]
+        microphones = get_working_microphones()
+        for device_index, microphone in microphones.items():
             self.microphone_selection.addItem(microphone, device_index)
         self.microphone_selection.blockSignals(False)
-        # set the default value
-        microphone = self.settings.value('models/default microphone')
-        find_and_set_in_combo_box(self.microphone_selection, microphone)
+        self.microphone_selection.setCurrentIndex(0)
         # make sure the selected microphone ripples down to other gui elements
         self.on_microphone_selection_index_changed()
 
@@ -527,7 +574,7 @@ class BibleMediaItem(MediaManagerItem):
         Return a list of common books between two bibles.
 
         :param first_bible: The first bible (BibleDB)
-        :param second_bible: The second bible. (Optional, BibleDB
+        :param second_bible: The second bible. (Optional, BibleDB)
         :return: A list of common books between the two bibles. Or if only one bible is supplied a list of that bibles
                 books (list of Book objects)
         """
@@ -606,8 +653,6 @@ class BibleMediaItem(MediaManagerItem):
         if self.model_import_wizard.exec():            
             self.reload_models()
 
-
-
     def on_edit_click(self):
         """
         Load the EditBibleForm and reload the bibles if the user accepts it
@@ -649,7 +694,6 @@ class BibleMediaItem(MediaManagerItem):
         else:
             self.search_button.setEnabled(False)
         if index == SearchTabs.Suggestions:
-            self.is_first_suggestion = True
             self.transcription_text_box.clear()
             self.transcription_text_box.setPlaceholderText(translate('BiblesPlugin.MediaItem', 'Live Transcription'))
         self.search_tab.setVisible(index == SearchTabs.Search)
@@ -715,6 +759,8 @@ class BibleMediaItem(MediaManagerItem):
         :return: None
         """
         current_index = self.results_view_tab.currentIndex()
+        if not self.list_view.selectedItems():
+            self.list_view.selectAll()
         for item in self.list_view.selectedItems():
             self.list_view.takeItem(self.list_view.row(item))
         results = [item.data(QtCore.Qt.UserRole) for item in self.list_view.allItems()]
@@ -838,6 +884,21 @@ class BibleMediaItem(MediaManagerItem):
             self.semantic_similarity_dropdown.currentIndex()
         ).threshold
         log.debug("Semantic similarity threshold set to %s", self.similarity_threshold)
+
+    def on_suggestion_timeout_dropdown_index_changed(self):
+        """
+        Update the suggestion timeout setting and save it to settings
+
+        :return: None
+        """
+        self.settings.setValue(
+            "models/suggestion timeout",
+            self.suggestion_timeout_dropdown.currentIndex(),
+        )
+        self.suggestion_timeout = SuggestionTimeout(
+            self.suggestion_timeout_dropdown.currentIndex()
+        ).timeout
+        log.debug("Suggestion timeout set to %s", self.suggestion_timeout)
 
     def on_advanced_book_combo_box(self):
         """
@@ -1022,13 +1083,34 @@ class BibleMediaItem(MediaManagerItem):
         We are doing a 'Semantic Search'.
         This search is called on def text_search by 'Search' Text and Combined Searches.
         """
-        self.search_results = self.plugin.manager.similarity_search(self.bible.name, text)
-        if self.second_bible:
-            self.second_search_results = self.plugin.manager.similarity_search(
-                self.second_bible.name,
-                text,
-                similarity_threshold=self.similarity_threshold,
-            )
+        self.search_results = self.plugin.manager.similarity_search(
+            self.bible.name, text, similarity_threshold=self.similarity_threshold
+        )
+        if self.search_results is None:
+            return False
+        if self.second_bible and self.search_results:
+            filtered_search_results = []
+            not_found_count = 0
+            for verse in self.search_results:
+                second_verse = self.second_bible.get_verses(
+                    [(verse.book.book_reference_id, verse.chapter, verse.verse, verse.verse)], False)
+                if second_verse:
+                    filtered_search_results.append(verse)
+                    self.second_search_results += second_verse
+                else:
+                    log.debug('Verse "{name} {chapter:d}:{verse:d}" not found in Second Bible "{bible_name}"'.format(
+                        name=verse.book.name, chapter=verse.chapter,
+                        verse=verse.verse, bible_name=self.second_bible.name))
+                    not_found_count += 1
+            self.search_results = filtered_search_results
+            if not_found_count != 0 and self.search_status == SearchStatus.SearchButton and filtered_search_results:
+                self.main_window.information_message(
+                    translate('BiblesPlugin.MediaItem', 'Verses not found'),
+                    translate('BiblesPlugin.MediaItem',
+                              'The second Bible "{second_name}" does not contain all the verses that are in the main '
+                              'Bible "{name}".\nOnly verses found in both Bibles will be shown.\n\n'
+                              '{count:d} verses have not been included in the results.'
+                              ).format(second_name=self.second_bible.name, name=self.bible.name, count=not_found_count))
         if not self.search_results and not self.second_search_results:
             return False
         self.display_results()
@@ -1112,25 +1194,36 @@ class BibleMediaItem(MediaManagerItem):
         log.debug('audio_search called')
         if self.search_tab_bar.currentIndex() != SearchTabs.Suggestions:
             return
-        if self.is_first_suggestion:
-            self.search_results = []
-            self.second_search_results = []
-            self.is_first_suggestion = False
-            if self.bible:
-                self.search_results = self.plugin.manager.similarity_search(self.bible.name, text)
-            if self.second_bible:
-                self.second_search_results = self.plugin.manager.similarity_search(self.second_bible.name, text)
-        else:
-            if self.bible:
-                self.search_results.extend(self.plugin.manager.similarity_search(self.bible.name, text))
-            if self.second_bible:
-                self.second_search_results.extend(self.plugin.manager.similarity_search(self.second_bible.name, text))
-        self.display_results()
+        self.search_results = self.plugin.manager.similarity_search(
+            self.bible.name, text, similarity_threshold=self.similarity_threshold
+        )
+        if self.search_results is None:
+            return False
+        if self.second_bible and self.search_results:
+            filtered_search_results = []
+            not_found_count = 0
+            for verse in self.search_results:
+                second_verse = self.second_bible.get_verses(
+                    [(verse.book.book_reference_id, verse.chapter, verse.verse, verse.verse)], False)
+                if second_verse:
+                    filtered_search_results.append(verse)
+                    self.second_search_results += second_verse
+                else:
+                    log.debug('Verse "{name} {chapter:d}:{verse:d}" not found in Second Bible "{bible_name}"'.format(
+                        name=verse.book.name, chapter=verse.chapter,
+                        verse=verse.verse, bible_name=self.second_bible.name))
+                    not_found_count += 1
+            self.search_results = filtered_search_results
+        if not self.search_results and not self.second_search_results:
+            return False
+        self.display_results(self.is_first_suggestion, True)
+        self.is_first_suggestion = False
+        return True
 
     def on_audio_transcription(self, text):
         self.transcription_text_box.setText(text)
 
-    def display_results(self):
+    def display_results(self, clear=True, disappearing=False):
         """
         Add the search results to the media manager list.
 
@@ -1138,13 +1231,32 @@ class BibleMediaItem(MediaManagerItem):
         """
         self.current_results = self.build_display_results(self.bible, self.second_bible, self.search_results)
         self.search_results = []
-        self.add_built_results_to_list_widget(self.current_results)
+        self.add_built_results_to_list_widget(self.current_results, self.is_first_suggestion or clear, disappearing)
+        if clear:
+            self.is_first_suggestion = True
 
-    def add_built_results_to_list_widget(self, results):
-        self.list_view.clear(self.search_status == SearchStatus.NotEnoughText)
-        for item in self.build_list_widget_items(results):
-            self.list_view.addItem(item)
-        self.list_view.selectAll()
+    def add_built_results_to_list_widget(self, results, clear=True, disappearing=False):
+        """
+        Add the given results to the list widget.
+
+        :param results: The results to add to the list widget (list)
+        :param clear: If True, clear the list widget before adding the results (bool)
+        :return: None
+        """
+        if clear:
+            self.list_view.clear(self.search_status == SearchStatus.NotEnoughText)
+            for item in self.build_list_widget_items(results, disappearing):
+                self.list_view.addItem(item)
+                if isinstance(item, DissapearingListWidgetItem):
+                    self.list_view.setItemWidget(item, item.get_display_widget())
+                    item.start_timer(self.suggestion_timeout)
+            self.list_view.selectAll()
+        else:
+            for item in reversed(self.build_list_widget_items(results, disappearing)):
+                self.list_view.insertItem(0, item)
+                if isinstance(item, DissapearingListWidgetItem):
+                    self.list_view.setItemWidget(item, item.get_display_widget())
+                    item.start_timer(self.suggestion_timeout)
         self.on_results_view_tab_total_update(ResultsTab.Search)
 
     def build_display_results(self, bible, second_bible, search_results):
@@ -1199,10 +1311,13 @@ class BibleMediaItem(MediaManagerItem):
             items.append(data)
         return items
 
-    def build_list_widget_items(self, items):
+    def build_list_widget_items(self, items, disappearing=False):
         list_widget_items = []
         for data in items:
-            bible_verse = QtWidgets.QListWidgetItem(data['item_title'])
+            if disappearing and self.suggestion_timeout:
+                bible_verse = DissapearingListWidgetItem(data["item_title"])
+            else:
+                bible_verse = QtWidgets.QListWidgetItem(data["item_title"])
             bible_verse.setData(QtCore.Qt.UserRole, data)
             list_widget_items.append(bible_verse)
         return list_widget_items
@@ -1234,7 +1349,7 @@ class BibleMediaItem(MediaManagerItem):
             verses.add(
                 data['book'], data['chapter'], data['verse'], data['version'], data['copyright'], data['permissions'])
             verse_text = self.format_verse(old_chapter, data['chapter'], data['verse'])
-            # We only support 'Verse Per Slide' when using a scond bible
+            # We only support 'Verse Per Slide' when using a second bible
             if data['second_bible']:
                 second_text = self.format_verse(old_chapter, data['chapter'], data['verse'])
                 bible_text = '{first_version}{data[text]}\n\n{second_version}{data[second_text]}'\

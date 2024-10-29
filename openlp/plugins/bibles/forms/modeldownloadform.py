@@ -27,7 +27,7 @@ from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common import trace_error_handler
 from openlp.core.common.applocation import AppLocation
-from openlp.core.common.i18n import UiStrings, get_locale_key, translate
+from openlp.core.common.i18n import UiStrings, translate
 from openlp.core.common.path import create_paths
 from openlp.core.lib.ui import critical_error_message_box
 from openlp.core.widgets.enums import PathEditType
@@ -58,7 +58,6 @@ class ModelDownloadForm(OpenLPWizard):
         self.web_bible_list = {}
         super(ModelDownloadForm, self).__init__(parent, bible_plugin,
                                                 'modelDownloadWizard', ':/wizards/wizard_downloadmodel.bmp')
-
 
     def setup_ui(self, image):
         """
@@ -203,27 +202,7 @@ class ModelDownloadForm(OpenLPWizard):
         self.download_location_layout.addRow(self.download_location_label, self.download_location_edit)
         self.download_location_layout.setItem(1, QtWidgets.QFormLayout.ItemRole.FieldRole, self.spacer)
         self.addPage(self.download_location_page)
-        # Last Page
-        # self.encoding_info_page = QtWidgets.QWizardPage()
-        # self.encoding_page_layout = QtWidgets.QVBoxLayout(self.encoding_info_page)
-        # self.encoding_page_layout.setObjectName('EncodingPageLayout')
-        # self.addPage(self.encoding_info_page)
 
-        # self.encoding_info_page.setObjectName('Your select model has started to encode all your bibles'
-        #                                       'This process takes approx 1 hour 30 mins'
-        #                                       'This process must be completed before you can use '
-        #                                       'semantic search and audio transcription (speech to text) features'
-        #                                       'You will be notified once this process is complete')
-        # self.encoding_info_page_layout = QtWidgets.QVBoxLayout(self.encoding_info_page)
-        # self.encoding_info_page_layout.setObjectName('SelectPageLayout')
-        # self.addPage(self.encoding_info_page)
-        # self.information_label.setText(
-        #     translate('BiblesPlugin.ImportWizardForm',
-        #               'This wizard will help you to import embedding mmodels and '
-        #               'transcription models for use in OpenLP. Click the next button '
-        #               'below to start the process by selecting a format to import '
-        #               'from.'))
-        
     def _populate_models_table(self, table, models):
         """
         Populate the table with the models.
@@ -252,7 +231,7 @@ class ModelDownloadForm(OpenLPWizard):
                                                                                  'Welcome to the Model Import Wizard')))
         self.information_label.setText(
             translate('BiblesPlugin.ImportWizardForm',
-                      'This wizard will help you to import embedding mmodels and '
+                      'This wizard will help you to import embedding models and '
                       'transcription models for use in OpenLP. Click the next button '
                       'below to start the process by selecting a format to import '
                       'from.'))
@@ -286,18 +265,6 @@ class ModelDownloadForm(OpenLPWizard):
         self.progress_bar.setFormat('%p%')
         self.progress_label.setText(WizardStrings.Ready)
 
-        # self.encoding_info_page.setTitle(translate('BiblesPlugin.ImportWizardForm', 'Encoding information'))
-        # self.encoding_info_page.setSubTitle(translate('BiblesPlugin.ImportWizardForm',
-        #                                        'Based on the imported model'))
-        
-        # self.encoding_page_label =  QtWidgets.QLabel('Your select model has started to encode all your bibles \n'
-        #                                       'This process takes approx 1 hour 30 mins \n'
-        #                                       'This process must be completed before you can use \n'
-        #                                       'semantic search and audio transcription (speech to text) features \n'
-        #                                       'You will be notified once this process is complete')       
-        # self.encoding_page_layout.addWidget(self.encoding_page_label)
-        
-        
     def validateCurrentPage(self):
         """
         Validate the current page before moving on to the next page.
@@ -332,18 +299,6 @@ class ModelDownloadForm(OpenLPWizard):
 
         if self.currentPage() == self.encoding_info_page:
             return True
-
-    def on_web_source_combo_box_index_changed(self, index):
-        """
-        Setup the list of Bibles when you select a different source on the web download page.
-
-        :param index: The index of the combo box.
-        """
-        self.web_translation_combo_box.clear()
-        if self.web_bible_list and index in self.web_bible_list:
-            bibles = list(self.web_bible_list[index].keys())
-            bibles.sort(key=get_locale_key)
-            self.web_translation_combo_box.addItems(bibles)
 
     def register_fields(self):
         """
@@ -410,22 +365,24 @@ class ModelDownloadForm(OpenLPWizard):
                     self.manager.encode_bibles()
                     model_has_been_used_successfully = self.manager.has_used_model_to_successfully_encode(model)
                     if model_has_been_used_successfully:
-                        self.progress_label =  QtWidgets.QLabel('Model already imported                             \n'
-                                                                'Your selected model has already been used          \n'
-                                                                'to successfully encode all bibles                  \n'
-                                                                'Semantic search and transcription (speech to text) \n'
-                                                                'are already working                                \n')
-                    else:        
-                        self.progress_label =  QtWidgets.QLabel('Finished Import                                                    \n'
-                                                                'Your selected model has finished importing however                 \n'
-                                                                'the selected model has started to encode all your bibles           \n'
-                                                                'Which is occuring in the background                                \n'
-                                                                'This process takes approximatel an additional 1 hour 30 mins       \n'
-                                                                'This process must be completed before you can use                  \n'
-                                                                'semantic search and audio transcription (speech to text) features  \n'
-                                                                'You will be notified once this process is complete                 \n'
-                                                                'But you may continue to use verse ventures')
-                    self.progress_layout.addWidget(self.progress_label)
+                        self.progress_label.setText(
+                            translate(
+                                'BiblesPlugin.ImportWizardForm',
+                                'Model already imported.\n'
+                                'Your selected model has already been used to successfully encode all bibles.'
+                                'Semantic search with this model is available.'
+                            )
+                        )
+                    else:
+                        self.progress_label.setText(
+                            WizardStrings.FinishedImport +
+                            translate(
+                                'BiblesPlugin.ImportWizardForm',
+                                '\nAll your available bibles will now be encoded with your selected model in the background.'
+                                'This process must be completed before the model can be used to perform semantic search.'
+                                'You will be notified once the process is complete.'
+                            )
+                        )
                 return
         except Exception:
             log.exception('Importing model failed')
@@ -433,15 +390,6 @@ class ModelDownloadForm(OpenLPWizard):
 
         self.progress_label.setText(translate('BiblesPlugin.ImportWizardForm', 'Your model import failed.'))
         self.application.process_events()
-        
-    def encoding_dialogue_message(self):
-        msgBox = QtWidgets.QMessageBox()
-        msgBox.setIcon(QtWidgets.QMessageBox.Information)
-        msgBox.setText("Your Bibles have started being encoded using your selected model"
-                        "This will take approximately 1 hour 30 mins"
-                        "You cannot use semantic search feature or audio transcription until" 
-                        "encoding is complete. You will be notified when encoding is complete")
-        msgBox.setWindowTitle("About encoding")
 
     def provide_help(self):
         """

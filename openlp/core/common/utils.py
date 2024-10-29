@@ -56,3 +56,19 @@ def is_uuid(uuid):
     return (
         re.match(r'^[0-9A-F]{8}-[0-9A-F]{4}-[14][0-9A-F]{3}-[0-9A-F]{4}-[0-9A-F]{12}$', uuid, re.IGNORECASE) is not None
     )
+
+
+def retry_on_exception(exceptions, retries=3, timeout=1):
+    """
+    Decorator to retry a function call if a specific exception(s) is raised.
+    """
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            for _ in range(retries):
+                try:
+                    return func(*args, **kwargs)
+                except exceptions:
+                    time.sleep(timeout)
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator

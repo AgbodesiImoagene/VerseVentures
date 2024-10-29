@@ -34,6 +34,7 @@ import certifi
 
 from openlp.core.common.httputils import get_url_file_size
 from openlp.core.common.i18n import translate
+from openlp.core.common.utils import retry_on_exception
 from openlp.core.threading import ThreadWorker
 
 
@@ -87,7 +88,6 @@ class ModelDownloadWorker(ThreadWorker):
             except (requests.RequestException, tarfile.TarError, URLError) as e:
                 log.exception('Unable to download %s', self.current_file)
                 self._failed_files[file] = e
-                return
         self.download_finished.emit(self._downloaded_files, self._failed_files)
         self.quit.emit()
         return self._downloaded_files, self._failed_files
@@ -109,12 +109,16 @@ class ModelDownloadWorker(ThreadWorker):
         Get the size of a remote tar file
         """
         try:
-            with urlopen(urljoin(self._base_url, file), context=ssl.create_default_context(cafile=certifi.where())) as f_stream:
+            with urlopen(
+                urljoin(self._base_url, file),
+                context=ssl.create_default_context(cafile=certifi.where()),
+            ) as f_stream:
                 with tarfile.open(mode="r|*", fileobj=f_stream) as tgz:
                     return sum([member.size for member in tgz])
         except tarfile.TarError:
             return 0
 
+    @retry_on_exception((URLError, tarfile.TarError))
     def _download_tarfile(self, file: str):
         """
         Download a tar file
@@ -129,8 +133,9 @@ class ModelDownloadWorker(ThreadWorker):
                 )
                 for tarinfo in tgz:
                     tgz.extract(tarinfo, self._download_dir, filter="data")
-                    self._downloaded_files.append(tarinfo.name)
-                    self._downloaded_size += tarinfo.size
+                    if tarinfo.name not in self._downloaded_files:
+                        self._downloaded_files.append(tarinfo.name)
+                        self._downloaded_size += tarinfo.size
                     self.download_progress.emit(
                         translate("BiblesPlugin", "Unpacking {0}").format(
                             tarinfo.name
@@ -138,6 +143,7 @@ class ModelDownloadWorker(ThreadWorker):
                         self._downloaded_size / self._total_size,
                     )
 
+    @retry_on_exception((requests.RequestException, URLError))
     def _download_file(self, file: str):
         """
         Download a file
@@ -147,18 +153,21 @@ class ModelDownloadWorker(ThreadWorker):
         chunk_size = 1024 * 1024
         resp = requests.get(urljoin(self._base_url, file), stream=True, timeout=10)
         resp.raise_for_status()
+        size_written = 0
         with open(dest_path, 'wb') as f:
             for chunk in resp.iter_content(chunk_size):
                 if chunk:
                     f.write(chunk)
-                    self._downloaded_size += len(chunk)
+                    size_written += len(chunk)
                     self.download_progress.emit(
                         translate("BiblesPlugin", "Downloading {0}").format(
                             self.current_file
                         ),
-                        self._downloaded_size / self._total_size,
+                        (self._downloaded_size + size_written) / self._total_size,
                     )
+        if self.current_file not in self._downloaded_files:
             self._downloaded_files.append(self.current_file)
+            self._downloaded_size += size_written
 
     @QtCore.pyqtSlot()
     def cancel_download(self):

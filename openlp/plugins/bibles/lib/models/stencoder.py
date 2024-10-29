@@ -21,6 +21,7 @@
 
 import logging
 from typing import List
+from urllib.error import URLError
 from urllib.parse import urljoin
 
 import numpy as np
@@ -28,6 +29,7 @@ import requests
 from sentence_transformers import SentenceTransformer
 from sentence_transformers.util import cos_sim, get_device_name
 
+from openlp.core.common.utils import retry_on_exception
 from openlp.plugins.bibles.lib.model import EncoderModel
 
 
@@ -55,6 +57,18 @@ class SentenceTransformerEncoderModel(EncoderModel):
         """
         return self.url.replace("https://huggingface.co/", "")
 
+    @retry_on_exception((requests.RequestException, URLError))
+    def _get_file_list(self, repo_id):
+        repo_data = requests.get(
+            urljoin(
+                "https://huggingface.co/api/models/",
+                repo_id,
+                allow_fragments=False,
+            ),
+            timeout=10,
+        ).json()
+        return [sibling["rfilename"] for sibling in repo_data["siblings"]]
+
     def download(self):
         """
         Download the model.
@@ -63,15 +77,7 @@ class SentenceTransformerEncoderModel(EncoderModel):
         repo_id = self._get_repo_id()
         if not self.model_info["file_list"]:
             try:
-                repo_data = requests.get(
-                    urljoin(
-                        "https://huggingface.co/api/models/",
-                        repo_id,
-                        allow_fragments=False,
-                    ),
-                    timeout=10,
-                ).json()
-                self.model_info["file_list"] = [sibling["rfilename"] for sibling in repo_data["siblings"]]
+                self.model_info["file_list"] = self._get_file_list(repo_id)
             except requests.RequestException as e:
                 log.error("Failed to get model data: %s", e)
         url = urljoin("https://huggingface.co/", repo_id, allow_fragments=False)

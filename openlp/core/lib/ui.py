@@ -461,6 +461,13 @@ class GrowingTextEdit(QtWidgets.QTextEdit):
         self.textChanged.connect(self._on_text_changed)
 
     def _on_text_changed(self):
+        self._adjust_height()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._adjust_height()
+
+    def _adjust_height(self):
         document = self.document()
         margins = self.contentsMargins()
         height = document.size().toSize().height() + margins.top() + margins.bottom()
@@ -470,3 +477,63 @@ class GrowingTextEdit(QtWidgets.QTextEdit):
             single_line_edit.deleteLater()
             del single_line_edit
         self.setFixedHeight(height)
+
+
+class DissapearingListWidgetItem(QtWidgets.QListWidgetItem):
+    def __init__(self, text, parent=None):
+        super().__init__(None, parent, QtWidgets.QListWidgetItem.ItemType.UserType)
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self._on_timer_timeout)
+        self.timeout = 0
+        self.time_left_ms = 0
+
+        self.display_widget = QtWidgets.QWidget()
+        self.layout = QtWidgets.QHBoxLayout(self.display_widget)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.label = QtWidgets.QLabel(self.display_widget)
+        self.label.setText(text)
+        self.layout.addWidget(self.label)
+        self.layout.addStretch()
+        self.progress = QtWidgets.QProgressBar(self.display_widget)
+        self.progress.setFormat(None)
+        self.progress.setFixedWidth(100)
+        self.progress.setFixedHeight(16)
+        self.progress.setContentsMargins(0, 0, 0, 0)
+        self.layout.addWidget(self.progress)
+        self.display_widget.setLayout(self.layout)
+        self.setSizeHint(self.display_widget.sizeHint())
+
+    def start_timer(self, timeout):
+        self.time_left_ms = timeout * 1000
+        self.progress.setRange(0, self.time_left_ms)
+        self.progress.setValue(self.time_left_ms)
+        self.timer.start(100)
+
+    def _on_timer_timeout(self, display_time_left=False):
+        self.time_left_ms -= 100
+        self.progress.setValue(self.time_left_ms)
+        if display_time_left:
+            self.progress.setFormat(f'{self._format_time(self.time_left_ms // 1000)}')
+        if self.time_left_ms == 0:
+            self.timer.stop()
+            listWidget = self.listWidget()
+            if listWidget:
+                listWidget.takeItem(listWidget.row(self))
+            self.cleanup()
+
+    def cleanup(self):
+        self.timer.deleteLater()
+        self.display_widget.deleteLater()
+        del self.timer
+        del self.display_widget
+        del self
+
+    def get_display_widget(self):
+        return self.display_widget
+
+    def _format_time(self, timeout):
+        if timeout < 60:
+            return str(timeout)
+        minutes = timeout // 60
+        seconds = timeout % 60
+        return f'{minutes}:{seconds}'

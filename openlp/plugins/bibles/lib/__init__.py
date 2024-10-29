@@ -474,7 +474,7 @@ class ModelInfo(object):
         },
         "all-roberta-large-v1": {
             "display_name": "all-roberta-large-v1",
-            "description": "All-round model tuned for many use-cases. Trained on a large and diverse dataset of over 1 billion training pairs.",
+            "description": "All-round model tuned for many use-cases. Trained on a large and diverse dataset of over 1 billion training pairs. Hardware acceleration (GPU) recommended.",
             "library": ModelLibrary.SENTENCE_TRANSFORMERS,
             "type": ModelType.ENCODER,
             "author": "Sentence-Transformers",
@@ -546,7 +546,7 @@ class ModelInfo(object):
         },
         "paraphrase-multilingual-mpnet-base-v2": {
             "display_name": "paraphrase-multilingual-mpnet-base-v2",
-            "description": "This model was trained for multilingual paraphrase mining. It can be used to find similar sentences in multiple languages.",
+            "description": "This model was trained for multilingual paraphrase mining. It can be used to find similar sentences in multiple languages. Hardware acceleration (GPU) recommended.",
             "library": ModelLibrary.SENTENCE_TRANSFORMERS,
             "type": ModelType.ENCODER,
             "author": "Sentence-Transformers",
@@ -594,7 +594,7 @@ class ModelInfo(object):
         },
         "universal-sentence-encoder": {
             "display_name": "universal-sentence-encoder",
-            "description": "Encoder of greater-than-word length text trained on a variety of data.",
+            "description": "Encoder of greater-than-word length text trained on a variety of data. Hardware acceleration (GPU) recommended.",
             "library": ModelLibrary.TENSORFLOW,
             "type": ModelType.ENCODER,
             "author": "Google",
@@ -606,7 +606,7 @@ class ModelInfo(object):
         },
         "universal-sentence-encoder-large": {
             "display_name": "universal-sentence-encoder-large",
-            "description": "Encoder of greater-than-word length text trained on a variety of data.",
+            "description": "Encoder of greater-than-word length text trained on a variety of data. Hardware acceleration (GPU) recommended.",
             "library": ModelLibrary.TENSORFLOW,
             "type": ModelType.ENCODER,
             "author": "Google",
@@ -618,7 +618,7 @@ class ModelInfo(object):
         },
         "universal-sentence-encoder-qa": {
             "display_name": "universal-sentence-encoder-qa",
-            "description": "Greater-than-word length text encoder for question answer retrieval.",
+            "description": "Greater-than-word length text encoder for question answer retrieval. Hardware acceleration (GPU) recommended.",
             "library": ModelLibrary.TENSORFLOW,
             "type": ModelType.ENCODER,
             "author": "Google",
@@ -630,7 +630,7 @@ class ModelInfo(object):
         },
         "universal-sentence-encoder-multilingual": {
             "display_name": "universal-sentence-encoder-multilingual",
-            "description": "16 languages (Arabic, Chinese-simplified, Chinese-traditional, English, French, German, Italian, Japanese, Korean, Dutch, Polish, Portuguese, Spanish, Thai, Turkish, Russian) text encoder.",
+            "description": "16 languages (Arabic, Chinese-simplified, Chinese-traditional, English, French, German, Italian, Japanese, Korean, Dutch, Polish, Portuguese, Spanish, Thai, Turkish, Russian) text encoder. Hardware acceleration (GPU) recommended.",
             "library": ModelLibrary.TENSORFLOW,
             "type": ModelType.ENCODER,
             "author": "Google",
@@ -642,7 +642,7 @@ class ModelInfo(object):
         },
         "universal-sentence-encoder-multilingual-large": {
             "display_name": "universal-sentence-encoder-multilingual-large",
-            "description": "16 languages (Arabic, Chinese-simplified, Chinese-traditional, English, French, German, Italian, Japanese, Korean, Dutch, Polish, Portuguese, Spanish, Thai, Turkish, Russian) text encoder.",
+            "description": "16 languages (Arabic, Chinese-simplified, Chinese-traditional, English, French, German, Italian, Japanese, Korean, Dutch, Polish, Portuguese, Spanish, Thai, Turkish, Russian) text encoder. Hardware acceleration (GPU) recommended.",
             "library": ModelLibrary.TENSORFLOW,
             "type": ModelType.ENCODER,
             "author": "Google",
@@ -654,7 +654,7 @@ class ModelInfo(object):
         },
         "universal-sentence-encoder-multilingual-qa": {
             "display_name": "universal-sentence-encoder-multilingual-qa",
-            "description": "Greater-than-word length text encoder for question answer retrieval.",
+            "description": "Greater-than-word length text encoder for question answer retrieval. Hardware acceleration (GPU) recommended.",
             "library": ModelLibrary.TENSORFLOW,
             "type": ModelType.ENCODER,
             "author": "Google",
@@ -752,7 +752,7 @@ class ModelInfo(object):
         },
         "openai-whisper-medium": {
             "display_name": "openai-whisper-medium",
-            "description": "Whisper is a general-purpose speech recognition model. It is trained on a large dataset of diverse audio and is also a multitasking model that can perform multilingual speech recognition, speech translation, and language identification.",
+            "description": "Whisper is a general-purpose speech recognition model. It is trained on a large dataset of diverse audio and is also a multitasking model that can perform multilingual speech recognition, speech translation, and language identification. Hardware acceleration (GPU) recommended.",
             "library": ModelLibrary.WHISPER,
             "type": ModelType.TRANSCRIBER,
             "author": "OpenAI",
@@ -766,7 +766,7 @@ class ModelInfo(object):
         },
         "openai-whisper-medium-multilingual": {
             "display_name": "openai-whisper-medium-multilingual",
-            "description": "Whisper is a general-purpose speech recognition model. It is trained on a large dataset of diverse audio and is also a multitasking model that can perform multilingual speech recognition, speech translation, and language identification.",
+            "description": "Whisper is a general-purpose speech recognition model. It is trained on a large dataset of diverse audio and is also a multitasking model that can perform multilingual speech recognition, speech translation, and language identification. Hardware acceleration (GPU) recommended.",
             "library": ModelLibrary.WHISPER,
             "type": ModelType.TRANSCRIBER,
             "author": "OpenAI",
@@ -780,7 +780,7 @@ class ModelInfo(object):
         },
         "openai-whisper-large-multilingual": {
             "display_name": "openai-whisper-large-multilingual",
-            "description": "Whisper is a general-purpose speech recognition model. It is trained on a large dataset of diverse audio and is also a multitasking model that can perform multilingual speech recognition, speech translation, and language identification.",
+            "description": "Whisper is a general-purpose speech recognition model. It is trained on a large dataset of diverse audio and is also a multitasking model that can perform multilingual speech recognition, speech translation, and language identification. Hardware acceleration (GPU) recommended.",
             "library": ModelLibrary.WHISPER,
             "type": ModelType.TRANSCRIBER,
             "author": "OpenAI",
@@ -794,7 +794,7 @@ class ModelInfo(object):
         },
         "openai-whisper-large-multilingual-turbo": {
             "display_name": "openai-whisper-large-multilingual-turbo",
-            "description": "Whisper is a general-purpose speech recognition model. It is trained on a large dataset of diverse audio and is also a multitasking model that can perform multilingual speech recognition, speech translation, and language identification.",
+            "description": "Whisper is a general-purpose speech recognition model. It is trained on a large dataset of diverse audio and is also a multitasking model that can perform multilingual speech recognition, speech translation, and language identification. Hardware acceleration (GPU) recommended.",
             "library": ModelLibrary.WHISPER,
             "type": ModelType.TRANSCRIBER,
             "author": "OpenAI",
@@ -845,7 +845,7 @@ class ModelInfo(object):
         },
         "asr-wav2vec2-commonvoice-14-en": {
             "display_name": "asr-wav2vec2-commonvoice-14-en",
-            "description": "A Wav2Vec 2.0 (no LM) model with CT to perform automatic speech recognition from an end-to-end system pretrained on CommonVoice (EN) within SpeechBrain.",
+            "description": "A Wav2Vec 2.0 (no LM) model with CT to perform automatic speech recognition from an end-to-end system pretrained on CommonVoice (EN) within SpeechBrain. Hardware acceleration (GPU) recommended.",
             "library": ModelLibrary.SPEECHBRAIN,
             "type": ModelType.TRANSCRIBER,
             "author": "speechbrain",
@@ -867,7 +867,7 @@ class ModelInfo(object):
         },
         "asr-wav2vec2-commonvoice-en": {
             "display_name": "asr-wav2vec2-commonvoice-en",
-            "description": "A Wav2Vec 2.0 (no LM) model with CTC to perform automatic speech recognition from an end-to-end system pretrained on CommonVoice (EN) within SpeechBrain.",
+            "description": "A Wav2Vec 2.0 (no LM) model with CTC to perform automatic speech recognition from an end-to-end system pretrained on CommonVoice (EN) within SpeechBrain. Hardware acceleration (GPU) recommended.",
             "library": ModelLibrary.SPEECHBRAIN,
             "type": ModelType.TRANSCRIBER,
             "author": "speechbrain",
@@ -878,7 +878,7 @@ class ModelInfo(object):
         },
         "asr-wav2vec2-switchboard": {
             "display_name": "asr-wav2vec2-switchboard",
-            "description": "A Wav2Vec 2.0 (no LM) model with CTC to perform automatic speech recognition from an end-to-end system pretrained on Switchboard (EN) within SpeechBrain.",
+            "description": "A Wav2Vec 2.0 (no LM) model with CTC to perform automatic speech recognition from an end-to-end system pretrained on Switchboard (EN) within SpeechBrain. Hardware acceleration (GPU) recommended.",
             "library": ModelLibrary.SPEECHBRAIN,
             "type": ModelType.TRANSCRIBER,
             "author": "speechbrain",
@@ -911,7 +911,7 @@ class ModelInfo(object):
         },
         "asr-wav2vec2-librispeech": {
             "display_name": "asr-wav2vec2-librispeech",
-            "description": "A Wav2Vec 2.0 model with CTC to perform automatic speech recognition from an end-to-end system pretrained on LibriSpeech (EN) within SpeechBrain.",
+            "description": "A Wav2Vec 2.0 model with CTC to perform automatic speech recognition from an end-to-end system pretrained on LibriSpeech (EN) within SpeechBrain. Hardware acceleration (GPU) recommended.",
             "library": ModelLibrary.SPEECHBRAIN,
             "type": ModelType.TRANSCRIBER,
             "author": "speechbrain",

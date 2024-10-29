@@ -25,6 +25,7 @@ from queue import Queue
 
 import numpy as np
 from PyQt5 import QtCore
+import pyaudio
 from speech_recognition import Microphone, Recognizer
 
 from openlp.core.db.manager import DBManager
@@ -65,11 +66,16 @@ class AudioWorker(ThreadWorker):
     def start(self):
         log.debug('AudioWorker - Start')
         phrase_time = None
+        adjustment_time = None
         transcription = ''
         while not self.shutdown:
             if self.is_active:
                 now = datetime.now()
-                if phrase_time and now - phrase_time > timedelta(seconds=3) and transcription:
+                if not adjustment_time or now - adjustment_time > timedelta(minutes=5):
+                    self.adjust_for_ambient_noise()
+                    adjustment_time = now
+
+                if phrase_time and now - phrase_time > timedelta(seconds=2) and transcription:
                     self.submitted_text.emit(transcription)
                     transcription = ''
 
@@ -104,14 +110,22 @@ class AudioWorker(ThreadWorker):
             self.stopper = self.recognizer.listen_in_background(
                 self.microphone,
                 record_callback,
-                2,
+                1.5,
             )
 
-    def stop_listening(self):
+    def stop_listening(self, wait=True):
         if self.stopper:
             log.debug('AudioWorker - Stopping background listening')
-            self.stopper(False)
+            self.stopper(wait)
             self.stopper = None
+
+    def adjust_for_ambient_noise(self):
+        if self.microphone:
+            self.stop_listening()
+            with self.microphone as source:
+                self.recognizer.adjust_for_ambient_noise(source)
+            if self.is_active:
+                self.start_listening()
 
     @QtCore.pyqtSlot(int)
     def setup_microphone(self, microphone_source):
@@ -126,10 +140,7 @@ class AudioWorker(ThreadWorker):
             if microphone_source
             else Microphone()
         )
-        with self.microphone as source:
-            self.recognizer.adjust_for_ambient_noise(source)
-        if self.is_active:
-            self.start_listening()
+        self.adjust_for_ambient_noise()
 
     @QtCore.pyqtSlot(bool)
     def toggle_active(self, state):
@@ -186,3 +197,39 @@ def record_callback(_, audio):
     # Grab the raw bytes and push it into the thread safe queue.
     data = audio.get_raw_data()
     data_queue.put(data)
+
+
+def get_working_microphones():
+    """
+    Get a list of working microphones.
+    """
+    pa = pyaudio.PyAudio()
+    working_microphones = {}
+    try:
+        for device_index in range(pa.get_device_count()):
+            device_info = pa.get_device_info_by_index(device_index)
+            device_name = device_info['name']
+            if (
+                device_info["maxInputChannels"] == 0
+                or device_info["hostApi"] != 0
+                or device_info["defaultSampleRate"] == 0
+            ):
+                continue
+            try:
+                # read audio
+                pyaudio_stream = pa.open(
+                    input_device_index=device_index, channels=1, format=pyaudio.paInt16,
+                    rate=int(device_info["defaultSampleRate"]), input=True
+                )
+                try:
+                    _ = pyaudio_stream.read(1024)
+                    if not pyaudio_stream.is_stopped():
+                        pyaudio_stream.stop_stream()
+                finally:
+                    pyaudio_stream.close()
+                working_microphones[device_index] = device_name
+            except Exception:
+                continue
+    finally:
+        pa.terminate()
+    return working_microphones
