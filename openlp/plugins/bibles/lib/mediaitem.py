@@ -162,6 +162,7 @@ class BibleMediaItem(MediaManagerItem):
         self.sort_icon = UiIcons().sort
         self.bible = None
         self.microphone_icon = UiIcons().microphone
+        self.cloud_transcription_icon = UiIcons().cloud_check
         self.second_bible = None
         self.saved_results = []
         self.current_results = []
@@ -284,6 +285,16 @@ class BibleMediaItem(MediaManagerItem):
         self.microphone_options_layout.addWidget(self.toggle_microphone_button)
         self.suggestions_layout.addRow(translate('BiblesPlugin.MediaItem', 'Microphone:'),
                                        self.microphone_options_layout)
+        self.cloud_transcription_layout = QtWidgets.QHBoxLayout()
+        self.toggle_cloud_transcription_button = QtWidgets.QToolButton()
+        self.toggle_cloud_transcription_button.setIcon(self.cloud_transcription_icon)
+        self.toggle_cloud_transcription_button.setCheckable(True)
+        self.toggle_cloud_transcription_button.setChecked(False)
+        self.toggle_cloud_transcription_button.setToolTip(translate('BiblesPlugin.MediaItem', 'Turn on cloud transcription.'))
+        self.cloud_transcription_layout.addWidget(self.toggle_cloud_transcription_button)
+        self.suggestions_layout.addRow(translate('BiblesPlugin.MediaItem', 'Cloud Transcription:'),
+                                       self.cloud_transcription_layout)
+
         self.transcription_text_box = GrowingTextEdit(self.suggestions_tab)
         self.transcription_text_box.setReadOnly(True)
         self.transcription_text_box.setAcceptRichText(False)
@@ -321,6 +332,7 @@ class BibleMediaItem(MediaManagerItem):
         ])
         self.general_bible_layout.addRow(translate('BiblesPlugin.MediaItem', 'Suggestion Timeout:'),
                                          self.suggestion_timeout_dropdown)
+
         self.options_tab.setVisible(False)
         self.page_layout.addWidget(self.options_tab)
         # This widget is the easier way to reset the spacing of search_button_layout. (Because page_layout has had its
@@ -379,6 +391,7 @@ class BibleMediaItem(MediaManagerItem):
         self.book_order_button.toggled.connect(self.on_book_order_button_toggled)
         self.clear_button.clicked.connect(self.on_clear_button_clicked)
         self.toggle_microphone_button.toggled.connect(self.on_microphone_button_toggled)
+        self.toggle_cloud_transcription_button.toggled.connect(self.on_cloud_transcription_button_toggled)
         self.save_results_button.clicked.connect(self.on_save_results_button_clicked)
         self.search_button.clicked.connect(self.on_search_button_clicked)
         # Other stuff
@@ -781,7 +794,35 @@ class BibleMediaItem(MediaManagerItem):
         self.toggle_microphone_button.setToolTip(translate('BiblesPlugin.MediaItem', 'Turn {state} microphone.'.format(
             state=state_string)))
         self.microphone_selection.setEnabled(checked)
+        self.toggle_cloud_transcription_button.setChecked(not checked)
+        self.toggle_cloud_transcription_button.setEnabled(not checked)
         self.audio_worker.toggle_active(checked)
+
+    def on_cloud_transcription_button_toggled(self, checked):
+        """
+        Toggle the cloud transcription on or off
+
+        :param checked: Indicates if the button is checked or not (Bool)
+        :return: None
+        """
+        # if button is checked
+        if self.toggle_cloud_transcription_button.isChecked():
+            self.toggle_microphone_button.setChecked(False)
+            self.toggle_microphone_button.setEnabled(False)
+            self.toggle_cloud_transcription_button.setToolTip(translate('BiblesPlugin.MediaItem', 'Turn {state} cloud transcription.'.format(
+            state='off')))
+            # contact AI plaftorm here:
+        else:
+            self.toggle_microphone_button.setChecked(True)
+            self.toggle_cloud_transcription_button.setToolTip(translate('BiblesPlugin.MediaItem', 'Turn {state} cloud transcription.'.format(
+            state='on')))
+            self.toggle_microphone_button.setEnabled(True)
+            #disconnect from AI platform here:
+
+
+        
+
+
 
     def on_save_results_button_clicked(self):
         """

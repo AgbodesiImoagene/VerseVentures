@@ -79,6 +79,7 @@ class UiIcons(metaclass=Singleton):
             'clone': {'icon': 'mdi.content-duplicate'},
             'close': {'icon': 'mdi.close-circle-outline'},
             'cloud_download': {'icon': 'mdi.cloud-download'},
+            'cloud_check' :{'icon':'mdi.cloud-check'},
             'copy': {'icon': 'mdi.content-copy'},
             'copyright': {'icon': 'mdi.copyright'},
             'custom': {'icon': 'mdi.text-box-outline'},
