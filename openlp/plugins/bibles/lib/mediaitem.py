@@ -794,8 +794,6 @@ class BibleMediaItem(MediaManagerItem):
         self.toggle_microphone_button.setToolTip(translate('BiblesPlugin.MediaItem', 'Turn {state} microphone.'.format(
             state=state_string)))
         self.microphone_selection.setEnabled(checked)
-        self.toggle_cloud_transcription_button.setChecked(not checked)
-        self.toggle_cloud_transcription_button.setEnabled(not checked)
         self.audio_worker.toggle_active(checked)
 
     def on_cloud_transcription_button_toggled(self, checked):
@@ -805,24 +803,11 @@ class BibleMediaItem(MediaManagerItem):
         :param checked: Indicates if the button is checked or not (Bool)
         :return: None
         """
-        # if button is checked
-        if self.toggle_cloud_transcription_button.isChecked():
-            self.toggle_microphone_button.setChecked(False)
-            self.toggle_microphone_button.setEnabled(False)
-            self.toggle_cloud_transcription_button.setToolTip(translate('BiblesPlugin.MediaItem', 'Turn {state} cloud transcription.'.format(
-            state='off')))
-            # contact AI plaftorm here:
-        else:
-            self.toggle_microphone_button.setChecked(True)
-            self.toggle_cloud_transcription_button.setToolTip(translate('BiblesPlugin.MediaItem', 'Turn {state} cloud transcription.'.format(
-            state='on')))
-            self.toggle_microphone_button.setEnabled(True)
-            #disconnect from AI platform here:
-
-
-        
-
-
+        state_string = 'off' if checked else 'on'
+        self.toggle_cloud_transcription_button.setToolTip(translate('BiblesPlugin.MediaItem', 'Turn {state} cloud transcription.'.format(
+            state=state_string)))
+        self.transcriber_model_combo_box.setEnabled(not checked)
+        self.audio_worker.toggle_cloud(checked)
 
     def on_save_results_button_clicked(self):
         """

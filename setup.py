@@ -133,6 +133,7 @@ using a computer and a display/projector.""",
         'spellcheck': ['pyenchant >= 1.6'],
         'sword-bibles': ['pysword'],
         'models': [
+            'amazon-transcribe',
             # 'deepspeech',
             'huggingface_hub',
             'openai-whisper',

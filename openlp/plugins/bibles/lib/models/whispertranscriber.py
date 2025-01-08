@@ -29,6 +29,14 @@ from openlp.plugins.bibles.lib.model import TranscriberModel
 
 log = logging.getLogger(__name__)
 
+INITIAL_PROMPT = """
+You are transcribing audio in a live environment. It is being used in a church setting to display the text of a sermon or other spoken content.
+
+As such the names of Bible books, verses, and other related terms should be capitalized and spelled correctly. Bible characters are likely to be mentioned, and their names should be spelled correctly. Words and phrases that are specific to the Christian faith will also be used frequently.
+
+The text you are typing is being sent to the projection screen in real time. Do not include anything that is inappropriate or offensive.
+"""
+
 
 class WhisperTranscriberModel(TranscriberModel):
     def __init__(self, name: str, manager, *args, **kwargs):
@@ -73,7 +81,7 @@ class WhisperTranscriberModel(TranscriberModel):
         """
         if not self.model:
             self.load()
-        return self.model.transcribe(audio, *args, fp16=self.gpu, **kwargs)['text']
+        return self.model.transcribe(audio, *args, fp16=self.gpu, initial_prompt=INITIAL_PROMPT, **kwargs)['text']
 
     def has_gpu(self):
         return torch.cuda.is_available()

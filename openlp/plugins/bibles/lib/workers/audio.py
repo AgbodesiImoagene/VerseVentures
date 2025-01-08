@@ -19,159 +19,272 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
 
+from asyncio import new_event_loop
+import asyncio
 from datetime import datetime, timedelta
 import logging
+import threading
+import numpy as np
+from pyaudio import PyAudio, paInt16
+from PyQt5 import QtCore
 from queue import Queue
 
-import numpy as np
-from PyQt5 import QtCore
-import pyaudio
-from speech_recognition import Microphone, Recognizer
+from amazon_transcribe.client import TranscribeStreamingClient
+from amazon_transcribe.handlers import TranscriptResultStreamHandler
+from amazon_transcribe.model import (
+    StartStreamTranscriptionEventStream,
+    TranscriptEvent,
+    TranscriptResultStream,
+)
+from speech_recognition import AudioData, Microphone, Recognizer
 
 from openlp.core.db.manager import DBManager
 from openlp.core.threading import ThreadWorker
 from openlp.plugins.bibles.lib import ModelInfo, ModelLibrary
 from openlp.plugins.bibles.lib.db import Model, init_schema
 
+DEFAULT_SAMPLE_RATE = 16000  # 16 kHz
+BLOCK_SIZE = 4 * 1024  # 4 KB
+CHANNELS = 1
+SILENCE_DURATION = 2.5  # 2.5 seconds
+CALLBACK_INTERVAL = 1  # 1 second
 
 log = logging.getLogger(__name__)
 
+# Mutex to protect the transcriber model from being changed while it is being used.
 transcriber_mutex = QtCore.QMutex()
 
-data_queue = Queue()
+audio_queue = Queue()
+
+
+class AmazonStreamEventHandler(TranscriptResultStreamHandler):
+    """
+    The :class:`~openlp.plugins.bibles.lib.workers.AmazonStreamEventHandler` class
+    provides an event handler for Amazon Transcribe streaming events.
+    """
+
+    def __init__(
+        self,
+        transcript_result_stream: TranscriptResultStream,
+        display_text: QtCore.pyqtSignal,
+        submitted_text: QtCore.pyqtSignal,
+    ):
+        super().__init__(transcript_result_stream)
+        self.display_text = display_text
+        self.submitted_text = submitted_text
+
+    async def handle_transcript_event(self, transcript_event: TranscriptEvent):
+        log.debug("AmazonStreamEventHandler - Handling transcript event")
+        result = transcript_event.transcript.results[0]
+        transcription = result.alternatives[0].transcript
+        self.display_text.emit(transcription)
+        if not result.is_partial:
+            self.submitted_text.emit(transcription)
+        log.debug("AmazonStreamEventHandler - Transcribed text: %s", transcription)
 
 
 class AudioWorker(ThreadWorker):
     """
     The :class:`~openlp.plugins.bibles.lib.workers.AudioWorker` class provides a worker object for audio processing.
     """
+
     display_text = QtCore.pyqtSignal(str)
     submitted_text = QtCore.pyqtSignal(str)
 
-    def __init__(self):
-        super().__init__()
-        log.debug('AudioWorker - Initialise')
-        self.model_manager = DBManager('models', init_schema)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.model_manager = DBManager("models", init_schema)
         self.transcriber_model = None
+        self.microphone = None
         self.recognizer = Recognizer()
         self.recognizer.energy_threshold = 1000
         # Definitely do this, dynamic energy compensation lowers the energy threshold
         # dramatically to a point where the SpeechRecognizer never stops recording.
         self.recognizer.dynamic_energy_threshold = False
-        self.stopper = None
         self.is_active = False
+        self.cloud = False
         self.shutdown = False
-        self.setup_microphone(None)
+        self.event_loop = None
+        self.current_task = None
+        self.stopper = None
+        # self.setup_microphone(None)
+        self.client = TranscribeStreamingClient(
+            region=kwargs.get("region", "us-east-1")
+        )
 
     def start(self):
-        log.debug('AudioWorker - Start')
-        phrase_time = None
-        adjustment_time = None
-        transcription = ''
-        while not self.shutdown:
-            if self.is_active:
+        log.debug("AudioWorker - Starting event loop")
+        self.event_loop = new_event_loop()
+        threading.Thread(target=self._run_event_loop).start()
+
+    def _run_event_loop(self):
+        asyncio.set_event_loop(self.event_loop)
+        self.event_loop.run_forever()
+
+    def _start_transcription_task(self):
+        log.debug("AudioWorker - Start transcription task")
+        if self.current_task:
+            self.current_task.cancel()
+        if self.cloud:
+            self.current_task = asyncio.run_coroutine_threadsafe(self.amazon_transcribe(), self.event_loop)
+        else:
+            self.current_task = asyncio.run_coroutine_threadsafe(self.local_transcribe(), self.event_loop)
+
+    async def amazon_transcribe(
+        self, language_code: str = "en-US"
+    ):
+        log.debug("AudioWorker - Amazon transcribe")
+        # Start transcription to generate our async stream
+        amazon_stream = await self.client.start_stream_transcription(
+            language_code=language_code,
+            media_sample_rate_hz=DEFAULT_SAMPLE_RATE,
+            media_encoding="pcm",
+        )
+
+        # Instantiate our handler and start processing events
+        handler = AmazonStreamEventHandler(
+            amazon_stream.output_stream, self.display_text, self.submitted_text
+        )
+        await asyncio.gather(self.write_chunks(amazon_stream), handler.handle_events())
+
+    async def local_transcribe(self):
+        log.debug("AudioWorker - Local transcribe")
+        last_transcription = ""
+        last_transcription_time = None
+        chunks = []
+        async for chunk in mic_stream():
+            log.debug("Local transcribe chunk")
+            if self.transcriber_model is not None:
                 now = datetime.now()
-                if not adjustment_time or now - adjustment_time > timedelta(minutes=5):
-                    self.adjust_for_ambient_noise()
-                    adjustment_time = now
-
-                if phrase_time and now - phrase_time > timedelta(seconds=2) and transcription:
-                    self.submitted_text.emit(transcription)
-                    transcription = ''
-
-                if not data_queue.empty():
-                    # This is the last time we received new audio data from the queue.
-                    phrase_time = now
-
-                    # Combine audio data from queue
-                    audio_data = b''.join(data_queue.queue)
-                    data_queue.queue.clear()
-
-                    # Convert in-ram buffer to something the model can use directly without needing a temp file.
-                    # Convert data from 16 bit wide integers to floating point with a width of 32 bits.
-                    # Clamp the audio stream frequency to a PCM wavelength compatible default of 32768hz max.
-                    audio_np = np.frombuffer(
-                        audio_data, dtype=np.int16).astype(np.float32) / 32768.0
-
+                chunks.append(chunk)
+                log.debug("Ready to transcribe")
+                audio_data = np.frombuffer(b"".join(chunks), dtype=np.int16).astype(np.float32) / 32768.0
+                if self.transcriber_model:
                     transcriber_mutex.lock()
-                    if self.transcriber_model is not None:
-                        transcription += ' ' + self.transcriber_model.transcribe(audio_np)
-                        transcription = transcription.strip()
-                        if transcription:
-                            self.display_text.emit(transcription)
-                        log.debug('AudioWorker - Transcribed text: %s', transcription)
+                    transcription = self.transcriber_model.transcribe(
+                        audio_data
+                    ).strip()
                     transcriber_mutex.unlock()
+                    log.debug(f"Transcription: {transcription}")
+                    if transcription and transcription != last_transcription:
+                        self.display_text.emit(transcription)
+                        last_transcription = transcription
+                        last_transcription_time = now
+                    if transcription.endswith((".", "!", "?")) or (
+                        last_transcription_time
+                        and (
+                            now - last_transcription_time
+                            > timedelta(seconds=SILENCE_DURATION)
+                        )
+                    ):
+                        self.submitted_text.emit(transcription)
+                        chunks.clear()
+                    if not transcription:
+                        chunks.clear()
+            log.debug("Done with local transcription")
 
-            QtCore.QThread.msleep(250)
-
-    def start_listening(self):
+    def _start_listening(self):
         if self.microphone:
-            log.debug('AudioWorker - Listening in background')
+            log.debug("AudioWorker - Listening in background")
             self.stopper = self.recognizer.listen_in_background(
-                self.microphone,
-                record_callback,
-                1.5,
+                source=self.microphone,
+                callback=record_callback,
+                phrase_time_limit=CALLBACK_INTERVAL,
             )
 
-    def stop_listening(self, wait=True):
+    def _stop_listening(self, wait=True):
         if self.stopper:
-            log.debug('AudioWorker - Stopping background listening')
+            log.debug("AudioWorker - Stopping background listening")
             self.stopper(wait)
             self.stopper = None
 
-    def adjust_for_ambient_noise(self):
+    def _adjust_for_ambient_noise(self):
         if self.microphone:
-            self.stop_listening()
+            self._stop_listening()
             with self.microphone as source:
                 self.recognizer.adjust_for_ambient_noise(source)
             if self.is_active:
-                self.start_listening()
+                self._start_listening()
+
+    async def write_chunks(self, amazon_stream: StartStreamTranscriptionEventStream):
+        # This connects the raw audio chunks generator coming from the microphone
+        # and passes them along to the transcription stream.
+        try:
+            async for chunk in mic_stream():
+                if self.is_active:
+                    await amazon_stream.input_stream.send_audio_event(audio_chunk=chunk)
+                if self.shutdown:
+                    break
+        except asyncio.CancelledError:
+            await amazon_stream.input_stream.end_stream()
+            raise
 
     @QtCore.pyqtSlot(int)
     def setup_microphone(self, microphone_source):
         """
         Set up the microphone for audio input.
         """
-        log.debug('AudioWorker - Setup microphone %s', microphone_source)
-
-        self.stop_listening()
+        log.debug("AudioWorker - Setup microphone %s", microphone_source)
+        self._stop_listening()
         self.microphone = (
-            Microphone(sample_rate=16000, device_index=microphone_source)
+            Microphone(sample_rate=DEFAULT_SAMPLE_RATE, device_index=microphone_source)
             if microphone_source
             else Microphone()
         )
-        self.adjust_for_ambient_noise()
+        self._adjust_for_ambient_noise()
 
     @QtCore.pyqtSlot(bool)
     def toggle_active(self, state):
         """
         Toggle the active state of the worker.
         """
-        log.debug('AudioWorker - Toggle active %s', state)
+        log.debug("AudioWorker - Toggle active %s", state)
         self.is_active = state
         if self.is_active:
-            self.start_listening()
+            self._start_listening()
+            self._start_transcription_task()
         else:
-            self.stop_listening()
+            self._stop_listening()
+            if self.current_task:
+                self.current_task.cancel()
+                self.current_task = None
+
+    @QtCore.pyqtSlot(bool)
+    def toggle_cloud(self, state):
+        """
+        Toggle the cloud state of the worker.
+        """
+        log.debug("AudioWorker - Toggle cloud %s", state)
+        self.cloud = state
+        if self.is_active:
+            self._start_transcription_task()
 
     @QtCore.pyqtSlot(str)
     def set_model(self, model_name):
         """
         Set the transcriber model.
         """
-        log.debug('AudioWorker - Set model %s', model_name)
-        db_model = self.model_manager.get_object_filtered(Model, Model.name == model_name)
+        log.debug("AudioWorker - Set model %s", model_name)
+        db_model = self.model_manager.get_object_filtered(
+            Model, Model.name == model_name
+        )
         if db_model is None:
             return None
         model_info = model_data = ModelInfo.get_model_info(model_name)
         model_info.update(db_model.meta)
-        model_info['path'] = db_model.path
+        model_info["path"] = db_model.path
         model_class = None
         if db_model.library == ModelLibrary.WHISPER:
-            from openlp.plugins.bibles.lib.models.whispertranscriber import WhisperTranscriberModel
+            from openlp.plugins.bibles.lib.models.whispertranscriber import (
+                WhisperTranscriberModel,
+            )
+
             model_class = WhisperTranscriberModel
         elif db_model.library == ModelLibrary.SPEECHBRAIN:
-            from openlp.plugins.bibles.lib.models.sptranscriber import SpeechBrainTranscriberModel
+            from openlp.plugins.bibles.lib.models.sptranscriber import (
+                SpeechBrainTranscriberModel,
+            )
+
             model_class = SpeechBrainTranscriberModel
         transcriber_mutex.lock()
         self.transcriber_model = model_class(model_name, self, **model_data)
@@ -183,32 +296,43 @@ class AudioWorker(ThreadWorker):
         """
         Shutdown the worker.
         """
-        log.debug('AudioWorker - Shutdown')
+        log.debug("AudioWorker - Shutdown")
         self.shutdown = True
         self.is_active = False
+        if self.current_task:
+            self.current_task.cancel()
+        self.event_loop.call_soon_threadsafe(self.event_loop.stop)
         self.quit.emit()
 
 
-def record_callback(_, audio):
+def record_callback(_, audio: AudioData):
     """
     Threaded callback function to receive audio data when recordings finish.
     audio: An AudioData containing the recorded bytes.
     """
     # Grab the raw bytes and push it into the thread safe queue.
     data = audio.get_raw_data()
-    data_queue.put(data)
+    audio_queue.put_nowait(data)
+    log.debug("Record callback data")
+
+
+async def mic_stream():
+    while True:
+        data = audio_queue.get()
+        log.debug("Mic stream data")
+        yield data
 
 
 def get_working_microphones():
     """
     Get a list of working microphones.
     """
-    pa = pyaudio.PyAudio()
+    pa = PyAudio()
     working_microphones = {}
     try:
         for device_index in range(pa.get_device_count()):
             device_info = pa.get_device_info_by_index(device_index)
-            device_name = device_info['name']
+            device_name = device_info["name"]
             if (
                 device_info["maxInputChannels"] == 0
                 or device_info["hostApi"] != 0
@@ -218,8 +342,11 @@ def get_working_microphones():
             try:
                 # read audio
                 pyaudio_stream = pa.open(
-                    input_device_index=device_index, channels=1, format=pyaudio.paInt16,
-                    rate=int(device_info["defaultSampleRate"]), input=True
+                    input_device_index=device_index,
+                    channels=1,
+                    format=paInt16,
+                    rate=int(device_info["defaultSampleRate"]),
+                    input=True,
                 )
                 try:
                     _ = pyaudio_stream.read(1024)

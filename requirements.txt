@@ -51,3 +51,4 @@ SpeechRecognition
 PyAudio
 python-vlc
 pymediainfo
+amazon-transcribe
