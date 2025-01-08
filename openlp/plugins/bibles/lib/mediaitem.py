@@ -43,6 +43,7 @@ from openlp.plugins.bibles.forms.modeldownloadform import ModelDownloadForm
 from openlp.plugins.bibles.lib import ModelInfo, ModelType, get_reference_match, get_reference_separator
 from openlp.plugins.bibles.lib.versereferencelist import VerseReferenceList
 from openlp.plugins.bibles.lib.workers.audio import AudioWorker, get_working_microphones
+from openlp.core.common.httputils import is_network_available
 
 log = logging.getLogger(__name__)
 
@@ -803,6 +804,15 @@ class BibleMediaItem(MediaManagerItem):
         :param checked: Indicates if the button is checked or not (Bool)
         :return: None
         """
+        if checked and not is_network_available():
+            QtWidgets.QMessageBox.critical(
+                self,
+                translate('BiblesPlugin.MediaItem', 'Network Error'),
+                translate('BiblesPlugin.MediaItem', 'No network connection available. Please check your connection and try again.')
+            )
+            self.toggle_cloud_transcription_button.setChecked(False)
+            return
+
         state_string = 'off' if checked else 'on'
         self.toggle_cloud_transcription_button.setToolTip(translate('BiblesPlugin.MediaItem', 'Turn {state} cloud transcription.'.format(
             state=state_string)))

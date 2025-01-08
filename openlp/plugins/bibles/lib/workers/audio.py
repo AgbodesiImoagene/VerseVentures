@@ -23,6 +23,7 @@ from asyncio import new_event_loop
 import asyncio
 from datetime import datetime, timedelta
 import logging
+import re
 import threading
 import numpy as np
 from pyaudio import PyAudio, paInt16
@@ -69,18 +70,28 @@ class AmazonStreamEventHandler(TranscriptResultStreamHandler):
         display_text: QtCore.pyqtSignal,
         submitted_text: QtCore.pyqtSignal,
     ):
+        """
+        Initialize the AmazonStreamEventHandler.
+
+        :param transcript_result_stream: The stream of transcription results.
+        :param display_text: Signal to emit the transcribed text for display.
+        :param submitted_text: Signal to emit the final transcribed text.
+        """
         super().__init__(transcript_result_stream)
         self.display_text = display_text
         self.submitted_text = submitted_text
 
     async def handle_transcript_event(self, transcript_event: TranscriptEvent):
-        log.debug("AmazonStreamEventHandler - Handling transcript event")
+        """
+        Handle a transcript event from Amazon Transcribe.
+
+        :param transcript_event: The transcript event to handle.
+        """
         result = transcript_event.transcript.results[0]
         transcription = result.alternatives[0].transcript
         self.display_text.emit(transcription)
         if not result.is_partial:
             self.submitted_text.emit(transcription)
-        log.debug("AmazonStreamEventHandler - Transcribed text: %s", transcription)
 
 
 class AudioWorker(ThreadWorker):
@@ -92,6 +103,12 @@ class AudioWorker(ThreadWorker):
     submitted_text = QtCore.pyqtSignal(str)
 
     def __init__(self, *args, **kwargs):
+        """
+        Initialize the AudioWorker.
+
+        :param args: Additional arguments.
+        :param kwargs: Additional keyword arguments.
+        """
         super().__init__(*args, **kwargs)
         self.model_manager = DBManager("models", init_schema)
         self.transcriber_model = None
@@ -113,27 +130,45 @@ class AudioWorker(ThreadWorker):
         )
 
     def start(self):
+        """
+        Start the event loop for the AudioWorker.
+        """
         log.debug("AudioWorker - Starting event loop")
         self.event_loop = new_event_loop()
         threading.Thread(target=self._run_event_loop).start()
 
     def _run_event_loop(self):
+        """
+        Run the event loop in a separate thread.
+        """
         asyncio.set_event_loop(self.event_loop)
         self.event_loop.run_forever()
 
     def _start_transcription_task(self):
-        log.debug("AudioWorker - Start transcription task")
+        """
+        Start the transcription task based on the current mode (cloud or local).
+        """
+        log.debug(
+            "AudioWorker - Starting %s transcription task",
+            "cloud" if self.cloud else "local",
+        )
         if self.current_task:
             self.current_task.cancel()
         if self.cloud:
-            self.current_task = asyncio.run_coroutine_threadsafe(self.amazon_transcribe(), self.event_loop)
+            self.current_task = asyncio.run_coroutine_threadsafe(
+                self.amazon_transcribe(), self.event_loop
+            )
         else:
-            self.current_task = asyncio.run_coroutine_threadsafe(self.local_transcribe(), self.event_loop)
+            self.current_task = asyncio.run_coroutine_threadsafe(
+                self.local_transcribe(), self.event_loop
+            )
 
-    async def amazon_transcribe(
-        self, language_code: str = "en-US"
-    ):
-        log.debug("AudioWorker - Amazon transcribe")
+    async def amazon_transcribe(self, language_code: str = "en-US"):
+        """
+        Perform transcription using Amazon Transcribe.
+
+        :param language_code: The language code for transcription.
+        """
         # Start transcription to generate our async stream
         amazon_stream = await self.client.start_stream_transcription(
             language_code=language_code,
@@ -148,42 +183,52 @@ class AudioWorker(ThreadWorker):
         await asyncio.gather(self.write_chunks(amazon_stream), handler.handle_events())
 
     async def local_transcribe(self):
-        log.debug("AudioWorker - Local transcribe")
+        """
+        Perform local transcription using the selected transcriber model.
+        """
         last_transcription = ""
         last_transcription_time = None
         chunks = []
         async for chunk in mic_stream():
-            log.debug("Local transcribe chunk")
             if self.transcriber_model is not None:
                 now = datetime.now()
                 chunks.append(chunk)
-                log.debug("Ready to transcribe")
-                audio_data = np.frombuffer(b"".join(chunks), dtype=np.int16).astype(np.float32) / 32768.0
+                audio_data = (
+                    np.frombuffer(b"".join(chunks), dtype=np.int16).astype(np.float32)
+                    / 32768.0
+                )
                 if self.transcriber_model:
                     transcriber_mutex.lock()
                     transcription = self.transcriber_model.transcribe(
                         audio_data
                     ).strip()
                     transcriber_mutex.unlock()
-                    log.debug(f"Transcription: {transcription}")
                     if transcription and transcription != last_transcription:
                         self.display_text.emit(transcription)
                         last_transcription = transcription
                         last_transcription_time = now
-                    if transcription.endswith((".", "!", "?")) or (
-                        last_transcription_time
-                        and (
-                            now - last_transcription_time
-                            > timedelta(seconds=SILENCE_DURATION)
+                    if (
+                        re.search(r"(?<!\.\.)[.!?]$", transcription)
+                        or (
+                            last_transcription_time
+                            and (
+                                now - last_transcription_time
+                                > timedelta(seconds=SILENCE_DURATION)
+                            )
                         )
+                        or re.match(r"\.+$", transcription)
                     ):
                         self.submitted_text.emit(transcription)
                         chunks.clear()
                     if not transcription:
                         chunks.clear()
-            log.debug("Done with local transcription")
+            if self.shutdown:
+                break
 
     def _start_listening(self):
+        """
+        Start listening to the microphone in the background.
+        """
         if self.microphone:
             log.debug("AudioWorker - Listening in background")
             self.stopper = self.recognizer.listen_in_background(
@@ -193,13 +238,22 @@ class AudioWorker(ThreadWorker):
             )
 
     def _stop_listening(self, wait=True):
+        """
+        Stop listening to the microphone in the background.
+
+        :param wait: Whether to wait for the listener to stop.
+        """
         if self.stopper:
             log.debug("AudioWorker - Stopping background listening")
             self.stopper(wait)
             self.stopper = None
 
     def _adjust_for_ambient_noise(self):
+        """
+        Adjust the recognizer for ambient noise using the microphone.
+        """
         if self.microphone:
+            log.debug("AudioWorker - Adjusting for ambient noise")
             self._stop_listening()
             with self.microphone as source:
                 self.recognizer.adjust_for_ambient_noise(source)
@@ -207,6 +261,11 @@ class AudioWorker(ThreadWorker):
                 self._start_listening()
 
     async def write_chunks(self, amazon_stream: StartStreamTranscriptionEventStream):
+        """
+        Write audio chunks to the Amazon Transcribe stream.
+
+        :param amazon_stream: The Amazon Transcribe stream.
+        """
         # This connects the raw audio chunks generator coming from the microphone
         # and passes them along to the transcription stream.
         try:
@@ -223,6 +282,8 @@ class AudioWorker(ThreadWorker):
     def setup_microphone(self, microphone_source):
         """
         Set up the microphone for audio input.
+
+        :param microphone_source: The index of the microphone source.
         """
         log.debug("AudioWorker - Setup microphone %s", microphone_source)
         self._stop_listening()
@@ -237,6 +298,8 @@ class AudioWorker(ThreadWorker):
     def toggle_active(self, state):
         """
         Toggle the active state of the worker.
+
+        :param state: The new active state.
         """
         log.debug("AudioWorker - Toggle active %s", state)
         self.is_active = state
@@ -253,6 +316,8 @@ class AudioWorker(ThreadWorker):
     def toggle_cloud(self, state):
         """
         Toggle the cloud state of the worker.
+
+        :param state: The new cloud state.
         """
         log.debug("AudioWorker - Toggle cloud %s", state)
         self.cloud = state
@@ -263,6 +328,8 @@ class AudioWorker(ThreadWorker):
     def set_model(self, model_name):
         """
         Set the transcriber model.
+
+        :param model_name: The name of the model to set.
         """
         log.debug("AudioWorker - Set model %s", model_name)
         db_model = self.model_manager.get_object_filtered(
@@ -308,24 +375,28 @@ class AudioWorker(ThreadWorker):
 def record_callback(_, audio: AudioData):
     """
     Threaded callback function to receive audio data when recordings finish.
-    audio: An AudioData containing the recorded bytes.
+
+    :param audio: An AudioData containing the recorded bytes.
     """
     # Grab the raw bytes and push it into the thread safe queue.
     data = audio.get_raw_data()
     audio_queue.put_nowait(data)
-    log.debug("Record callback data")
 
 
 async def mic_stream():
+    """
+    Asynchronous generator to yield audio data from the microphone.
+    """
     while True:
         data = audio_queue.get()
-        log.debug("Mic stream data")
         yield data
 
 
 def get_working_microphones():
     """
     Get a list of working microphones.
+
+    :return: A dictionary of working microphones with their indices and names.
     """
     pa = PyAudio()
     working_microphones = {}

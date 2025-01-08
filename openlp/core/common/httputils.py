@@ -245,6 +245,28 @@ def download_file(update_object, url, file_path, sha256=None, proxy=None):
     return True
 
 
+def is_network_available():
+    """
+    Check if the network is available by pinging multiple reliable servers.
+
+    :return: True if the network is available, False otherwise.
+    """
+    reliable_servers = [
+        "https://www.google.com",
+        "https://www.amazon.com",
+        "https://www.microsoft.com",
+        "https://aws.amazon.com"
+    ]
+    for server in reliable_servers:
+        try:
+            response = requests.get(server, timeout=5)
+            if response.status_code == 200:
+                return True
+        except requests.RequestException:
+            continue
+    return False
+
+
 class DownloadWorker(ThreadWorker):
     """
     This worker allows a file to be downloaded in a thread
