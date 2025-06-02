@@ -32,8 +32,14 @@ from openlp.core.common.registry import Registry
 from openlp.core.lib import ServiceItemContext
 from openlp.core.lib.mediamanageritem import MediaManagerItem
 from openlp.core.lib.serviceitem import ItemCapabilities
-from openlp.core.lib.ui import DissapearingListWidgetItem, GrowingTextEdit, create_horizontal_adjusting_combo_box, critical_error_message_box, \
-    find_and_set_in_combo_box, set_case_insensitive_completer
+from openlp.core.lib.ui import (
+    DissapearingListWidgetItem,
+    GrowingTextEdit,
+    create_horizontal_adjusting_combo_box,
+    critical_error_message_box,
+    find_and_set_in_combo_box,
+    set_case_insensitive_completer,
+)
 from openlp.core.threading import run_thread
 from openlp.core.ui.icons import UiIcons
 from openlp.core.widgets.edits import SearchEdit
@@ -100,7 +106,7 @@ class SematicSimilarity(IntEnum):
     def threshold(self):
         return {
             SematicSimilarity.Low: 0.5,
-            SematicSimilarity.Medium: 0.70,
+            SematicSimilarity.Medium: 0.7,
             SematicSimilarity.High: 0.8,
         }[self]
 
@@ -163,7 +169,7 @@ class BibleMediaItem(MediaManagerItem):
         self.sort_icon = UiIcons().sort
         self.bible = None
         self.microphone_icon = UiIcons().microphone
-        self.cloud_transcription_icon = UiIcons().cloud_check
+        self.cloud_icon = UiIcons().cloud_check
         self.second_bible = None
         self.saved_results = []
         self.current_results = []
@@ -286,15 +292,16 @@ class BibleMediaItem(MediaManagerItem):
         self.microphone_options_layout.addWidget(self.toggle_microphone_button)
         self.suggestions_layout.addRow(translate('BiblesPlugin.MediaItem', 'Microphone:'),
                                        self.microphone_options_layout)
-        self.cloud_transcription_layout = QtWidgets.QHBoxLayout()
-        self.toggle_cloud_transcription_button = QtWidgets.QToolButton()
-        self.toggle_cloud_transcription_button.setIcon(self.cloud_transcription_icon)
-        self.toggle_cloud_transcription_button.setCheckable(True)
-        self.toggle_cloud_transcription_button.setChecked(False)
-        self.toggle_cloud_transcription_button.setToolTip(translate('BiblesPlugin.MediaItem', 'Turn on cloud transcription.'))
-        self.cloud_transcription_layout.addWidget(self.toggle_cloud_transcription_button)
-        self.suggestions_layout.addRow(translate('BiblesPlugin.MediaItem', 'Cloud Transcription:'),
-                                       self.cloud_transcription_layout)
+        self.cloud_layout = QtWidgets.QHBoxLayout()
+        self.toggle_cloud_button = QtWidgets.QToolButton()
+        self.toggle_cloud_button.setIcon(self.cloud_icon)
+        self.toggle_cloud_button.setCheckable(True)
+        self.toggle_cloud_button.setChecked(False)
+        self.toggle_cloud_button.setToolTip(translate('BiblesPlugin.MediaItem',
+                                                      'Turn on cloud transcription and semantic search.'))
+        self.cloud_layout.addWidget(self.toggle_cloud_button)
+        self.suggestions_layout.addRow(translate('BiblesPlugin.MediaItem', 'Online suggestions:'),
+                                       self.cloud_layout)
 
         self.transcription_text_box = GrowingTextEdit(self.suggestions_tab)
         self.transcription_text_box.setReadOnly(True)
@@ -392,7 +399,7 @@ class BibleMediaItem(MediaManagerItem):
         self.book_order_button.toggled.connect(self.on_book_order_button_toggled)
         self.clear_button.clicked.connect(self.on_clear_button_clicked)
         self.toggle_microphone_button.toggled.connect(self.on_microphone_button_toggled)
-        self.toggle_cloud_transcription_button.toggled.connect(self.on_cloud_transcription_button_toggled)
+        self.toggle_cloud_button.toggled.connect(self.on_cloud_button_toggled)
         self.save_results_button.clicked.connect(self.on_save_results_button_clicked)
         self.search_button.clicked.connect(self.on_search_button_clicked)
         # Other stuff
@@ -797,9 +804,9 @@ class BibleMediaItem(MediaManagerItem):
         self.microphone_selection.setEnabled(checked)
         self.audio_worker.toggle_active(checked)
 
-    def on_cloud_transcription_button_toggled(self, checked):
+    def on_cloud_button_toggled(self, checked):
         """
-        Toggle the cloud transcription on or off
+        Toggle the cloud transcription and semantic search on or off
 
         :param checked: Indicates if the button is checked or not (Bool)
         :return: None
@@ -808,15 +815,19 @@ class BibleMediaItem(MediaManagerItem):
             QtWidgets.QMessageBox.critical(
                 self,
                 translate('BiblesPlugin.MediaItem', 'Network Error'),
-                translate('BiblesPlugin.MediaItem', 'No network connection available. Please check your connection and try again.')
+                translate('BiblesPlugin.MediaItem',
+                          'No network connection available. Please check your connection and try again.')
             )
-            self.toggle_cloud_transcription_button.setChecked(False)
+            self.toggle_cloud_button.setChecked(False)
             return
 
         state_string = 'off' if checked else 'on'
-        self.toggle_cloud_transcription_button.setToolTip(translate('BiblesPlugin.MediaItem', 'Turn {state} cloud transcription.'.format(
-            state=state_string)))
+        self.toggle_cloud_button.setToolTip(translate('BiblesPlugin.MediaItem',
+                                                      'Turn {state} cloud transcription and semantic search.'.format(
+                                                          state=state_string)))
+
         self.transcriber_model_combo_box.setEnabled(not checked)
+        self.encoder_model_combo_box.setEnabled(not checked)
         self.audio_worker.toggle_cloud(checked)
 
     def on_save_results_button_clicked(self):
@@ -1120,7 +1131,8 @@ class BibleMediaItem(MediaManagerItem):
         This search is called on def text_search by 'Search' Text and Combined Searches.
         """
         self.search_results = self.plugin.manager.similarity_search(
-            self.bible.name, text, similarity_threshold=self.similarity_threshold
+            self.bible.name, text, similarity_threshold=self.similarity_threshold,
+            use_local=not self.toggle_cloud_button.isChecked()
         )
         if self.search_results is None:
             return False
@@ -1231,7 +1243,8 @@ class BibleMediaItem(MediaManagerItem):
         if self.search_tab_bar.currentIndex() != SearchTabs.Suggestions:
             return
         self.search_results = self.plugin.manager.similarity_search(
-            self.bible.name, text, similarity_threshold=self.similarity_threshold
+            self.bible.name, text, similarity_threshold=self.similarity_threshold,
+            use_local=not self.toggle_cloud_button.isChecked()
         )
         if self.search_results is None:
             return False

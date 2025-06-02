@@ -21,6 +21,7 @@
 from functools import lru_cache
 import gc
 import logging
+import requests
 from pathlib import Path
 from pickle import loads
 
@@ -426,27 +427,33 @@ class BibleManager(LogMixin, RegistryProperties):
         # Fetch the results from db. If no results are found, return None, no message is given for this.
         return self.db_cache[bible].verse_search(text)
 
-    def similarity_search(self, bible, text, similarity_threshold=0.5, max_results=10):
+    def similarity_search(self, bible, text, similarity_threshold=0.5, max_results=10, use_local=True):
         """
         Does a similarity search for the given bible and text.
 
         :param str bible: The bible to search
         :param str text: The text to search for
+        :param float similarity_threshold: The minimum similarity score (0.0 to 1.0)
+        :param int max_results: Maximum number of results to return
+        :param bool use_web_api: Whether to use web API instead of local models
         :return: The search results if valid, or an empty list if the search is invalid.
         :rtype: list
         """
-        log.debug('BibleManager.similarity_search("{bible}", "{text}")'.format(bible=bible, text=text))
+        log.debug('BibleManager.similarity_search("{bible}", "{text}", {threshold}, {use_local})'.format(
+            bible=bible, text=text, threshold=similarity_threshold, use_local=use_local))
+        
         if not text:
             return []
+        
         # If no bibles are installed, message is given.
         if not bible:
             self.main_window.information_message(
                 UiStrings().BibleNoBiblesTitle,
                 UiStrings().BibleNoBibles)
             return []
+        
         # Check if the bible is a web bible.
         if self.db_cache[bible].is_web_bible:
-            # If Bible is Web, cursor is reset to normal and message is given.
             self.application.set_normal_cursor()
             self.main_window.information_message(
                 translate('BiblesPlugin.BibleManager', 'Web Bible cannot be used in Semantic Search'),
@@ -455,25 +462,78 @@ class BibleManager(LogMixin, RegistryProperties):
                                                        'This means that the currently selected Bible is a Web Bible.')
             )
             return []
-        if self.encoder_model is None:
-            self.main_window.information_message(
-                translate('BiblesPlugin.BibleManager', 'No Encoder Model Selected'),
-                translate('BiblesPlugin.BibleManager', 'Please select an encoder model to use for semantic search.')
-            )
-            return []
-        # Fetch the embeddings from db. If no results are found, return None, no message is given for this.
-        verse_ids, encodings = zip(*self.get_encodings(bible, self.encoder_model.name))
-        similarities = self.encoder_model.similarity(text, np.array(encodings))
-        verse_similarity = zip(verse_ids, similarities)
-        verse_similarity = sorted(verse_similarity, key=lambda x: x[1], reverse=True)
-        # Filter out duplicate verses, keeping the highest similarity.
-        results = []
-        for verse_id, similarity in verse_similarity:
-            if verse_id not in results and similarity >= similarity_threshold:
-                results.append(verse_id)
-                if len(results) >= max_results:
-                    break
-        return self.db_cache[bible].get_verses_by_id(results)
+
+        if not use_local:
+            try:
+                # Get the Bible version name
+                bible_version = self.get_meta_data(bible, 'name').value.lower()
+                
+                if bible_version not in ["asv", "kjv", "net", "web"]:
+                    self.main_window.information_message(
+                        translate('BiblesPlugin.BibleManager', 'Online Semantic Search is not available with this Bible: {bible}').format(bible=bible),
+                        translate('BiblesPlugin.BibleManager', 'Only the following versions are currently supported: asv, kjv, net, web')
+                    )
+                    return []
+
+                # Prepare the API request
+                api_url = "http://bibleai-alb-591146582.eu-west-1.elb.amazonaws.com/semantic-search"
+                payload = {
+                    "query": text,
+                    "threshold": similarity_threshold,
+                    "bible_version": bible_version
+                }
+                
+                # Make the API call
+                response = requests.post(api_url, json=payload)
+                response.raise_for_status()  # Raise exception for bad status codes
+                
+                # Parse the response
+                results = response.json()
+                
+                # Convert API results to verse objects
+                verse_list = []
+                for result in results:
+                    # Get the book object
+                    book = self.get_book_by_id(bible, str(result['book']))
+                    if not book:
+                        continue
+                        
+                    # Get the verse from the database
+                    verse_list.append((str(result['book']), result['chapter'], result['verse'], result['verse']))
+
+                return self.get_verses(bible, verse_list, False)
+                
+            except requests.exceptions.RequestException as e:
+                log.error('Web API search failed: %s', str(e))
+                self.main_window.information_message(
+                    translate('BiblesPlugin.BibleManager', 'Web API Search Failed'),
+                    translate('BiblesPlugin.BibleManager', 'Failed to perform web API search. Please check your internet connection and try again.')
+                )
+                return []
+                
+        else:
+            # Original local model search logic
+            if self.encoder_model is None:
+                self.main_window.information_message(
+                    translate('BiblesPlugin.BibleManager', 'No Encoder Model Selected'),
+                    translate('BiblesPlugin.BibleManager', 'Please select an encoder model to use for semantic search.')
+                )
+                return []
+                
+            # Fetch the embeddings from db
+            verse_ids, encodings = zip(*self.get_encodings(bible, self.encoder_model.name))
+            similarities = self.encoder_model.similarity(text, np.array(encodings))
+            verse_similarity = zip(verse_ids, similarities)
+            verse_similarity = sorted(verse_similarity, key=lambda x: x[1], reverse=True)
+            
+            # Filter out duplicate verses, keeping the highest similarity
+            results = []
+            for verse_id, similarity in verse_similarity:
+                if verse_id not in results and similarity >= similarity_threshold:
+                    results.append(verse_id)
+                    if len(results) >= max_results:
+                        break
+            return self.db_cache[bible].get_verses_by_id(results)
 
     def process_verse_range(self, book_ref_id, chapter_from, verse_from, chapter_to, verse_to):
         verse_ranges = []
