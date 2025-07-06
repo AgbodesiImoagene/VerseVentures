@@ -4486,17 +4486,17 @@ Behandlingen er blevet termineret og ingen ændringer er blevet foretaget.</tran
     </message>
     <message>
         <location filename="../../openlp/core/ui/mainwindow.py" line="1079"/>
-        <source>Exit OpenLP</source>
+        <source>Exit Versai</source>
         <translation>Afslut OpenLP</translation>
     </message>
     <message>
         <location filename="../../openlp/core/ui/mainwindow.py" line="1079"/>
-        <source>Are you sure you want to exit OpenLP?</source>
+        <source>Are you sure you want to exit Versai?</source>
         <translation>Er du sikker på at du vil afslutte OpenLP?</translation>
     </message>
     <message>
         <location filename="../../openlp/core/ui/mainwindow.py" line="1086"/>
-        <source>&amp;Exit OpenLP</source>
+        <source>&amp;Exit Versai</source>
         <translation>&amp;Afslut OpenLP</translation>
     </message>
     <message>

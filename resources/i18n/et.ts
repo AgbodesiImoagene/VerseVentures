@@ -4536,17 +4536,17 @@ Selle töötlemine katkestati ja ühtegi muudatust ei tehtud.</translation>
     </message>
     <message>
         <location filename="../../openlp/core/ui/mainwindow.py" line="1079"/>
-        <source>Exit OpenLP</source>
+        <source>Exit Versai</source>
         <translation>OpenLPst väljumine</translation>
     </message>
     <message>
         <location filename="../../openlp/core/ui/mainwindow.py" line="1079"/>
-        <source>Are you sure you want to exit OpenLP?</source>
+        <source>Are you sure you want to exit Versai?</source>
         <translation>Kas tahad kindlasti OpenLP sulgeda?</translation>
     </message>
     <message>
         <location filename="../../openlp/core/ui/mainwindow.py" line="1086"/>
-        <source>&amp;Exit OpenLP</source>
+        <source>&amp;Exit Versai</source>
         <translation>&amp;Sulge OpenLP</translation>
     </message>
     <message>

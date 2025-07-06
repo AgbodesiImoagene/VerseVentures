@@ -4536,17 +4536,17 @@ L&apos;elaborazione è terminata e non sono state apportate modifiche.</translat
     </message>
     <message>
         <location filename="../../openlp/core/ui/mainwindow.py" line="1079"/>
-        <source>Exit OpenLP</source>
+        <source>Exit Versai</source>
         <translation>Esci da OpenLP</translation>
     </message>
     <message>
         <location filename="../../openlp/core/ui/mainwindow.py" line="1079"/>
-        <source>Are you sure you want to exit OpenLP?</source>
+        <source>Are you sure you want to exit Versai?</source>
         <translation>Sei sicuro di voler uscire da OpenLP?</translation>
     </message>
     <message>
         <location filename="../../openlp/core/ui/mainwindow.py" line="1086"/>
-        <source>&amp;Exit OpenLP</source>
+        <source>&amp;Exit Versai</source>
         <translation>&amp;Esci da OpenLP</translation>
     </message>
     <message>

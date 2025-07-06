@@ -4537,17 +4537,17 @@ Apdorojimas buvo nutrauktas ir nepadaryta jokių pokyčių.</translation>
     </message>
     <message>
         <location filename="../../openlp/core/ui/mainwindow.py" line="1079"/>
-        <source>Exit OpenLP</source>
+        <source>Exit Versai</source>
         <translation>Išeiti iš OpenLP</translation>
     </message>
     <message>
         <location filename="../../openlp/core/ui/mainwindow.py" line="1079"/>
-        <source>Are you sure you want to exit OpenLP?</source>
+        <source>Are you sure you want to exit Versai?</source>
         <translation>Ar tikrai norite išeiti iš OpenLP?</translation>
     </message>
     <message>
         <location filename="../../openlp/core/ui/mainwindow.py" line="1086"/>
-        <source>&amp;Exit OpenLP</source>
+        <source>&amp;Exit Versai</source>
         <translation>Iš&amp;eiti iš OpenLP</translation>
     </message>
     <message>

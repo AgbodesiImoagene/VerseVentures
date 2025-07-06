@@ -144,6 +144,8 @@ def check_for_update(main_window):
     # worker.no_internet.connect(parent.on_no_internet)
     run_thread(worker, 'version')
 
+def get_versai_version():
+    return {'full':'1.0.0','version': '1.0.0', 'build': None}
 
 def get_version():
     """

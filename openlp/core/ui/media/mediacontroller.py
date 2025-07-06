@@ -118,7 +118,7 @@ class MediaController(QtWidgets.QWidget, RegistryBase, LogMixin, RegistryPropert
                 self.main_window.splash.hide()
             message_type = MessageType.Error
             generic_message = translate('OpenLP.MediaController',
-                                        'OpenLP requires the following libraries in order to show videos and other '
+                                        'Versai requires the following libraries in order to show videos and other '
                                         'media, but they are not installed. Please install these libraries to enable '
                                         'media playback in OpenLP.')
             fedora_rpmfusion = translate('OpenLP.MediaController',

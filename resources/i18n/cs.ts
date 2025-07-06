@@ -4537,17 +4537,17 @@ Zpracování bylo přerušeno a žádná změna se neprovedla.</translation>
     </message>
     <message>
         <location filename="../../openlp/core/ui/mainwindow.py" line="1079"/>
-        <source>Exit OpenLP</source>
+        <source>Exit Versai</source>
         <translation>Ukončit OpenLP</translation>
     </message>
     <message>
         <location filename="../../openlp/core/ui/mainwindow.py" line="1079"/>
-        <source>Are you sure you want to exit OpenLP?</source>
+        <source>Are you sure you want to exit Versai?</source>
         <translation>Jste si jist, že chcete ukončit aplikaci OpenLP?</translation>
     </message>
     <message>
         <location filename="../../openlp/core/ui/mainwindow.py" line="1086"/>
-        <source>&amp;Exit OpenLP</source>
+        <source>&amp;Exit Versai</source>
         <translation>&amp;Ukončit OpenLP</translation>
     </message>
     <message>

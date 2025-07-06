@@ -26,7 +26,7 @@ import webbrowser
 from PyQt5 import QtCore, QtWidgets
 
 from openlp.core.common.i18n import translate
-from openlp.core.version import get_version
+from openlp.core.version import get_versai_version
 
 from .aboutdialog import UiAboutDialog
 
@@ -50,7 +50,7 @@ class AboutForm(QtWidgets.QDialog, UiAboutDialog):
         """
         self.setup_ui(self)
         self.button_box.buttons()[0].setFocus()
-        application_version = get_version()
+        application_version = get_versai_version()
         about_text = self.about_text_edit.toHtml()
         about_text = about_text.replace('{version}', application_version['version'])
         if application_version['build']:
@@ -65,4 +65,4 @@ class AboutForm(QtWidgets.QDialog, UiAboutDialog):
         """
         Launch a web browser and go to the contribute page on the site.
         """
-        webbrowser.open_new('http://openlp.org/contribute')
+        webbrowser.open_new('https://qubators.org')

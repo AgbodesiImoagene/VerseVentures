@@ -87,7 +87,7 @@ class UiAboutDialog(object):
         self.license_tab_layout.addWidget(self.license_text_edit)
         self.about_notebook.addTab(self.license_tab, '')
         self.about_dialog_layout.addWidget(self.about_notebook)
-        self.contribute_button = create_button(None, 'contribute_button', icon=UiIcons().volunteer)
+        self.contribute_button = create_button(None, 'contribute_button', icon=UiIcons().info)
         self.button_box = create_button_box(about_dialog, 'button_box', ['close'], [self.contribute_button])
         self.about_dialog_layout.addWidget(self.button_box)
         self.retranslate_ui(about_dialog)
@@ -99,27 +99,25 @@ class UiAboutDialog(object):
 
         :param about_dialog: The QDialog object to translate
         """
-        about_dialog.setWindowTitle('{about} OpenLP'.format(about=UiStrings().About))
+        about_dialog.setWindowTitle('{about} Versai'.format(about=UiStrings().About))
         self.about_text_edit.setHtml(
             translate('OpenLP.AboutForm',
-                      '<p>OpenLP {{version}}{{revision}} - Open Source Lyrics Projection<br>'
-                      'Copyright {crs} 2004-{yr} OpenLP Developers</p>'
-                      '<p>Find out more about OpenLP: <a href="https://openlp.org/">https://openlp.org/</a></p>'
-                      '<p>This program is free software: you can redistribute it and/or modify it under the terms of '
+                      '<p>Versai {{version}}{{revision}} - Verse Aritifcal Intelligence<br>'
+                      'Copyright {crs} {yr} Loveworld</p>'
+                      '<p>Versai is built on top of OpenLP. Find out more about OpenLP: <a href="https://openlp.org/">https://openlp.org/</a></p>'
+                      'You can redistribute it and/or modify this program under the terms of '
                       'the GNU General Public License as published by the Free Software Foundation, either version 3 '
                       'of the License, or (at your option) any later version.</p>'
-                      '<p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; '
-                      'without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. '
                       'See the GNU General Public License for more details.</p>'
                       '<p>You should have received a copy of the GNU General Public License '
                       'along with this program.  If not, see <a href="https://www.gnu.org/licenses/">'
                       'https://www.gnu.org/licenses/</a>.</p>').format(crs='\xa9', yr=datetime.date.today().year))
         self.about_notebook.setTabText(self.about_notebook.indexOf(self.about_tab), UiStrings().About)
         developers = translate('OpenLP.AboutForm',
-                               'OpenLP is written and maintained by volunteers all over the world in their spare '
-                               'time. If you would like to see this project succeed, please consider contributing to '
-                               'it by clicking the "contribute" button below.')
-        built_with = translate('OpenLP.AboutForm', 'OpenLP would not be possible without the following software '
+                               '<p>Versai was written as an entry in Qubators hackathon'
+                               'To find out more about Qubators hackathon, you can do so</p>'
+                               'by clicking the "More Info" button below.')
+        built_with = translate('OpenLP.AboutForm', 'Versai would not be possible without the following software '
                                'libraries:')
         build_tech = ('<ul>'
                       '<li><a href="https://www.python.org/">Python</a> (PSFL)</li>'
@@ -743,4 +741,4 @@ class UiAboutDialog(object):
         self.license_text_edit.setHtml(license)
         self.about_notebook.setTabText(self.about_notebook.indexOf(self.license_tab),
                                        translate('OpenLP.AboutForm', 'License'))
-        self.contribute_button.setText(translate('OpenLP.AboutForm', 'Contribute'))
+        self.contribute_button.setText(translate('OpenLP.AboutForm', 'More Info'))

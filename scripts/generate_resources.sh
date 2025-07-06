@@ -59,6 +59,6 @@ else
 fi
 
 # Remove temporary file
-rm -f openlp/core/resources.py.new 2>/dev/null
-rm -f openlp/core/resources.py.old 2>/dev/null
 rm -f openlp/core/resources.py.orig 2>/dev/null
+#rm -f openlp/core/resources.py.new 2>/dev/null
+#rm -f openlp/core/resources.py.old 2>/dev/null

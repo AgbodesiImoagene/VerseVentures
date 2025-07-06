@@ -163,7 +163,7 @@ class OpenLP(QtCore.QObject, LogMixin):
         """
         Tell the user there is a 2nd instance running.
         """
-        QtWidgets.QMessageBox.critical(None, UiStrings().Error, UiStrings().OpenLPStart,
+        QtWidgets.QMessageBox.critical(None, UiStrings().Error, UiStrings().VersaiStart,
                                        QtWidgets.QMessageBox.StandardButtons(QtWidgets.QMessageBox.Ok))
 
     def is_data_path_missing(self):

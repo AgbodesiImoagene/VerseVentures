@@ -128,7 +128,7 @@ class AlertsTab(SettingsTab):
         self.repeat_label.setText(translate('AlertsPlugin.AlertsTab', 'Repeat (no. of times):'))
         self.scroll_check_box.setText(translate('AlertsPlugin.AlertsTab', 'Enable Scrolling'))
         self.preview_group_box.setTitle(UiStrings().Preview)
-        self.font_preview.setText(UiStrings().OpenLP)
+        self.font_preview.setText(UiStrings().Versai)
 
     def on_background_color_changed(self, color):
         """

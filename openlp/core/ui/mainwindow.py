@@ -358,7 +358,7 @@ class Ui_MainWindow(object):
         """
         Set up the translation system
         """
-        main_window.setWindowTitle(UiStrings().OpenLP)
+        main_window.setWindowTitle(UiStrings().Versai)
         self.file_menu.setTitle(translate('OpenLP.MainWindow', '&File'))
         self.file_import_menu.setTitle(translate('OpenLP.MainWindow', '&Import'))
         self.file_export_menu.setTitle(translate('OpenLP.MainWindow', '&Export'))
@@ -1077,13 +1077,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, LogMixin, RegistryPropert
         else:
             if self.settings.value('advanced/enable exit confirmation'):
                 msg_box = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Icon.Question,
-                                                translate('OpenLP.MainWindow', 'Exit OpenLP'),
-                                                translate('OpenLP.MainWindow', 'Are you sure you want to exit OpenLP?'),
+                                                translate('OpenLP.MainWindow', 'Exit Versai'),
+                                                translate('OpenLP.MainWindow', 'Are you sure you want to exit Versai?'),
                                                 QtWidgets.QMessageBox.StandardButtons(QtWidgets.QMessageBox.Close |
                                                                                       QtWidgets.QMessageBox.Cancel),
                                                 self)
                 close_button = msg_box.button(QtWidgets.QMessageBox.Close)
-                close_button.setText(translate('OpenLP.MainWindow', '&Exit OpenLP'))
+                close_button.setText(translate('OpenLP.MainWindow', '&Exit Versai'))
                 msg_box.setDefaultButton(QtWidgets.QMessageBox.Close)
                 if msg_box.exec() == QtWidgets.QMessageBox.Close:
                     event.accept()
@@ -1156,9 +1156,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, LogMixin, RegistryPropert
         :param file_name: The file name of the service file.
         """
         if modified:
-            title = '{title} - {name}*'.format(title=UiStrings().OpenLP, name=file_name)
+            title = '{title} - {name}*'.format(title=UiStrings().Versai, name=file_name)
         else:
-            title = '{title} - {name}'.format(title=UiStrings().OpenLP, name=file_name)
+            title = '{title} - {name}'.format(title=UiStrings().Versai, name=file_name)
         self.setWindowTitle(title)
 
     def show_status_message(self, message: str):
