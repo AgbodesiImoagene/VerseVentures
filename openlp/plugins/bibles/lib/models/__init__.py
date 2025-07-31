@@ -18,6 +18,8 @@
 # You should have received a copy of the GNU General Public License      #
 # along with this program.  If not, see <https://www.gnu.org/licenses/>. #
 ##########################################################################
+
+# Remove this whole page
 """
 The :mod:`~openlp.plugins.bibles.lib.models` module contains models for the Bibles plugin.
 """

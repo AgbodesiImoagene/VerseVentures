@@ -36,9 +36,8 @@ from openlp.core.common.mixins import LogMixin, RegistryProperties
 from openlp.core.common.registry import Registry
 from openlp.core.db.manager import DBManager
 from openlp.core.threading import run_thread
-from openlp.plugins.bibles.lib import ModelInfo, ModelLibrary, ModelType, parse_reference
-from openlp.plugins.bibles.lib.db import BibleDB, Model, init_schema
-from openlp.plugins.bibles.lib.workers.embed import EmbeddingWorker
+from openlp.plugins.bibles.lib import  parse_reference
+from openlp.plugins.bibles.lib.db import BibleDB, init_schema
 
 from .importers.csvbible import CSVBible
 from .importers.http import HTTPBible
@@ -129,17 +128,10 @@ class BibleManager(LogMixin, RegistryProperties):
         self.db_cache = None
         self.path = AppLocation.get_section_data_path('bibles')
         self.suffix = '.sqlite'
-        self.model_path = AppLocation.get_section_data_path('models')
-        self.model_manager = DBManager('models', init_schema)
-        self.encoder_model = None
-        self.models_cache = None
         self.suffix = '.sqlite'
         self.import_wizard = None
         self.reload_bibles()
-        self.reload_models()
-        self.encode_bibles()
         self.media = None
-        self.successfully_encoded_with_models = []
 
     def reload_bibles(self):
         """
@@ -175,14 +167,6 @@ class BibleManager(LogMixin, RegistryProperties):
                 self.db_cache[name] = web_bible
         log.debug('Bibles reloaded')
 
-    def reload_models(self):
-        """
-        Reloads the models from the available model databases on disk.
-        """
-        log.debug('Reload models')
-        all_models = self.model_manager.get_all_objects(Model, Model.downloaded == True)
-        self.models_cache = {model.name: model for model in all_models}
-
     def set_process_dialog(self, wizard):
         """
         Sets the reference to the dialog with the progress bar on it.
@@ -205,11 +189,6 @@ class BibleManager(LogMixin, RegistryProperties):
         self.db_cache[name] = importer
         return importer
 
-    def import_model(self, model, **kwargs):
-        model.register(self.import_wizard)
-        model.download()
-        self.save_model(model)
-
     def delete_bible(self, name):
         """
         Delete a bible completely.
@@ -222,62 +201,6 @@ class BibleManager(LogMixin, RegistryProperties):
         bible.session = None
         gc.collect()
         return delete_file(bible.path / '{name}{suffix}'.format(name=name, suffix=self.suffix))
-
-    def on_bible_encoding_finished(self, model_name, bible_name):
-        key = 'bible_embedding_{model}'.format(model=model_name)
-        self.db_cache[bible_name].save_meta(key, True)
-        QWidgets.QMessageBox.information(
-            self.application.main_window,
-            translate("BiblesPlugin.BibleManager", "Bible Encoding Finished"),
-            translate(
-                "BiblesPlugin.BibleManager",
-                "Bible {bible} has been encoded with model {model}. You can now "
-                "use the semantic search feature of this Bible with this model.",
-            ).format(bible=bible_name, model=model_name),
-        )
-        self.application.process_events()
-    
-    def on_bible_encoding_beginning(self, model_name, bible_name):
-        key = 'bible_embedding_{model}'.format(model=model_name)
-        self.db_cache[bible_name].save_meta(key, True)
-        QWidgets.QMessageBox.information(
-            self.application.main_window,
-            translate("BiblesPlugin.BibleManager", "Bible Encoding Started"),
-            translate(
-                "BiblesPlugin.BibleManager",
-                "Bible {bible} is currently being encoded with model {model}."
-                "This process may take a while. You will be notified upon completion.",
-            ).format(bible=bible_name, model=model_name),
-        )
-        self.application.process_events()
-
-    def _encode_bible(self, bible, model):
-        log.debug('Encoding Bible {bible} with {model}'.format(bible=bible.name, model=model.name))
-        if not bible or not model:
-            return
-        encode_worker = EmbeddingWorker(model, bible)
-        encode_worker.embedding_beginning.connect(self.on_bible_encoding_beginning)
-        encode_worker.embedding_finished.connect(self.on_bible_encoding_finished)
-        thread_name = "encode-worker-{bible}-{model}-{id}".format(
-            bible=bible.name, model=model.name, id=id(encode_worker)
-        )
-        run_thread(encode_worker, thread_name)
-
-    def encode_bibles(self):
-        for db_model in self.get_models(type=ModelType.ENCODER).values():
-            model = self.load_model(db_model)
-            for bible in self.db_cache.values():
-                key = 'bible_embedding_{model}'.format(model=model.name)
-                if not bible.get_object(bible.BibleMeta, key) and not bible.is_web_bible:
-                    self._encode_bible(bible, model)
-
-    def has_used_model_to_successfully_encode(self, model):
-        model_encoded_all_bibles = False
-        for bible in self.db_cache.values():
-            key = 'bible_embedding_{model}'.format(model=model.name)
-            if bible.get_object(bible.BibleMeta, key) and not bible.is_web_bible:
-                model_encoded_all_bibles = True
-        return model_encoded_all_bibles
 
     def get_bibles(self):
         """
@@ -427,6 +350,7 @@ class BibleManager(LogMixin, RegistryProperties):
         # Fetch the results from db. If no results are found, return None, no message is given for this.
         return self.db_cache[bible].verse_search(text)
 
+# Remove use_local=true
     def similarity_search(self, bible, text, similarity_threshold=0.5, max_results=10, use_local=True):
         """
         Does a similarity search for the given bible and text.
@@ -510,30 +434,6 @@ class BibleManager(LogMixin, RegistryProperties):
                     translate('BiblesPlugin.BibleManager', 'Failed to perform web API search. Please check your internet connection and try again.')
                 )
                 return []
-                
-        else:
-            # Original local model search logic
-            if self.encoder_model is None:
-                self.main_window.information_message(
-                    translate('BiblesPlugin.BibleManager', 'No Encoder Model Selected'),
-                    translate('BiblesPlugin.BibleManager', 'Please select an encoder model to use for semantic search.')
-                )
-                return []
-                
-            # Fetch the embeddings from db
-            verse_ids, encodings = zip(*self.get_encodings(bible, self.encoder_model.name))
-            similarities = self.encoder_model.similarity(text, np.array(encodings))
-            verse_similarity = zip(verse_ids, similarities)
-            verse_similarity = sorted(verse_similarity, key=lambda x: x[1], reverse=True)
-            
-            # Filter out duplicate verses, keeping the highest similarity
-            results = []
-            for verse_id, similarity in verse_similarity:
-                if verse_id not in results and similarity >= similarity_threshold:
-                    results.append(verse_id)
-                    if len(results) >= max_results:
-                        break
-            return self.db_cache[bible].get_verses_by_id(results)
 
     def process_verse_range(self, book_ref_id, chapter_from, verse_from, chapter_to, verse_to):
         verse_ranges = []
@@ -576,97 +476,6 @@ class BibleManager(LogMixin, RegistryProperties):
         """
         log.debug('BibleManager.update_book("{bible}", "{name}")'.format(bible=bible, name=book.name))
         self.db_cache[bible].update_book(book)
-
-    def save_model(self, model):
-        """
-        Save the model to the database.
-
-        :param model: The model to save.
-        """
-        log.debug('Committing %s model to database', model.name)
-        model_info = ModelInfo.get_model_info(model.name)
-        db_model = self.model_manager.get_object_filtered(Model, Model.name == model.name)
-        if db_model is None:
-            db_model = Model()
-            db_model.name = model.name
-            db_model.type = model_info.get('type')
-            db_model.library = model_info.get('library')
-            db_model.description = model_info.get('description')
-        db_model.path = str(model.path)
-        if model.is_downloaded() and not db_model.downloaded:
-            db_model.downloaded = True
-            db_model.download_source = model.url
-        db_model.meta = model.model_info
-        self.model_manager.save_object(db_model)
-
-    def get_models(self, type: ModelType | None = None):
-        """
-        Get all the models from the cache.
-
-        :param type: The type of model to get.
-        :param downloaded: Whether to get only downloaded models.
-        :return: Available models.
-        """
-        if type is None or not self.models_cache:
-            return {}
-        return {name: model for name, model in self.models_cache.items() if model.type == type}
-
-    def load_model(self, db_model):
-        """
-        Load a requested model.
-
-        :param model_name: The name of the model to load.
-        :return: The model object.
-        """
-        if isinstance(db_model, str):
-            db_model = self.models_cache.get(db_model)
-        if db_model is None or not db_model.downloaded:
-            return None
-        model_class = None
-        if db_model.library == ModelLibrary.WHISPER:
-            from openlp.plugins.bibles.lib.models.whispertranscriber import WhisperTranscriberModel
-            model_class = WhisperTranscriberModel
-        elif db_model.library == ModelLibrary.SPEECHBRAIN:
-            from openlp.plugins.bibles.lib.models.sptranscriber import SpeechBrainTranscriberModel
-            model_class = SpeechBrainTranscriberModel
-        elif db_model.library == ModelLibrary.SENTENCE_TRANSFORMERS:
-            from openlp.plugins.bibles.lib.models.stencoder import SentenceTransformerEncoderModel
-            model_class = SentenceTransformerEncoderModel
-        elif db_model.library == ModelLibrary.TENSORFLOW:
-            from openlp.plugins.bibles.lib.models.tfencoder import TensorFlowEncoderModel
-            model_class = TensorFlowEncoderModel
-
-        model = model_class(db_model.name, self)
-        model.load()
-        return model
-
-    @lru_cache(maxsize=8)
-    def get_encodings(self, bible, model_name):
-        """
-        Load the encodings for a bible.
-
-        :param str bible: The bible to load the encodings for.
-        :param str model_name: The name of the model to load.
-        """
-        if not bible or not model_name:
-            return None
-        bible_model = self.db_cache[bible]
-        if bible_model.is_web_bible:
-            return None
-        key = 'bible_embedding_{model}'.format(model=model_name)
-        if not bible_model.get_object(bible_model.BibleMeta, key):
-            return []
-        results = bible_model.get_all_objects(bible_model.Encoding, bible_model.Encoding.model_name == model_name)
-        return [(result.verse_id, loads(result.encoding)) for result in results]
-
-    def set_encoder_model(self, model_name):
-        """
-        Set the encoder model.
-
-        :param model_name: The name of the model to set.
-        """
-        if model_name in self.get_models(type=ModelType.ENCODER).keys():
-            self.encoder_model = self.load_model(model_name)
 
     def exists(self, name):
         """

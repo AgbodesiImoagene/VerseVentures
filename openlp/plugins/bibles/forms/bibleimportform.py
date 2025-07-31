@@ -89,7 +89,6 @@ class BibleImportForm(OpenLPWizard):
         super(BibleImportForm, self).setup_ui(image)
         self.format_combo_box.currentIndexChanged.connect(self.on_current_index_changed)
 
-    def on_current_index_changed(self, index):
         """
         Called when the format combo box's index changed. We have to check if
         the import is available and accordingly to disable or enable the next
@@ -767,31 +766,10 @@ class BibleImportForm(OpenLPWizard):
                 self.manager.save_meta_data(license_version, license_version,
                                             license_copyright, license_permissions, license_full_license)
                 self.manager.reload_bibles()
-                self.manager.encode_bibles()
                 if bible_type == BibleFormat.WebDownload:
                     self.progress_label.setText(
                         translate('BiblesPlugin.ImportWizardForm', 'Registered Bible. Please note, that verses will be '
                                   'downloaded on demand and thus an internet connection is required.'))
-                else:
-                    model_names = self.manager.get_models(type=ModelType.ENCODER).keys()
-                    if len(model_names) > 0:
-                        self.progress_label.setText(
-                            WizardStrings.FinishedImport +
-                            translate(
-                                'BiblesPlugin.ImportWizardForm',
-                                '\nYour selected bible will now be encoded with all your available models in the background.'
-                                'This process must be completed before the model can be used to perform semantic search.'
-                                'You will be notified once the process is complete.'
-                            )
-                        )
-                    else:
-                        self.progress_label.setText(
-                            WizardStrings.FinishedImport +
-                            translate(
-                                'BiblesPlugin.ImportWizardForm',
-                                '\nTo begin using semantic search please import an encoding model using the model import wizard.'
-                            )
-                        )
                 return
         except (AttributeError, ValidationError, etree.XMLSyntaxError):
             log.exception('Importing bible failed')
