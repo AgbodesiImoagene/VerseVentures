@@ -45,8 +45,7 @@ from openlp.core.ui.icons import UiIcons
 from openlp.core.widgets.edits import SearchEdit
 from openlp.plugins.bibles.forms.bibleimportform import BibleImportForm
 from openlp.plugins.bibles.forms.editbibleform import EditBibleForm
-from openlp.plugins.bibles.forms.modeldownloadform import ModelDownloadForm
-from openlp.plugins.bibles.lib import ModelInfo, ModelType, get_reference_match, get_reference_separator
+from openlp.plugins.bibles.lib import get_reference_match, get_reference_separator 
 from openlp.plugins.bibles.lib.versereferencelist import VerseReferenceList
 from openlp.plugins.bibles.lib.workers.audio import AudioWorker, get_working_microphones
 from openlp.core.common.httputils import is_network_available
@@ -71,7 +70,6 @@ class ResultsTab(IntEnum):
     Saved = 0
     Search = 1
 
-
 @unique
 class SearchStatus(IntEnum):
     """
@@ -80,7 +78,6 @@ class SearchStatus(IntEnum):
     SearchButton = 0
     SearchAsYouType = 1
     NotEnoughText = 2
-
 
 @unique
 class SearchTabs(IntEnum):
@@ -91,7 +88,6 @@ class SearchTabs(IntEnum):
     Select = 1
     Suggestions = 2
     Options = 3
-
 
 @unique
 class SematicSimilarity(IntEnum):
@@ -109,7 +105,6 @@ class SematicSimilarity(IntEnum):
             SematicSimilarity.Medium: 0.7,
             SematicSimilarity.High: 0.8,
         }[self]
-
 
 @unique
 class SuggestionTimeout(IntEnum):
@@ -175,7 +170,7 @@ class BibleMediaItem(MediaManagerItem):
         self.current_results = []
         self.search_status = SearchStatus.SearchButton
         # TODO: Make more central and clean up after!
-        self.search_timer = QtCore.QTimer()
+        self.search_timer = QtCore.QTimer() 
         self.search_timer.setInterval(1000)
         self.search_timer.setSingleShot(True)
         self.search_timer.timeout.connect(self.on_search_timer_timeout)
@@ -185,7 +180,6 @@ class BibleMediaItem(MediaManagerItem):
         self.suggestion_timeout = None
         super().__init__(*args, **kwargs)
         Registry().register_function('populate_bible_combo_boxes', self.populate_bible_combo_boxes)
-        Registry().register_function('populate_model_combo_boxes', self.populate_model_combo_boxes)
 
     def setup_item(self):
         """
@@ -202,11 +196,6 @@ class BibleMediaItem(MediaManagerItem):
         self.search_results = []
         self.second_search_results = []
         Registry().register_function('bibles_load_list', self.reload_bibles)
-        Registry().register_function('models_load_list', self.reload_models)
-        self.plugin.manager.set_encoder_model(self.settings.value('models/encoder model'))
-        model_name = self.settings.value('models/transcriber model')
-        if model_name in ModelInfo.transcription_models and self.audio_worker:
-            self.audio_worker.set_model(model_name)
 
     def required_icons(self):
         """
@@ -220,13 +209,6 @@ class BibleMediaItem(MediaManagerItem):
         self.has_edit_icon = True
         self.has_delete_icon = True
         self.add_to_service_item = False
-
-    def add_start_header_bar(self):
-        super().add_start_header_bar()
-        download_model_text = translate('BiblesPlugin.MediaItem', 'Download Model')
-        download_model_tooltip = translate('BiblesPlugin.MediaItem', 'Download a model.')
-        self.toolbar.add_toolbar_action('download_model', text=download_model_text, icon=UiIcons().cloud_download,
-                                        tooltip=download_model_tooltip, triggers=self.on_model_import_click)
 
     def add_middle_header_bar(self):
         self.search_tab_bar = QtWidgets.QTabBar(self)
@@ -275,6 +257,7 @@ class BibleMediaItem(MediaManagerItem):
         self.select_layout.addRow(translate('BiblesPlugin.MediaItem', 'To:'), self.to_layout)
         self.select_tab.setVisible(False)
         self.page_layout.addWidget(self.select_tab)
+        # Remove suggestions tab -----------------------------------------------------
         # Add the Suggestions tab.
         self.suggestions_tab = QtWidgets.QWidget()
         self.suggestions_tab.setSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Minimum)
@@ -310,6 +293,8 @@ class BibleMediaItem(MediaManagerItem):
         self.suggestions_layout.addRow(self.transcription_text_box)
         self.suggestions_tab.setVisible(False)
         self.page_layout.addWidget(self.suggestions_tab)
+        # Remove suggestions tab end ---------------------------------------------
+
         # General Search Options
         self.options_tab = QtWidgets.QWidget()
         self.options_tab.setSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Minimum)
@@ -322,12 +307,6 @@ class BibleMediaItem(MediaManagerItem):
         self.style_combo_box = create_horizontal_adjusting_combo_box(self, 'style_combo_box')
         self.style_combo_box.addItems(['', '', '', ''])
         self.general_bible_layout.addRow(UiStrings().LayoutStyle, self.style_combo_box)
-        self.encoder_model_combo_box = create_horizontal_adjusting_combo_box(self, 'encoder_model_combo_box')
-        self.general_bible_layout.addRow(translate('BiblesPlugin.MediaItem', 'Encoding Model:'),
-                                         self.encoder_model_combo_box)
-        self.transcriber_model_combo_box = create_horizontal_adjusting_combo_box(self, 'transcriber_model_combo_box')
-        self.general_bible_layout.addRow(translate('BiblesPlugin.MediaItem', 'Transcriber Model:'),
-                                         self.transcriber_model_combo_box)
         self.semantic_similarity_dropdown = create_horizontal_adjusting_combo_box(self, 'semantic_similarity_dropdown')
         self.semantic_similarity_dropdown.addItem(translate('BiblesPlugin.MediaItem', 'Low'))
         self.semantic_similarity_dropdown.addItem(translate('BiblesPlugin.MediaItem', 'Medium'))
@@ -387,14 +366,14 @@ class BibleMediaItem(MediaManagerItem):
         self.style_combo_box.currentIndexChanged.connect(self.on_style_combo_box_index_changed)
         self.search_edit.searchTypeChanged.connect(self.update_auto_completer)
         self.microphone_selection.currentIndexChanged.connect(self.on_microphone_selection_index_changed)
-        self.encoder_model_combo_box.currentIndexChanged.connect(self.on_encoder_model_combo_box_index_changed)
-        self.transcriber_model_combo_box.currentIndexChanged.connect(self.on_transcriber_model_combo_box_index_changed)
+
         self.semantic_similarity_dropdown.currentIndexChanged.connect(
             self.on_semantic_similarity_dropdown_index_changed
         )
         self.suggestion_timeout_dropdown.currentIndexChanged.connect(
             self.on_suggestion_timeout_dropdown_index_changed
         )
+
         # Buttons
         self.book_order_button.toggled.connect(self.on_book_order_button_toggled)
         self.clear_button.clicked.connect(self.on_clear_button_clicked)
@@ -470,7 +449,6 @@ class BibleMediaItem(MediaManagerItem):
         self.audio_worker.submitted_text.connect(self.on_audio_search)
         self.audio_worker.display_text.connect(self.on_audio_transcription)
         self.populate_bible_combo_boxes()
-        self.populate_model_combo_boxes()
         self.populate_microphone_combo_box()
         self.search_edit.set_search_types([
             (BibleSearch.Combined, UiIcons().search_comb,
@@ -521,38 +499,6 @@ class BibleMediaItem(MediaManagerItem):
         # make sure the selected bible ripples down to other gui elements
         self.on_version_combo_box_index_changed()
 
-    def populate_model_combo_boxes(self):
-        """
-        Populate the model combo boxes with the list of models that have been loaded
-
-        :return: None
-        """
-        log.debug('Loading Models')
-        self.encoder_model_combo_box.blockSignals(True)
-        self.transcriber_model_combo_box.blockSignals(True)
-        self.encoder_model_combo_box.clear()
-        self.transcriber_model_combo_box.clear()
-        encoder_models = self.plugin.manager.get_models(type=ModelType.ENCODER)
-        encoder_models = [(_f, encoder_models[_f]) for _f in encoder_models if _f]
-        encoder_models.sort(key=lambda k: get_locale_key(k[0]))
-        transcriber_models = self.plugin.manager.get_models(type=ModelType.TRANSCRIBER)
-        transcriber_models = [(_f, transcriber_models[_f]) for _f in transcriber_models if _f]
-        transcriber_models.sort(key=lambda k: get_locale_key(k[0]))
-        for model in encoder_models:
-            self.encoder_model_combo_box.addItem(model[0], model[1])
-        for model in transcriber_models:
-            self.transcriber_model_combo_box.addItem(model[0], model[1])
-        self.encoder_model_combo_box.blockSignals(False)
-        self.transcriber_model_combo_box.blockSignals(False)
-        # set the default value
-        encoder_model = self.settings.value('models/encoder model')
-        transcriber_model = self.settings.value('models/transcriber model')
-        find_and_set_in_combo_box(self.encoder_model_combo_box, encoder_model)
-        find_and_set_in_combo_box(self.transcriber_model_combo_box, transcriber_model)
-        # make sure the selected model ripples down to other gui elements
-        self.on_encoder_model_combo_box_index_changed()
-        self.on_transcriber_model_combo_box_index_changed()
-
     def populate_microphone_combo_box(self):
         """
         Populate the microphone combo box with the available microphones
@@ -579,16 +525,6 @@ class BibleMediaItem(MediaManagerItem):
         log.debug('Reloading Bibles')
         self.plugin.manager.reload_bibles()
         self.populate_bible_combo_boxes()
-
-    def reload_models(self):
-        """
-        Reload the models and update the combo boxes
-
-        :return: None
-        """
-        log.debug('Reloading Models')
-        self.plugin.manager.reload_models()
-        self.populate_model_combo_boxes()
 
     def get_common_books(self, first_bible, second_bible=None):
         """
@@ -661,18 +597,6 @@ class BibleMediaItem(MediaManagerItem):
         # If the import was not cancelled then reload.
         if self.import_wizard.exec():
             self.reload_bibles()
-
-    def on_model_import_click(self):
-        """
-        Create, if not already, the `ModelDownloadForm` and execute it
-
-        :return: None
-        """
-        if not hasattr(self, 'model_import_wizard'):
-            self.model_import_wizard = ModelDownloadForm(self, self.plugin.manager, self.plugin)
-        # If the import was not cancelled then reload.
-        if self.model_import_wizard.exec():            
-            self.reload_models()
 
     def on_edit_click(self):
         """
@@ -826,8 +750,6 @@ class BibleMediaItem(MediaManagerItem):
                                                       'Turn {state} cloud transcription and semantic search.'.format(
                                                           state=state_string)))
 
-        self.transcriber_model_combo_box.setEnabled(not checked)
-        self.encoder_model_combo_box.setEnabled(not checked)
         self.audio_worker.toggle_cloud(checked)
 
     def on_save_results_button_clicked(self):
@@ -895,27 +817,6 @@ class BibleMediaItem(MediaManagerItem):
             self.settings.setValue('bibles/second bible', self.second_bible.name)
             if bible := self.select_book_combo_box.currentData():
                 self.initialise_advanced_bible(bible)
-
-    def on_encoder_model_combo_box_index_changed(self):
-        """
-        Update the encoding model and save it to settings
-
-        :return: None
-        """
-        model_name = self.encoder_model_combo_box.currentText()
-        self.settings.setValue('models/encoder model', model_name)
-        self.plugin.manager.set_encoder_model(model_name)
-
-    def on_transcriber_model_combo_box_index_changed(self):
-        """
-        Update the transcriber model and save it to settings
-
-        :return: None
-        """
-        model_name = self.transcriber_model_combo_box.currentText()
-        self.settings.setValue('models/transcriber model', model_name)
-        if model_name in ModelInfo.transcription_models and self.audio_worker:
-            self.audio_worker.set_model(model_name)
 
     def on_semantic_similarity_dropdown_index_changed(self):
         """
@@ -1132,7 +1033,7 @@ class BibleMediaItem(MediaManagerItem):
         """
         self.search_results = self.plugin.manager.similarity_search(
             self.bible.name, text, similarity_threshold=self.similarity_threshold,
-            use_local=not self.toggle_cloud_button.isChecked()
+            use_local=self.toggle_cloud_button.isChecked()
         )
         if self.search_results is None:
             return False
@@ -1202,7 +1103,7 @@ class BibleMediaItem(MediaManagerItem):
                 if self.search_edit.current_search_type() == BibleSearch.Text:
                     self.on_text_search(text)
                 elif self.search_edit.current_search_type() == BibleSearch.Semantic:
-                    self.on_semantic_search(text)
+                    self.on_semantic_search(text) 
                 elif not self.on_text_search(text):
                     # Combined search with no valid reference and no text search results
                     self.on_semantic_search(text)
@@ -1242,9 +1143,10 @@ class BibleMediaItem(MediaManagerItem):
         log.debug('audio_search called')
         if self.search_tab_bar.currentIndex() != SearchTabs.Suggestions:
             return
+        # Remove this use_local
         self.search_results = self.plugin.manager.similarity_search(
             self.bible.name, text, similarity_threshold=self.similarity_threshold,
-            use_local=not self.toggle_cloud_button.isChecked()
+            use_local= self.toggle_cloud_button.isChecked()
         )
         if self.search_results is None:
             return False

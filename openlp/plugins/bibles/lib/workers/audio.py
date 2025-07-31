@@ -41,8 +41,7 @@ from speech_recognition import AudioData, Microphone, Recognizer
 
 from openlp.core.db.manager import DBManager
 from openlp.core.threading import ThreadWorker
-from openlp.plugins.bibles.lib import ModelInfo, ModelLibrary
-from openlp.plugins.bibles.lib.db import Model, init_schema
+from openlp.plugins.bibles.lib.db import init_schema
 
 DEFAULT_SAMPLE_RATE = 16000  # 16 kHz
 BLOCK_SIZE = 4 * 1024  # 4 KB
@@ -51,9 +50,6 @@ SILENCE_DURATION = 2.5  # 2.5 seconds
 CALLBACK_INTERVAL = 1  # 1 second
 
 log = logging.getLogger(__name__)
-
-# Mutex to protect the transcriber model from being changed while it is being used.
-transcriber_mutex = QtCore.QMutex()
 
 audio_queue = Queue()
 
@@ -158,10 +154,6 @@ class AudioWorker(ThreadWorker):
             self.current_task = asyncio.run_coroutine_threadsafe(
                 self.amazon_transcribe(), self.event_loop
             )
-        else:
-            self.current_task = asyncio.run_coroutine_threadsafe(
-                self.local_transcribe(), self.event_loop
-            )
 
     async def amazon_transcribe(self, language_code: str = "en-US"):
         """
@@ -181,49 +173,6 @@ class AudioWorker(ThreadWorker):
             amazon_stream.output_stream, self.display_text, self.submitted_text
         )
         await asyncio.gather(self.write_chunks(amazon_stream), handler.handle_events())
-
-    async def local_transcribe(self):
-        """
-        Perform local transcription using the selected transcriber model.
-        """
-        last_transcription = ""
-        last_transcription_time = None
-        chunks = []
-        async for chunk in mic_stream():
-            if self.transcriber_model is not None:
-                now = datetime.now()
-                chunks.append(chunk)
-                audio_data = (
-                    np.frombuffer(b"".join(chunks), dtype=np.int16).astype(np.float32)
-                    / 32768.0
-                )
-                if self.transcriber_model:
-                    transcriber_mutex.lock()
-                    transcription = self.transcriber_model.transcribe(
-                        audio_data
-                    ).strip()
-                    transcriber_mutex.unlock()
-                    if transcription and transcription != last_transcription:
-                        self.display_text.emit(transcription)
-                        last_transcription = transcription
-                        last_transcription_time = now
-                    if (
-                        re.search(r"(?<!\.\.)[.!?]$", transcription)
-                        or (
-                            last_transcription_time
-                            and (
-                                now - last_transcription_time
-                                > timedelta(seconds=SILENCE_DURATION)
-                            )
-                        )
-                        or re.match(r"\.+$", transcription)
-                    ):
-                        self.submitted_text.emit(transcription)
-                        chunks.clear()
-                    if not transcription:
-                        chunks.clear()
-            if self.shutdown:
-                break
 
     def _start_listening(self):
         """
@@ -323,40 +272,6 @@ class AudioWorker(ThreadWorker):
         self.cloud = state
         if self.is_active:
             self._start_transcription_task()
-
-    @QtCore.pyqtSlot(str)
-    def set_model(self, model_name):
-        """
-        Set the transcriber model.
-
-        :param model_name: The name of the model to set.
-        """
-        log.debug("AudioWorker - Set model %s", model_name)
-        db_model = self.model_manager.get_object_filtered(
-            Model, Model.name == model_name
-        )
-        if db_model is None:
-            return None
-        model_info = model_data = ModelInfo.get_model_info(model_name)
-        model_info.update(db_model.meta)
-        model_info["path"] = db_model.path
-        model_class = None
-        if db_model.library == ModelLibrary.WHISPER:
-            from openlp.plugins.bibles.lib.models.whispertranscriber import (
-                WhisperTranscriberModel,
-            )
-
-            model_class = WhisperTranscriberModel
-        elif db_model.library == ModelLibrary.SPEECHBRAIN:
-            from openlp.plugins.bibles.lib.models.sptranscriber import (
-                SpeechBrainTranscriberModel,
-            )
-
-            model_class = SpeechBrainTranscriberModel
-        transcriber_mutex.lock()
-        self.transcriber_model = model_class(model_name, self, **model_data)
-        self.transcriber_model.load()
-        transcriber_mutex.unlock()
 
     @QtCore.pyqtSlot()
     def shutdown_worker(self):

@@ -36,7 +36,7 @@ log = logging.getLogger(__name__)
 REFERENCE_MATCHES = {}
 REFERENCE_SEPARATORS = {}
 
-
+# Remove this class ModelType
 class ModelType(Enum):
     """
     This is a special enumeration class that holds the various types of models.
@@ -58,7 +58,7 @@ class ModelType(Enum):
                 return item
         return None
 
-
+# Remove this class ModelLibrary
 class ModelLibrary(Enum):
     """
     This is a special enumeration class that holds the various libraries that models can be downloaded from.
@@ -441,7 +441,7 @@ class SearchResults(object):
         """
         return len(self.verse_list) > 0
 
-
+# Remove this class ModelInfo
 class ModelInfo(object):
     """
     Encapsulate the information about available AI models.
