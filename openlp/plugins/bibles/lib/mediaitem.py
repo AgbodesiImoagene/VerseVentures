@@ -292,16 +292,16 @@ class BibleMediaItem(MediaManagerItem):
         self.microphone_options_layout.addWidget(self.toggle_microphone_button)
         self.suggestions_layout.addRow(translate('BiblesPlugin.MediaItem', 'Microphone:'),
                                        self.microphone_options_layout)
-        self.cloud_layout = QtWidgets.QHBoxLayout()
-        self.toggle_cloud_button = QtWidgets.QToolButton()
-        self.toggle_cloud_button.setIcon(self.cloud_icon)
-        self.toggle_cloud_button.setCheckable(True)
-        self.toggle_cloud_button.setChecked(False)
-        self.toggle_cloud_button.setToolTip(translate('BiblesPlugin.MediaItem',
-                                                      'Turn on cloud transcription and semantic search.'))
-        self.cloud_layout.addWidget(self.toggle_cloud_button)
-        self.suggestions_layout.addRow(translate('BiblesPlugin.MediaItem', 'Online suggestions:'),
-                                       self.cloud_layout)
+        # self.cloud_layout = QtWidgets.QHBoxLayout()
+        # self.toggle_cloud_button = QtWidgets.QToolButton()
+        # self.toggle_cloud_button.setIcon(self.cloud_icon)
+        # self.toggle_cloud_button.setCheckable(True)
+        # self.toggle_cloud_button.setChecked(False)
+        # self.toggle_cloud_button.setToolTip(translate('BiblesPlugin.MediaItem',
+        #                                               'Turn on cloud transcription and semantic search.'))
+        # self.cloud_layout.addWidget(self.toggle_cloud_button)
+        # self.suggestions_layout.addRow(translate('BiblesPlugin.MediaItem', 'Online suggestions:'),
+        #                                self.cloud_layout)
 
         self.transcription_text_box = GrowingTextEdit(self.suggestions_tab)
         self.transcription_text_box.setReadOnly(True)
@@ -399,7 +399,7 @@ class BibleMediaItem(MediaManagerItem):
         self.book_order_button.toggled.connect(self.on_book_order_button_toggled)
         self.clear_button.clicked.connect(self.on_clear_button_clicked)
         self.toggle_microphone_button.toggled.connect(self.on_microphone_button_toggled)
-        self.toggle_cloud_button.toggled.connect(self.on_cloud_button_toggled)
+        # self.toggle_cloud_button.toggled.connect(self.on_cloud_button_toggled)
         self.save_results_button.clicked.connect(self.on_save_results_button_clicked)
         self.search_button.clicked.connect(self.on_search_button_clicked)
         # Other stuff
@@ -489,7 +489,7 @@ class BibleMediaItem(MediaManagerItem):
         if self.settings.value('bibles/reset to combined quick search'):
             self.search_edit.set_current_search_type(BibleSearch.Combined)
         self.config_update()
-        run_thread(self.audio_worker, 'audio-worker')
+        run_thread(self.audio_worker, 'audio-worker', 'audio-thread')
         log.debug('bible manager initialisation complete')
 
     def populate_bible_combo_boxes(self):
@@ -804,31 +804,31 @@ class BibleMediaItem(MediaManagerItem):
         self.microphone_selection.setEnabled(checked)
         self.audio_worker.toggle_active(checked)
 
-    def on_cloud_button_toggled(self, checked):
-        """
-        Toggle the cloud transcription and semantic search on or off
+    # def on_cloud_button_toggled(self, checked):
+    #     """
+    #     Toggle the cloud transcription and semantic search on or off
 
-        :param checked: Indicates if the button is checked or not (Bool)
-        :return: None
-        """
-        if checked and not is_network_available():
-            QtWidgets.QMessageBox.critical(
-                self,
-                translate('BiblesPlugin.MediaItem', 'Network Error'),
-                translate('BiblesPlugin.MediaItem',
-                          'No network connection available. Please check your connection and try again.')
-            )
-            self.toggle_cloud_button.setChecked(False)
-            return
+    #     :param checked: Indicates if the button is checked or not (Bool)
+    #     :return: None
+    #     """
+    #     if checked and not is_network_available():
+    #         QtWidgets.QMessageBox.critical(
+    #             self,
+    #             translate('BiblesPlugin.MediaItem', 'Network Error'),
+    #             translate('BiblesPlugin.MediaItem',
+    #                       'No network connection available. Please check your connection and try again.')
+    #         )
+    #         self.toggle_cloud_button.setChecked(False)
+    #         return
 
-        state_string = 'off' if checked else 'on'
-        self.toggle_cloud_button.setToolTip(translate('BiblesPlugin.MediaItem',
-                                                      'Turn {state} cloud transcription and semantic search.'.format(
-                                                          state=state_string)))
+    #     state_string = 'off' if checked else 'on'
+    #     self.toggle_cloud_button.setToolTip(translate('BiblesPlugin.MediaItem',
+    #                                                   'Turn {state} cloud transcription and semantic search.'.format(
+    #                                                       state=state_string)))
 
-        self.transcriber_model_combo_box.setEnabled(not checked)
-        self.encoder_model_combo_box.setEnabled(not checked)
-        self.audio_worker.toggle_cloud(checked)
+    #     self.transcriber_model_combo_box.setEnabled(not checked)
+    #     self.encoder_model_combo_box.setEnabled(not checked)
+    #     self.audio_worker.toggle_cloud(checked)
 
     def on_save_results_button_clicked(self):
         """
@@ -1132,7 +1132,7 @@ class BibleMediaItem(MediaManagerItem):
         """
         self.search_results = self.plugin.manager.similarity_search(
             self.bible.name, text, similarity_threshold=self.similarity_threshold,
-            use_local=not self.toggle_cloud_button.isChecked()
+            use_local=True # not self.toggle_cloud_button.isChecked()
         )
         if self.search_results is None:
             return False
@@ -1244,7 +1244,7 @@ class BibleMediaItem(MediaManagerItem):
             return
         self.search_results = self.plugin.manager.similarity_search(
             self.bible.name, text, similarity_threshold=self.similarity_threshold,
-            use_local=not self.toggle_cloud_button.isChecked()
+            use_local=True #not self.toggle_cloud_button.isChecked()
         )
         if self.search_results is None:
             return False

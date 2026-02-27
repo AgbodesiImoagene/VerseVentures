@@ -359,7 +359,7 @@ class AudioWorker(ThreadWorker):
         transcriber_mutex.unlock()
 
     @QtCore.pyqtSlot()
-    def shutdown_worker(self):
+    def stop(self):
         """
         Shutdown the worker.
         """
