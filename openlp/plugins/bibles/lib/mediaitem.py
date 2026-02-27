@@ -467,7 +467,7 @@ class BibleMediaItem(MediaManagerItem):
         if self.settings.value('bibles/reset to combined quick search'):
             self.search_edit.set_current_search_type(BibleSearch.Combined)
         self.config_update()
-        run_thread(self.audio_worker, 'audio-worker')
+        run_thread(self.audio_worker, 'audio-worker', 'audio-thread')
         log.debug('bible manager initialisation complete')
 
     def populate_bible_combo_boxes(self):

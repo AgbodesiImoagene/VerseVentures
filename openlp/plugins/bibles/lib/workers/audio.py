@@ -274,7 +274,7 @@ class AudioWorker(ThreadWorker):
             self._start_transcription_task()
 
     @QtCore.pyqtSlot()
-    def shutdown_worker(self):
+    def stop(self):
         """
         Shutdown the worker.
         """
